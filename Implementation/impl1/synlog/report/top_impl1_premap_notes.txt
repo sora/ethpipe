@@ -1,0 +1,6 @@
+@N: MF249 |Running in 32-bit mode.
+@N: MF257 |Gated clock conversion enabled 
+@N: MF546 |Generated clock conversion enabled 
+@N: MT480 :"/home/sora/work/ethout/Implementation/top.sdc":1:0:1:0|Assigning clock "refclkn" to command: define_clock {p:refclkn} -freq {100} -clockgroup {default_clkgroup_0} 
+@N: MT480 :"/home/sora/work/ethout/Implementation/top.sdc":1:0:1:0|Assigning clock "refclkp" to command: define_clock {p:refclkp} -freq {100} -clockgroup {default_clkgroup_1} 
+@N: MT480 :"/home/sora/work/ethout/Implementation/top.sdc":1:0:1:0|Assigning clock "clk_125" to command: define_clock {n:clk_125} -freq {125} -clockgroup {default_clkgroup_3} 

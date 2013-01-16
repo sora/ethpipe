@@ -1,0 +1,33 @@
+Synopsys Lattice Technology Pre-mapping, Version maplat, Build 239R, Built Oct 19 2011 10:39:13
+Copyright (C) 1994-2011, Synopsys Inc.  All Rights Reserved
+Product Version F-2011.09L
+
+Mapper Startup Complete (Time elapsed 0h:00m:00s; Memory used current: 48MB peak: 48MB)
+
+Reading constraint file: /home/sora/work/ethout/Implementation/top.sdc
+@N: MF249 |Running in 32-bit mode.
+@N: MF257 |Gated clock conversion enabled 
+@N: MF546 |Generated clock conversion enabled 
+
+Design Input Complete (Time elapsed 0h:00m:00s; Memory used current: 50MB peak: 50MB)
+
+
+Mapper Initialization Complete (Time elapsed 0h:00m:00s; Memory used current: 50MB peak: 50MB)
+
+@W: BN132 :"/home/sora/work/ethout/source/wb_tlc/wb_intf.v":71:0:71:5|Removing sequential instance wb_cyc_o_1,  because it is equivalent to instance wb_stb_o
+@W: BN132 :"/home/sora/work/ethout/source/wb_tlc/wb_intf.v":71:0:71:5|Removing sequential instance tran_length[9:0],  because it is equivalent to instance length[9:0]
+@N: MT480 :"/home/sora/work/ethout/Implementation/top.sdc":1:0:1:0|Assigning clock "refclkn" to command: define_clock {p:refclkn} -freq {100} -clockgroup {default_clkgroup_0} 
+@N: MT480 :"/home/sora/work/ethout/Implementation/top.sdc":1:0:1:0|Assigning clock "refclkp" to command: define_clock {p:refclkp} -freq {100} -clockgroup {default_clkgroup_1} 
+@N: MT480 :"/home/sora/work/ethout/Implementation/top.sdc":1:0:1:0|Assigning clock "clk_125" to command: define_clock {n:clk_125} -freq {125} -clockgroup {default_clkgroup_3} 
+syn_allowed_resources : blockrams=72  set on top level netlist top
+
+Finished Pre Mapping Phase. (Time elapsed 0h:00m:00s; Memory used current: 76MB peak: 78MB)
+
+Pre Mapping successful!
+
+At Mapper Exit (Time elapsed 0h:00m:00s; Memory used current: 44MB peak: 78MB)
+
+Process took 0h:00m:01s realtime, 0h:00m:01s cputime
+# Thu Jan 17 03:23:51 2013
+
+###########################################################]

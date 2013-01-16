@@ -1,0 +1,82 @@
+@P:  Worst Slack : -0.162
+@P:  clk_125_c - Estimated Frequency : 210.2 MHz
+@P:  clk_125_c - Requested Frequency : 125.0 MHz
+@P:  clk_125_c - Estimated Period : 4.757
+@P:  clk_125_c - Requested Period : 8.000
+@P:  clk_125_c - Slack : 3.243
+@P:  pll|CLKOP_inferred_clock - Estimated Frequency : 1377.8 MHz
+@P:  pll|CLKOP_inferred_clock - Requested Frequency : 200.0 MHz
+@P:  pll|CLKOP_inferred_clock - Estimated Period : 0.726
+@P:  pll|CLKOP_inferred_clock - Requested Period : 5.000
+@P:  pll|CLKOP_inferred_clock - Slack : 4.274
+@P:  refclkn - Estimated Frequency : NA
+@P:  refclkn - Requested Frequency : 100.0 MHz
+@P:  refclkn - Estimated Period : NA
+@P:  refclkn - Requested Period : 10.000
+@P:  refclkn - Slack : NA
+@P:  refclkp - Estimated Frequency : NA
+@P:  refclkp - Requested Frequency : 100.0 MHz
+@P:  refclkp - Estimated Period : NA
+@P:  refclkp - Requested Period : 10.000
+@P:  refclkp - Slack : NA
+@P:  top|phy2_rx_clk - Estimated Frequency : 258.2 MHz
+@P:  top|phy2_rx_clk - Requested Frequency : 200.0 MHz
+@P:  top|phy2_rx_clk - Estimated Period : 3.873
+@P:  top|phy2_rx_clk - Requested Period : 5.000
+@P:  top|phy2_rx_clk - Slack : 1.127
+@P:  System - Estimated Frequency : 563.7 MHz
+@P:  System - Requested Frequency : 200.0 MHz
+@P:  System - Estimated Period : 1.774
+@P:  System - Requested Period : 5.000
+@P:  System - Slack : 3.226
+@P:  Worst Slack(min analysis) : -0.264
+@P:  clk_125_c - Estimated Frequency(min analysis) : 210.2 MHz
+@P:  clk_125_c - Requested Frequency(min analysis) : 125.0 MHz
+@P:  clk_125_c - Estimated Period(min analysis) : 4.757
+@P:  clk_125_c - Requested Period(min analysis) : 8.000
+@P:  clk_125_c - Slack(min analysis) : 3.243
+@P:  pll|CLKOP_inferred_clock - Estimated Frequency(min analysis) : 1377.8 MHz
+@P:  pll|CLKOP_inferred_clock - Requested Frequency(min analysis) : 200.0 MHz
+@P:  pll|CLKOP_inferred_clock - Estimated Period(min analysis) : 0.726
+@P:  pll|CLKOP_inferred_clock - Requested Period(min analysis) : 5.000
+@P:  pll|CLKOP_inferred_clock - Slack(min analysis) : 4.274
+@P:  refclkn - Estimated Frequency(min analysis) : NA
+@P:  refclkn - Requested Frequency(min analysis) : 100.0 MHz
+@P:  refclkn - Estimated Period(min analysis) : NA
+@P:  refclkn - Requested Period(min analysis) : 10.000
+@P:  refclkn - Slack(min analysis) : NA
+@P:  refclkp - Estimated Frequency(min analysis) : NA
+@P:  refclkp - Requested Frequency(min analysis) : 100.0 MHz
+@P:  refclkp - Estimated Period(min analysis) : NA
+@P:  refclkp - Requested Period(min analysis) : 10.000
+@P:  refclkp - Slack(min analysis) : NA
+@P:  top|phy2_rx_clk - Estimated Frequency(min analysis) : 258.2 MHz
+@P:  top|phy2_rx_clk - Requested Frequency(min analysis) : 200.0 MHz
+@P:  top|phy2_rx_clk - Estimated Period(min analysis) : 3.873
+@P:  top|phy2_rx_clk - Requested Period(min analysis) : 5.000
+@P:  top|phy2_rx_clk - Slack(min analysis) : 1.127
+@P:  System - Estimated Frequency(min analysis) : 563.7 MHz
+@P:  System - Requested Frequency(min analysis) : 200.0 MHz
+@P:  System - Estimated Period(min analysis) : 1.774
+@P:  System - Requested Period(min analysis) : 5.000
+@P:  System - Slack(min analysis) : 3.226
+@P:  Total Area : 525.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  Total Area : 0.0
+@P:  CPU Time : 0h:00m:03s

@@ -1,0 +1,59 @@
+NOTE Copyright (C), 1992-2010, Lattice Semiconductor Corporation *
+NOTE All Rights Reserved *
+NOTE DATE CREATED: Thu Jan 17 03:27:17 2013 *
+NOTE DESIGN NAME: top *
+NOTE DEVICE NAME: LFE3-35EA-8FPBGA484 *
+NOTE PIN ASSIGNMENTS *
+NOTE PINS led_out_0 : V6 : out *
+NOTE PINS phy2_rst_n : R21 : out *
+NOTE PINS rstn : E18 : in *
+NOTE PINS phy2_mii_data : U16 : out *
+NOTE PINS phy2_mii_clk : Y18 : out *
+NOTE PINS phy2_rx_data_7 : Y21 : in *
+NOTE PINS phy2_rx_data_6 : W21 : in *
+NOTE PINS phy2_rx_data_5 : R18 : in *
+NOTE PINS phy2_rx_data_4 : T17 : in *
+NOTE PINS phy2_rx_data_3 : V21 : in *
+NOTE PINS phy2_rx_data_2 : R19 : in *
+NOTE PINS phy2_rx_data_1 : AA17 : in *
+NOTE PINS phy2_rx_data_0 : AB17 : in *
+NOTE PINS phy2_rx_dv : U15 : in *
+NOTE PINS phy2_rx_clk : N19 : in *
+NOTE PINS phy2_tx_data_7 : U20 : out *
+NOTE PINS phy2_tx_data_6 : P20 : out *
+NOTE PINS phy2_tx_data_5 : U22 : out *
+NOTE PINS phy2_tx_data_4 : T21 : out *
+NOTE PINS phy2_tx_data_3 : Y22 : out *
+NOTE PINS phy2_tx_data_2 : P17 : out *
+NOTE PINS phy2_tx_data_1 : R16 : out *
+NOTE PINS phy2_tx_data_0 : W22 : out *
+NOTE PINS phy2_tx_en : V22 : out *
+NOTE PINS phy2_gtx_clk : M19 : out *
+NOTE PINS phy1_mii_clk : V4 : out *
+NOTE PINS phy1_tx_data_7 : N2 : out *
+NOTE PINS phy1_tx_data_6 : N4 : out *
+NOTE PINS phy1_tx_data_5 : N3 : out *
+NOTE PINS phy1_tx_data_4 : N5 : out *
+NOTE PINS phy1_tx_data_3 : P1 : out *
+NOTE PINS phy1_tx_data_2 : R3 : out *
+NOTE PINS phy1_tx_data_1 : U1 : out *
+NOTE PINS phy1_tx_data_0 : V1 : out *
+NOTE PINS phy1_tx_en : V3 : out *
+NOTE PINS phy1_gtx_clk : M2 : out *
+NOTE PINS phy1_rst_n : L3 : out *
+NOTE PINS dp : W5 : out *
+NOTE PINS led_out_13 : AA5 : out *
+NOTE PINS led_out_12 : AA4 : out *
+NOTE PINS led_out_11 : Y5 : out *
+NOTE PINS led_out_10 : W4 : out *
+NOTE PINS led_out_9 : AB4 : out *
+NOTE PINS led_out_8 : AB3 : out *
+NOTE PINS led_out_7 : T9 : out *
+NOTE PINS led_out_6 : R9 : out *
+NOTE PINS led_out_5 : T8 : out *
+NOTE PINS led_out_4 : U8 : out *
+NOTE PINS led_out_3 : AA6 : out *
+NOTE PINS led_out_2 : Y6 : out *
+NOTE PINS led_out_1 : U7 : out *
+NOTE CONFIGURATION MODE: SPI *
+NOTE COMPRESSION: off *

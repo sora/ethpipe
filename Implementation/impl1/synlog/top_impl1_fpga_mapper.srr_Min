@@ -1,0 +1,173 @@
+
+
+##### START OF TIMING REPORT #####[
+# Timing Report written on Thu Jan 17 03:23:55 2013
+#
+
+
+Top view:               top
+Requested Frequency:    100.0 MHz
+Wire load mode:         top
+Paths requested:        3
+Constraint File(s):    /home/sora/work/ethout/Implementation/top.sdc
+                       
+@N: MT320 |This timing report estimates place and route data. Please look at the place and route timing report for final timing.
+
+
+Performance Summary 
+*******************
+
+
+Worst slack in design: -0.264
+
+                             Requested     Estimated      Requested     Estimated               Clock        Clock              
+Starting Clock               Frequency     Frequency      Period        Period        Slack     Type         Group              
+--------------------------------------------------------------------------------------------------------------------------------
+clk_125_c                    125.0 MHz     210.2 MHz      8.000         4.757         3.243     declared     default_clkgroup_3 
+pll|CLKOP_inferred_clock     200.0 MHz     1377.8 MHz     5.000         0.726         4.274     inferred     Inferred_clkgroup_1
+refclkn                      100.0 MHz     NA             10.000        NA            NA        declared     default_clkgroup_0 
+refclkp                      100.0 MHz     NA             10.000        NA            NA        declared     default_clkgroup_1 
+top|phy2_rx_clk              200.0 MHz     258.2 MHz      5.000         3.873         1.127     inferred     Inferred_clkgroup_0
+System                       200.0 MHz     563.7 MHz      5.000         1.774         3.226     system       system_clkgroup    
+================================================================================================================================
+
+
+
+Clock Relationships
+*******************
+
+Clocks                                              |    rise  to  rise    |    fall  to  fall   |    rise  to  fall   |    fall  to  rise 
+-------------------------------------------------------------------------------------------------------------------------------------------
+Starting                  Ending                    |  constraint  slack   |  constraint  slack  |  constraint  slack  |  constraint  slack
+-------------------------------------------------------------------------------------------------------------------------------------------
+System                    System                    |  0.000       0.000   |  No paths    -      |  No paths    -      |  No paths    -    
+System                    top|phy2_rx_clk           |  0.000       0.944   |  No paths    -      |  No paths    -      |  No paths    -    
+System                    pll|CLKOP_inferred_clock  |  0.000       -0.264  |  No paths    -      |  No paths    -      |  No paths    -    
+System                    clk_125_c                 |  0.000       -0.264  |  No paths    -      |  No paths    -      |  No paths    -    
+top|phy2_rx_clk           top|phy2_rx_clk           |  0.000       0.296   |  No paths    -      |  No paths    -      |  No paths    -    
+top|phy2_rx_clk           pll|CLKOP_inferred_clock  |  Diff grp    -       |  No paths    -      |  No paths    -      |  No paths    -    
+top|phy2_rx_clk           clk_125_c                 |  Diff grp    -       |  No paths    -      |  No paths    -      |  No paths    -    
+pll|CLKOP_inferred_clock  pll|CLKOP_inferred_clock  |  0.000       0.390   |  No paths    -      |  No paths    -      |  No paths    -    
+pll|CLKOP_inferred_clock  clk_125_c                 |  Diff grp    -       |  No paths    -      |  No paths    -      |  No paths    -    
+clk_125_c                 System                    |  0.000       0.449   |  No paths    -      |  No paths    -      |  No paths    -    
+clk_125_c                 top|phy2_rx_clk           |  Diff grp    -       |  No paths    -      |  No paths    -      |  No paths    -    
+clk_125_c                 pll|CLKOP_inferred_clock  |  Diff grp    -       |  No paths    -      |  No paths    -      |  No paths    -    
+clk_125_c                 clk_125_c                 |  0.000       0.259   |  No paths    -      |  No paths    -      |  No paths    -    
+===========================================================================================================================================
+ Note: 'No paths' indicates there are no paths in the design for that pair of clock edges.
+       'Diff grp' indicates that paths exist but the starting clock and ending clock are in different clock groups.
+
+
+
+Interface Information 
+*********************
+
+
+
+Input Ports: 
+
+Port                Starting            User           Arrival     Required          
+Name                Reference           Constraint     Time        Time         Slack
+                    Clock                                                            
+-------------------------------------------------------------------------------------
+FLIP_LANES          System (rising)     NA             0.000       -0.973            
+dip_switch[0]       NA                  NA             NA          NA           NA   
+dip_switch[1]       NA                  NA             NA          NA           NA   
+dip_switch[2]       NA                  NA             NA          NA           NA   
+dip_switch[3]       NA                  NA             NA          NA           NA   
+dip_switch[4]       NA                  NA             NA          NA           NA   
+dip_switch[5]       NA                  NA             NA          NA           NA   
+dip_switch[6]       NA                  NA             NA          NA           NA   
+dip_switch[7]       NA                  NA             NA          NA           NA   
+hdinn               System (rising)     NA             0.000       0.000             
+hdinp               System (rising)     NA             0.000       0.000             
+phy1_125M_clk       NA                  NA             NA          NA           NA   
+phy1_col            NA                  NA             NA          NA           NA   
+phy1_crs            NA                  NA             NA          NA           NA   
+phy1_mii_data       NA                  NA             NA          NA           NA   
+phy1_rx_clk         NA                  NA             NA          NA           NA   
+phy1_rx_data[0]     NA                  NA             NA          NA           NA   
+phy1_rx_data[1]     NA                  NA             NA          NA           NA   
+phy1_rx_data[2]     NA                  NA             NA          NA           NA   
+phy1_rx_data[3]     NA                  NA             NA          NA           NA   
+phy1_rx_data[4]     NA                  NA             NA          NA           NA   
+phy1_rx_data[5]     NA                  NA             NA          NA           NA   
+phy1_rx_data[6]     NA                  NA             NA          NA           NA   
+phy1_rx_data[7]     NA                  NA             NA          NA           NA   
+phy1_rx_dv          NA                  NA             NA          NA           NA   
+phy1_rx_er          NA                  NA             NA          NA           NA   
+phy1_tx_clk         NA                  NA             NA          NA           NA   
+phy2_125M_clk       NA                  NA             NA          NA           NA   
+phy2_col            NA                  NA             NA          NA           NA   
+phy2_crs            NA                  NA             NA          NA           NA   
+phy2_rx_clk         NA                  NA             NA          NA           NA   
+phy2_rx_data[0]     System (rising)     NA             0.000       -0.944            
+phy2_rx_data[1]     System (rising)     NA             0.000       -0.944            
+phy2_rx_data[2]     System (rising)     NA             0.000       -0.944            
+phy2_rx_data[3]     System (rising)     NA             0.000       -0.944            
+phy2_rx_data[4]     System (rising)     NA             0.000       -0.944            
+phy2_rx_data[5]     System (rising)     NA             0.000       -0.944            
+phy2_rx_data[6]     System (rising)     NA             0.000       -0.944            
+phy2_rx_data[7]     System (rising)     NA             0.000       -0.944            
+phy2_rx_dv          System (rising)     NA             0.000       -1.032            
+phy2_rx_er          NA                  NA             NA          NA           NA   
+phy2_tx_clk         NA                  NA             NA          NA           NA   
+refclkn             NA                  NA             NA          NA           NA   
+refclkp             NA                  NA             NA          NA           NA   
+rstn                System (rising)     NA             0.000       -1.003            
+=====================================================================================
+
+
+Output Ports: 
+
+Port                Starting               User           Arrival     Required          
+Name                Reference              Constraint     Time        Time         Slack
+                    Clock                                                               
+----------------------------------------------------------------------------------------
+dp                  NA                     NA             NA          NA           NA   
+hdoutn              System (rising)        NA             0.000       0.000             
+hdoutp              System (rising)        NA             0.000       0.000             
+led_out[0]          NA                     NA             NA          NA           NA   
+led_out[1]          NA                     NA             NA          NA           NA   
+led_out[2]          NA                     NA             NA          NA           NA   
+led_out[3]          NA                     NA             NA          NA           NA   
+led_out[4]          NA                     NA             NA          NA           NA   
+led_out[5]          NA                     NA             NA          NA           NA   
+led_out[6]          NA                     NA             NA          NA           NA   
+led_out[7]          NA                     NA             NA          NA           NA   
+led_out[8]          NA                     NA             NA          NA           NA   
+led_out[9]          NA                     NA             NA          NA           NA   
+led_out[10]         NA                     NA             NA          NA           NA   
+led_out[11]         NA                     NA             NA          NA           NA   
+led_out[12]         NA                     NA             NA          NA           NA   
+led_out[13]         NA                     NA             NA          NA           NA   
+phy1_gtx_clk        NA                     NA             NA          NA           NA   
+phy1_mii_clk        NA                     NA             NA          NA           NA   
+phy1_rst_n          NA                     NA             NA          NA           NA   
+phy1_tx_data[0]     NA                     NA             NA          NA           NA   
+phy1_tx_data[1]     NA                     NA             NA          NA           NA   
+phy1_tx_data[2]     NA                     NA             NA          NA           NA   
+phy1_tx_data[3]     NA                     NA             NA          NA           NA   
+phy1_tx_data[4]     NA                     NA             NA          NA           NA   
+phy1_tx_data[5]     NA                     NA             NA          NA           NA   
+phy1_tx_data[6]     NA                     NA             NA          NA           NA   
+phy1_tx_data[7]     NA                     NA             NA          NA           NA   
+phy1_tx_en          NA                     NA             NA          NA           NA   
+phy2_gtx_clk        NA                     NA             NA          NA           NA   
+phy2_mii_clk        NA                     NA             NA          NA           NA   
+phy2_mii_data       NA                     NA             NA          NA           NA   
+phy2_rst_n          clk_125_c (rising)     NA             3.202       0.000             
+phy2_tx_data[0]     NA                     NA             NA          NA           NA   
+phy2_tx_data[1]     NA                     NA             NA          NA           NA   
+phy2_tx_data[2]     NA                     NA             NA          NA           NA   
+phy2_tx_data[3]     NA                     NA             NA          NA           NA   
+phy2_tx_data[4]     NA                     NA             NA          NA           NA   
+phy2_tx_data[5]     NA                     NA             NA          NA           NA   
+phy2_tx_data[6]     NA                     NA             NA          NA           NA   
+phy2_tx_data[7]     NA                     NA             NA          NA           NA   
+phy2_tx_en          NA                     NA             NA          NA           NA   
+========================================================================================
+
+
+##### END OF TIMING REPORT #####]
+

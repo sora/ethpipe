@@ -1,0 +1,236 @@
+Selecting top level module top
+@N: CG364 :"/home/sora/work/ethout/source/ipexpress/ecp3/pciex1/pcie_eval/models/ecp3/pcs_pipe_bb.v":11:7:11:18|Synthesizing module pcs_pipe_top
+
+@N: CG364 :"/home/sora/work/ethout/source/ipexpress/ecp3/pciex1/pcie_bb.v":14:7:14:10|Synthesizing module pcie
+
+@W: CG146 :"/home/sora/work/ethout/source/ipexpress/ecp3/pciex1/pcie_bb.v":14:7:14:10|Creating black box for empty module pcie
+
+@N: CG364 :"/home/sora/work/ethout/source/ecp3/pcie_top.v":3:7:3:14|Synthesizing module pcie_top
+
+@N: CG364 :"/home/sora/work/ethout/source/ip_rx_crpr.v":3:7:3:16|Synthesizing module ip_rx_crpr
+
+@N: CG364 :"/home/sora/work/ethout/source/ip_crpr_arb.v":3:7:3:17|Synthesizing module ip_crpr_arb
+
+@N: CG364 :"/home/sora/work/ethout/source/ip_tx_arbiter.v":3:7:3:19|Synthesizing module ip_tx_arbiter
+
+	c_DATA_WIDTH=32'b00000000000000000000000000010000
+   Generated name = ip_tx_arbiter_16s
+
+@N: CG364 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_dec.v":4:7:4:16|Synthesizing module wb_tlc_dec
+
+	c_DATA_WIDTH=32'b00000000000000000000000000010000
+   Generated name = wb_tlc_dec_16s
+
+@N: CG364 :"/home/sora/work/ethout/source/wb_tlc/sync_logic.v":53:7:53:16|Synthesizing module sync_logic
+
+	c_DATA_WIDTH=32'b00000000000000000000000000001011
+   Generated name = sync_logic_11s
+
+@N: CG364 :"/home/sora/work/ethout/Source/pmi_ram_dp.v":49:7:49:16|Synthesizing module pmi_ram_dp
+
+	pmi_wr_addr_depth=32'b00000000000000000000100000000000
+	pmi_wr_addr_width=32'b00000000000000000000000000001011
+	pmi_wr_data_width=32'b00000000000000000000000000011011
+	pmi_rd_addr_depth=32'b00000000000000000000100000000000
+	pmi_rd_addr_width=32'b00000000000000000000000000001011
+	pmi_rd_data_width=32'b00000000000000000000000000011011
+	pmi_regmode=24'b011100100110010101100111
+	pmi_gsr=56'b01100100011010010111001101100001011000100110110001100101
+	pmi_resetmode=32'b01110011011110010110111001100011
+	pmi_optimization=40'b0111001101110000011001010110010101100100
+	pmi_init_file=32'b01101110011011110110111001100101
+	pmi_init_file_format=48'b011000100110100101101110011000010111001001111001
+	pmi_family=32'b01100101011000110111000000110011
+	module_type=80'b01110000011011010110100101011111011100100110000101101101010111110110010001110000
+   Generated name = pmi_ram_dp_Z1
+
+@N: CG364 :"/home/sora/work/ethout/source/wb_tlc/async_pkt_fifo.v":1:7:1:20|Synthesizing module async_pkt_fifo
+
+	c_DATA_WIDTH=32'b00000000000000000000000000011011
+	c_ADDR_WIDTH=32'b00000000000000000000000000001011
+	c_AFULL_FLAG=32'b00000000000000000000000001100100
+	c_AEMPTY_FLAG=32'b00000000000000000000000000000011
+   Generated name = async_pkt_fifo_27s_11s_100s_3s
+
+@N: CG364 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_req_fifo.v":5:7:5:21|Synthesizing module wb_tlc_req_fifo
+
+	c_DATA_WIDTH=32'b00000000000000000000000000010000
+	c_BUF_DATA_WIDTH=32'b00000000000000000000000000011011
+   Generated name = wb_tlc_req_fifo_16s_27s
+
+@N: CG364 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cr.v":3:7:3:15|Synthesizing module wb_tlc_cr
+
+@N: CG364 :"/home/sora/work/ethout/source/wb_tlc/wb_intf.v":4:7:4:13|Synthesizing module wb_intf
+
+@N: CG364 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cpld.v":3:7:3:17|Synthesizing module wb_tlc_cpld
+
+@N: CG364 :"/home/sora/work/ethout/Source/pmi_ram_dp.v":49:7:49:16|Synthesizing module pmi_ram_dp
+
+	pmi_wr_addr_depth=32'b00000000000000000000100000000000
+	pmi_wr_addr_width=32'b00000000000000000000000000001011
+	pmi_wr_data_width=32'b00000000000000000000000000010010
+	pmi_rd_addr_depth=32'b00000000000000000000100000000000
+	pmi_rd_addr_width=32'b00000000000000000000000000001011
+	pmi_rd_data_width=32'b00000000000000000000000000010010
+	pmi_regmode=24'b011100100110010101100111
+	pmi_gsr=56'b01100100011010010111001101100001011000100110110001100101
+	pmi_resetmode=32'b01110011011110010110111001100011
+	pmi_optimization=40'b0111001101110000011001010110010101100100
+	pmi_init_file=32'b01101110011011110110111001100101
+	pmi_init_file_format=48'b011000100110100101101110011000010111001001111001
+	pmi_family=32'b01100101011000110111000000110011
+	module_type=80'b01110000011011010110100101011111011100100110000101101101010111110110010001110000
+   Generated name = pmi_ram_dp_Z2
+
+@N: CG364 :"/home/sora/work/ethout/source/wb_tlc/async_pkt_fifo.v":1:7:1:20|Synthesizing module async_pkt_fifo
+
+	c_DATA_WIDTH=32'b00000000000000000000000000010010
+	c_ADDR_WIDTH=32'b00000000000000000000000000001011
+	c_AFULL_FLAG=32'b00000000000000000000000001100100
+	c_AEMPTY_FLAG=32'b00000000000000000000000000000011
+   Generated name = async_pkt_fifo_18s_11s_100s_3s
+
+@N: CG364 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cpld_fifo.v":4:7:4:22|Synthesizing module wb_tlc_cpld_fifo
+
+	c_DATA_WIDTH=32'b00000000000000000000000000010000
+	c_BUF_DATA_WIDTH=32'b00000000000000000000000000010010
+	c_BUF_ADDR_WIDTH=32'b00000000000000000000000000001011
+	e_idle=32'b00000000000000000000000000000000
+	e_wait=32'b00000000000000000000000000000001
+	e_check_ca=32'b00000000000000000000000000000010
+	e_req=32'b00000000000000000000000000000011
+	e_xmit=32'b00000000000000000000000000000100
+   Generated name = wb_tlc_cpld_fifo_16s_18s_11s_0s_1s_2s_3s_4s
+
+@N: CG364 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc.v":3:7:3:12|Synthesizing module wb_tlc
+
+@N: CG364 :"/usr/local/diamond/1.4/cae_library/synthesis/verilog/ecp3.v":1029:7:1029:9|Synthesizing module VLO
+
+@N: CG364 :"/usr/local/diamond/1.4/cae_library/synthesis/verilog/ecp3.v":1552:7:1552:13|Synthesizing module EHXPLLF
+
+@N: CG364 :"/home/sora/work/ethout/Implementation/pll.v":8:7:8:9|Synthesizing module pll
+
+@N: CG364 :"/usr/local/diamond/1.4/cae_library/synthesis/verilog/ecp3.v":1025:7:1025:9|Synthesizing module VHI
+
+@N: CG364 :"/usr/local/diamond/1.4/cae_library/synthesis/verilog/ecp3.v":457:7:457:9|Synthesizing module INV
+
+@N: CG364 :"/usr/local/diamond/1.4/cae_library/synthesis/verilog/ecp3.v":43:7:43:10|Synthesizing module AND2
+
+@N: CG364 :"/usr/local/diamond/1.4/cae_library/synthesis/verilog/ecp3.v":1253:7:1253:12|Synthesizing module DP16KC
+
+@N: CG364 :"/usr/local/diamond/1.4/cae_library/synthesis/verilog/ecp3.v":197:7:197:13|Synthesizing module FD1P3DX
+
+@N: CG364 :"/usr/local/diamond/1.4/cae_library/synthesis/verilog/ecp3.v":667:7:667:11|Synthesizing module MUX41
+
+@N: CG364 :"/home/sora/work/ethout/Source/ipexpress/ecp3/ram_dp_true/ram_dp_true.v":8:7:8:17|Synthesizing module ram_dp_true
+
+@W: CL168 :"/home/sora/work/ethout/Source/ipexpress/ecp3/ram_dp_true/ram_dp_true.v":187:8:187:21|Pruning instance scuba_vhi_inst -- not in use ...
+
+@N: CG364 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":494:7:494:14|Synthesizing module clk_sync
+
+@N: CG364 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":1:7:1:9|Synthesizing module top
+
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":11:17:11:23|No assignment to wire led_out
+
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":12:10:12:11|No assignment to wire dp
+
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":14:11:14:20|No assignment to wire phy1_rst_n
+
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":17:11:17:22|No assignment to wire phy1_gtx_clk
+
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":18:11:18:20|No assignment to wire phy1_tx_en
+
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":19:17:19:28|No assignment to wire phy1_tx_data
+
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":26:11:26:22|No assignment to wire phy1_mii_clk
+
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":47:44:47:53|No assignment to wire tx_dout_ur
+
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":227:5:227:7|No assignment to wire CLK
+
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":227:10:227:14|No assignment to wire CLKOP
+
+@W: CL169 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":177:0:177:5|Pruning register tx_st_d 
+
+@W: CL169 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":177:0:177:5|Pruning register rx_st_d 
+
+@W: CL169 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":177:0:177:5|Pruning register tx_tlp_cnt[15:0] 
+
+@W: CL169 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":177:0:177:5|Pruning register rx_tlp_cnt[15:0] 
+
+@W: CL265 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":418:0:418:5|Pruning bit 0 of rx2_status[1:0] -- not in use ...
+
+@A: CL282 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":295:0:295:5|Feedback mux created for signal slots_status[3:0] -- possible set/reset assignment for signal missing. Specifying a reset value will improve timing and area.
+@W: CL156 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":206:28:206:36|*Input tx_req_ur to expression [instance] has undriven bits that are tied to 0 -- simulation mismatch possible.
+@W: CL156 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":47:44:47:53|*Input tx_dout_ur[15:0] to expression [instance] has undriven bits that are tied to 0 -- simulation mismatch possible.
+@W: CL156 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":206:73:206:81|*Input tx_sop_ur to expression [instance] has undriven bits that are tied to 0 -- simulation mismatch possible.
+@W: CL156 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":206:95:206:103|*Input tx_eop_ur to expression [instance] has undriven bits that are tied to 0 -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":11:17:11:23|*Output led_out has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":12:10:12:11|*Output dp has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":14:11:14:20|*Output phy1_rst_n has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":17:11:17:22|*Output phy1_gtx_clk has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":18:11:18:20|*Output phy1_tx_en has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":19:17:19:28|*Output phy1_tx_data has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":26:11:26:22|*Output phy1_mii_clk has undriven bits -- simulation mismatch possible.
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":10:15:10:24|Input dip_switch is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":15:10:15:22|Input phy1_125M_clk is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":16:10:16:20|Input phy1_tx_clk is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":20:10:20:20|Input phy1_rx_clk is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":21:10:21:19|Input phy1_rx_dv is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":22:10:22:19|Input phy1_rx_er is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":23:16:23:27|Input phy1_rx_data is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":24:10:24:17|Input phy1_col is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":25:10:25:17|Input phy1_crs is unused
+@W: CL158 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":27:10:27:22|Inout phy1_mii_data is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":30:10:30:22|Input phy2_125M_clk is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":31:10:31:20|Input phy2_tx_clk is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":37:10:37:19|Input phy2_rx_er is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":39:10:39:17|Input phy2_col is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":40:10:40:17|Input phy2_crs is unused
+@W: CL157 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc.v":46:14:46:18|*Output debug has undriven bits -- simulation mismatch possible.
+@N: CL201 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cpld_fifo.v":110:0:110:5|Trying to extract state machine for register state
+Extracted state machine for register state
+State machine has 5 reachable states with original encodings of:
+   000
+   001
+   010
+   011
+   100
+@W: CL159 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cpld_fifo.v":17:14:17:21|Input din_dwen is unused
+@N: CL135 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cpld.v":42:0:42:5|Found seqShift valid_p5, depth=5, width=1
+@N: CL135 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cpld.v":42:0:42:5|Found seqShift din_p5, depth=5, width=16
+@N: CL201 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cpld.v":42:0:42:5|Trying to extract state machine for register sm
+Extracted state machine for register sm
+State machine has 4 reachable states with original encodings of:
+   000
+   001
+   010
+   011
+@W: CL159 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cpld.v":12:12:12:14|Input sel is unused
+@N: CL201 :"/home/sora/work/ethout/source/wb_tlc/wb_intf.v":71:0:71:5|Trying to extract state machine for register sm
+Extracted state machine for register sm
+State machine has 7 reachable states with original encodings of:
+   000
+   001
+   010
+   011
+   100
+   101
+   110
+@W: CL279 :"/home/sora/work/ethout/source/wb_tlc/wb_intf.v":71:0:71:5|Pruning register bits 2 to 1 of wb_cti_o[2:0] 
+
+@W: CL159 :"/home/sora/work/ethout/source/wb_tlc/wb_intf.v":15:14:15:20|Input din_bar is unused
+@N: CL135 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cr.v":34:0:34:5|Found seqShift cr_c2p, depth=3, width=1
+@N: CL177 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_dec.v":39:0:39:5|Sharing sequential element rx_eop_p2.
+@W: CL169 :"/home/sora/work/ethout/source/ip_crpr_arb.v":49:0:49:5|Pruning register nph_cr_1p 
+
+@W: CL169 :"/home/sora/work/ethout/source/ip_crpr_arb.v":49:0:49:5|Pruning register ph_cr_1p 
+
+@N: CL201 :"/home/sora/work/ethout/source/ip_rx_crpr.v":40:0:40:5|Trying to extract state machine for register sm
+Extracted state machine for register sm
+State machine has 3 reachable states with original encodings of:
+   00
+   01
+   10
+@W: CL246 :"/home/sora/work/ethout/source/ip_rx_crpr.v":14:12:14:21|Input port bits 6 to 2 of rx_bar_hit[6:0] are unused
+

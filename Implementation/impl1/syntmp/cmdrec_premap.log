@@ -1,0 +1,13 @@
+/usr/local/diamond/1.4/synpbase/bin/m_gen_lattice  -prodtype synplify_pro -encrypt  -pro  -rundir  /home/sora/work/ethout/Implementation/impl1  -part LFE3_35EA  -package FN484C  -grade -8   -maxfan 100     -forcenogsr -fixgatedclocks 3 -fixgeneratedclocks 3  -auto_constrain_io   -resolveMultipleDriver -summaryfile /home/sora/work/ethout/Implementation/impl1/synlog/report/top_impl1_premap.xml -top_level_module  top  -ta_num_paths 3  -ta_num_points 0  -oedif  /home/sora/work/ethout/Implementation/impl1/top_impl1.edi  -conchk_prepass  /home/sora/work/ethout/Implementation/impl1/top_impl1_cck_prepass.rpt  -freq 200.000  -tcl  /home/sora/work/ethout/Implementation/top.sdc  /home/sora/work/ethout/Implementation/impl1/synwork/top_impl1_compiler.srs  -flow prepass  -gcc_prepass  -osrd  /home/sora/work/ethout/Implementation/impl1/synwork/top_impl1_premap.srd  -devicelib  /usr/local/diamond/1.4/synpbase/lib/lucent/ecp3.v  -ologparam  /home/sora/work/ethout/Implementation/impl1/syntmp/top_impl1.plg  -noforwanno -osyn  /home/sora/work/ethout/Implementation/impl1/synwork/top_impl1_premap.srd  -prjdir  /home/sora/work/ethout/Implementation/impl1/  -prjname  proj_1  -log  /home/sora/work/ethout/Implementation/impl1/synlog/top_impl1_premap.srr 
+rc:1 success:1
+/home/sora/work/ethout/Implementation/impl1/top_impl1.edi|o|1358360009|1023726
+/home/sora/work/ethout/Implementation/impl1/top_impl1_cck_prepass.rpt|o|0|0
+/home/sora/work/ethout/Implementation/top.sdc|i|1357651164|228
+/home/sora/work/ethout/Implementation/impl1/synwork/top_impl1_compiler.srs|i|1358360629|195544
+/home/sora/work/ethout/Implementation/impl1/synwork/top_impl1_premap.srd|o|1358360631|115199
+/usr/local/diamond/1.4/synpbase/lib/lucent/ecp3.v|i|1332173717|117640
+/home/sora/work/ethout/Implementation/impl1/syntmp/top_impl1.plg|o|1358360631|0
+/home/sora/work/ethout/Implementation/impl1/synwork/top_impl1_premap.srd|o|1358360631|115199
+/home/sora/work/ethout/Implementation/impl1/synlog/top_impl1_premap.srr|o|1358360631|1915
+/usr/local/diamond/1.4/synpbase/bin/m_gen_lattice|i|1332173714|345
+/usr/local/diamond/1.4/synpbase/linux/m_gen_lattice|i|1332173723|26534692

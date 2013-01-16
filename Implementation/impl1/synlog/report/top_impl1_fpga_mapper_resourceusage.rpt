@@ -1,0 +1,35 @@
+Resource Usage Report
+Part: lfe3_35ea-8
+
+Register bits: 690 of 33264 (2%)
+PIC Latch:       0
+I/O cells:       52
+
+Details:
+AND2:           1
+CCU2C:          159
+DP16KC:         4
+FD1P3AX:        58
+FD1P3BX:        1
+FD1P3DX:        350
+FD1P3IX:        25
+FD1S3AX:        36
+FD1S3BX:        5
+FD1S3DX:        205
+FD1S3IX:        1
+GSR:            1
+IB:             12
+IFS1P3IX:       9
+INV:            9
+L6MUX21:        4
+MUX41:          16
+OB:             13
+OBZ:            27
+ORCALUT4:       484
+PFUMX:          44
+PUR:            1
+SPR16X4C:       4
+VHI:            1
+VLO:            1
+false:          19
+true:           19

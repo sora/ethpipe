@@ -1,0 +1,212 @@
+SCHEMATIC START ;
+# map:  version Diamond_1.4_Production (87) -- WARNING: Map write only section -- Thu Jan 17 03:24:09 2013
+
+SYSCONFIG PERSISTENT=OFF CONFIG_MODE=SPI DONE_EX=OFF MCCLK_FREQ=26 CONFIG_SECURE=OFF WAKE_UP=21 WAKE_ON_LOCK=OFF COMPRESS_CONFIG=OFF ENABLE_NDR=OFF CONFIG_IOVOLTAGE=2.5 STRTUP=EXTERNAL ;
+PGROUP "PCS_PIPE" BBOX 15 10  DEVSIZE
+	COMP "pcie/u1_pcs_pipe/SLICE_112"
+	COMP "pcie/u1_pcs_pipe/SLICE_113"
+	COMP "pcie/u1_pcs_pipe/SLICE_114"
+	COMP "pcie/u1_pcs_pipe/SLICE_115"
+	COMP "pcie/u1_pcs_pipe/SLICE_116"
+	COMP "pcie/u1_pcs_pipe/SLICE_117"
+	COMP "pcie/u1_pcs_pipe/SLICE_118"
+	COMP "pcie/u1_pcs_pipe/SLICE_119"
+	COMP "pcie/u1_pcs_pipe/SLICE_120"
+	COMP "pcie/u1_pcs_pipe/SLICE_121"
+	COMP "pcie/u1_pcs_pipe/SLICE_122"
+	COMP "pcie/u1_pcs_pipe/SLICE_123"
+	COMP "pcie/u1_pcs_pipe/SLICE_124"
+	COMP "pcie/u1_pcs_pipe/SLICE_125"
+	COMP "pcie/u1_pcs_pipe/SLICE_126"
+	COMP "pcie/u1_pcs_pipe/SLICE_127"
+	COMP "pcie/u1_pcs_pipe/SLICE_128"
+	COMP "pcie/u1_pcs_pipe/SLICE_129"
+	COMP "pcie/u1_pcs_pipe/SLICE_1071"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_1087"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_1088"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_1089"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_1090"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_1091"
+	COMP "pcie/u1_pcs_pipe/SLICE_1092"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_1094"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_1095"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_1096"
+	COMP "pcie/u1_pcs_pipe/SLICE_3295"
+	COMP "pcie/u1_pcs_pipe/SLICE_3297"
+	COMP "pcie/u1_pcs_pipe/SLICE_3299"
+	COMP "pcie/u1_pcs_pipe/SLICE_3300"
+	COMP "pcie/u1_pcs_pipe/SLICE_3302"
+	COMP "pcie/u1_pcs_pipe/SLICE_3303"
+	COMP "pcie/u1_pcs_pipe/SLICE_3304"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3305"
+	COMP "pcie/u1_pcs_pipe/SLICE_3307"
+	COMP "pcie/u1_pcs_pipe/SLICE_3308"
+	COMP "pcie/u1_pcs_pipe/SLICE_3309"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3311"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3312"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3313"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3314"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3315"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3316"
+	COMP "pcie/u1_pcs_pipe/SLICE_3317"
+	COMP "pcie/u1_pcs_pipe/SLICE_3318"
+	COMP "pcie/u1_pcs_pipe/SLICE_3319"
+	COMP "pcie/u1_pcs_pipe/SLICE_3320"
+	COMP "pcie/u1_pcs_pipe/SLICE_3321"
+	COMP "pcie/u1_pcs_pipe/SLICE_3322"
+	COMP "pcie/u1_pcs_pipe/SLICE_3323"
+	COMP "pcie/u1_pcs_pipe/SLICE_3325"
+	COMP "pcie/u1_pcs_pipe/SLICE_3326"
+	COMP "pcie/u1_pcs_pipe/SLICE_3327"
+	COMP "pcie/u1_pcs_pipe/SLICE_3328"
+	COMP "pcie/u1_pcs_pipe/SLICE_3329"
+	COMP "pcie/u1_pcs_pipe/SLICE_3330"
+	COMP "pcie/u1_pcs_pipe/SLICE_3332"
+	COMP "pcie/u1_pcs_pipe/SLICE_3333"
+	COMP "pcie/u1_pcs_pipe/SLICE_3334"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3335"
+	COMP "pcie/u1_pcs_pipe/SLICE_3336"
+	COMP "pcie/u1_pcs_pipe/SLICE_3337"
+	COMP "pcie/u1_pcs_pipe/SLICE_3338"
+	COMP "pcie/u1_pcs_pipe/SLICE_3339"
+	COMP "pcie/u1_pcs_pipe/SLICE_3341"
+	COMP "pcie/u1_pcs_pipe/SLICE_3343"
+	COMP "pcie/u1_pcs_pipe/SLICE_3344"
+	COMP "pcie/u1_pcs_pipe/SLICE_3345"
+	COMP "pcie/u1_pcs_pipe/SLICE_3346"
+	COMP "pcie/u1_pcs_pipe/SLICE_3347"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3349"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3350"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3351"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3352"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3353"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3354"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3356"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3357"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3358"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3359"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3360"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3361"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3362"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3363"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3364"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3365"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3366"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3367"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3368"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3369"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3370"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3371"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3372"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3373"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3374"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3375"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3376"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3378"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3379"
+	COMP "pcie/u1_pcs_pipe/SLICE_3380"
+	COMP "pcie/u1_pcs_pipe/SLICE_3382"
+	COMP "pcie/u1_pcs_pipe/SLICE_3383"
+	COMP "pcie/u1_pcs_pipe/SLICE_3384"
+	COMP "pcie/u1_pcs_pipe/SLICE_3385"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3847"
+	COMP "pcie/u1_pcs_pipe/pipe_top_0/SLICE_3848"
+	COMP "pcie/u1_pcs_pipe/SLICE_3849"
+	COMP "pcie/u1_pcs_pipe/SLICE_3850"
+	COMP "pcie/u1_pcs_pipe/SLICE_3851"
+	COMP "pcie/u1_pcs_pipe/SLICE_4333"
+	COMP "pcie/u1_pcs_pipe/SLICE_4369"
+	COMP "pcie/u1_pcs_pipe/SLICE_4441"
+	COMP "pcie/u1_pcs_pipe/SLICE_4574"
+	COMP "pcie/u1_pcs_pipe/SLICE_4575"
+	COMP "pcie/u1_pcs_pipe/SLICE_4576"
+	COMP "pcie/u1_pcs_pipe/SLICE_4577"
+	COMP "pcie/u1_pcs_pipe/SLICE_4578"
+	COMP "pcie/u1_pcs_pipe/SLICE_4579";
+LOCATE COMP "led_out_0" SITE "V6" ;
+LOCATE COMP "phy2_rst_n" SITE "R21" ;
+LOCATE COMP "rstn" SITE "E18" ;
+LOCATE COMP "phy2_mii_data" SITE "U16" ;
+LOCATE COMP "phy2_mii_clk" SITE "Y18" ;
+LOCATE COMP "phy2_rx_data_7" SITE "Y21" ;
+LOCATE COMP "phy2_rx_data_6" SITE "W21" ;
+LOCATE COMP "phy2_rx_data_5" SITE "R18" ;
+LOCATE COMP "phy2_rx_data_4" SITE "T17" ;
+LOCATE COMP "phy2_rx_data_3" SITE "V21" ;
+LOCATE COMP "phy2_rx_data_2" SITE "R19" ;
+LOCATE COMP "phy2_rx_data_1" SITE "AA17" ;
+LOCATE COMP "phy2_rx_data_0" SITE "AB17" ;
+LOCATE COMP "phy2_rx_dv" SITE "U15" ;
+LOCATE COMP "phy2_rx_clk" SITE "N19" ;
+LOCATE COMP "phy2_tx_data_7" SITE "U20" ;
+LOCATE COMP "phy2_tx_data_6" SITE "P20" ;
+LOCATE COMP "phy2_tx_data_5" SITE "U22" ;
+LOCATE COMP "phy2_tx_data_4" SITE "T21" ;
+LOCATE COMP "phy2_tx_data_3" SITE "Y22" ;
+LOCATE COMP "phy2_tx_data_2" SITE "P17" ;
+LOCATE COMP "phy2_tx_data_1" SITE "R16" ;
+LOCATE COMP "phy2_tx_data_0" SITE "W22" ;
+LOCATE COMP "phy2_tx_en" SITE "V22" ;
+LOCATE COMP "phy2_gtx_clk" SITE "M19" ;
+LOCATE COMP "phy1_mii_clk" SITE "V4" ;
+LOCATE COMP "phy1_tx_data_7" SITE "N2" ;
+LOCATE COMP "phy1_tx_data_6" SITE "N4" ;
+LOCATE COMP "phy1_tx_data_5" SITE "N3" ;
+LOCATE COMP "phy1_tx_data_4" SITE "N5" ;
+LOCATE COMP "phy1_tx_data_3" SITE "P1" ;
+LOCATE COMP "phy1_tx_data_2" SITE "R3" ;
+LOCATE COMP "phy1_tx_data_1" SITE "U1" ;
+LOCATE COMP "phy1_tx_data_0" SITE "V1" ;
+LOCATE COMP "phy1_tx_en" SITE "V3" ;
+LOCATE COMP "phy1_gtx_clk" SITE "M2" ;
+LOCATE COMP "phy1_rst_n" SITE "L3" ;
+LOCATE COMP "dp" SITE "W5" ;
+LOCATE COMP "led_out_13" SITE "AA5" ;
+LOCATE COMP "led_out_12" SITE "AA4" ;
+LOCATE COMP "led_out_11" SITE "Y5" ;
+LOCATE COMP "led_out_10" SITE "W4" ;
+LOCATE COMP "led_out_9" SITE "AB4" ;
+LOCATE COMP "led_out_8" SITE "AB3" ;
+LOCATE COMP "led_out_7" SITE "T9" ;
+LOCATE COMP "led_out_6" SITE "R9" ;
+LOCATE COMP "led_out_5" SITE "T8" ;
+LOCATE COMP "led_out_4" SITE "U8" ;
+LOCATE COMP "led_out_3" SITE "AA6" ;
+LOCATE COMP "led_out_2" SITE "Y6" ;
+LOCATE COMP "led_out_1" SITE "U7" ;
+LOCATE COMP "pcie/u1_pcs_pipe/pcs_top_0/pcs_inst_0" SITE "PCSA" ;
+FREQUENCY NET "clk_125_keep" 125.000000 MHz PAR_ADJ 15.000000 ;
+USE PRIMARY NET "clk_125_keep" ;
+FREQUENCY NET "clk_250" 250.000000 MHz ;
+FREQUENCY NET "pcie/pclk" 250.000000 MHz ;
+USE PRIMARY NET "pcie/pclk" ;
+FREQUENCY NET "pcie/u1_pcs_pipe/ff_rx_fclk_0" 250.000000 MHz ;
+USE SECONDARY NET "pcie/u1_pcs_pipe/ff_rx_fclk_0" ;
+SCHEMATIC END ;
+BLOCK RESETPATHS ;
+BLOCK ASYNCPATHS ;
+BANK 0 VCCIO 1.5 V;
+BANK 1 VCCIO 3.3 V;
+BANK 2 VCCIO 3.3 V;
+BANK 3 VCCIO 3.3 V;
+BANK 6 VCCIO 3.3 V;
+BANK 7 VCCIO 1.5 V;
+BANK 8 VCCIO 3.3 V;
+BLOCK PATH FROM PORT "rstn" ;
+BLOCK PATH TO PORT "dp" ;
+BLOCK PATH TO PORT "led_out*" ;
+BLOCK PATH FROM PORT "dip_switch*" ;
+BLOCK NET "led_*" ;
+BLOCK NET "dp*" ;
+BLOCK PATH FROM CELL "*ctc_reset_chx*" ;
+BLOCK NET "core_rst_n" ;
+MULTICYCLE FROM CELL "*nfts_rx_skp_cnt*" TO CELL "*cnt_done_nfts_rx*" 2.000000 X ;
+MULTICYCLE FROM CELL "*nfts_rx_skp_cnt*" TO CELL "*ltssm_nfts_rx_skp*" 2.000000 X ;
+MAXDELAY FROM CELL "*u1_dut/u1_phy/u1_scram/u1_txrc/wr_pntr*" 6.000000 ns ;
+MAXDELAY FROM CELL "*u1_dut/u1_phy/u1_scram/u1_rxrc/rd_pntr*" 6.000000 ns ;
+MAXDELAY FROM CELL "*u1_dut/u1_phy/u1_ltssm/u1_osenc/rd_ptr*" 6.000000 ns ;
+MAXDELAY FROM CELL "*u1_dut/u1_phy/u1_ltssm/u1_osenc/wr_ptr*" 6.000000 ns ;
+MAXDELAY FROM CELL "*u1_dut/u1_phy/u1_frm/u1_frm_ins/frm_data*" 6.000000 ns ;
+MAXDELAY FROM CELL "*u1_dut/u1_phy/u1_frm/u1_frm_ins/frm_kcntl*" 6.000000 ns ;
+BLOCK JTAGPATHS ;
+COMMERCIAL ;

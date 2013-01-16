@@ -1,0 +1,213 @@
+
+Lattice Place and Route Report for Design "top_impl1_map.ncd"
+Thu Jan 17 03:24:10 2013
+
+PAR: Place And Route Diamond_1.4_Production (87).
+Command Line: /usr/local/diamond/1.4/ispfpga/bin/lin/par -f top_impl1.p2t top_impl1_map.ncd
+top_impl1.dir top_impl1.prf
+Preference file: top_impl1.prf.
+Placement level-cost: 5-1.
+Routing Iterations: 6
+
+Loading design for application par from file top_impl1_map.ncd.
+Design name: top
+NCD version: 3.2
+Vendor:      LATTICE
+Device:      LFE3-35EA
+Package:     FPBGA484
+Performance: 8
+Loading device for application par from file 'ec5a71x74.nph' in environment: /usr/local/diamond/1.4/ispfpga.
+Package Status:                     Final          Version 1.59
+Performance Hardware Data Status:   Final          Version 30.22
+License checked out.
+
+
+Ignore Preference Error(s):  True
+Device utilization summary:
+
+   PIO (prelim)      51/332          15% used
+                     51/295          17% bonded
+   IOLOGIC            9/328           2% used
+
+   SLICE           4988/16632        29% used
+
+   APIO               6/18           33% used
+   GSR                1/1           100% used
+   EBR               13/72           18% used
+   PLL                1/4            25% used
+   PCS                1/1           100% used
+
+
+2 potential circuit loops found in timing analysis.
+Number of Signals: 12417
+Number of Connections: 33997
+
+Pin Constraint Summary:
+   51 out of 51 pins locked (100% locked).
+
+WARNING - par: (user pref. secondary clock) Signal "pcie/u1_pcs_pipe/ff_rx_fclk_0" is selected as a secondary clock;  however, according to the architecture, the driver of this signal cannot drive the clock tree directly, therefore general routing has to be used and the design may experience increased injection delay.
+The following 5 signals are selected to use the primary clock routing resources:
+    clk_125_keep (driver: pcie/u1_pcs_pipe/pcs_top_0/pcs_inst_0, clk load #: 2769)
+    pcie/pclk (driver: pcie/u1_pcs_pipe/pcs_top_0/pcs_inst_0, clk load #: 193)
+    clk_250 (driver: pll_1/PLLInst_0, clk load #: 12)
+    phy2_rx_clk_c (driver: phy2_rx_clk, clk load #: 63)
+    ep5cht/rdcnt_inferred_clock_9 (driver: ep5cht/SLICE_792, clk load #: 22)
+
+
+The following 7 signals are selected to use the secondary clock routing resources:
+    pcie/u1_pcs_pipe/ff_rx_fclk_0 (driver: pcie/u1_pcs_pipe/pcs_top_0/pcs_inst_0, clk load #: 1, sr load #: 0, ce load #: 0)
+    rstn_c (driver: rstn, clk load #: 0, sr load #: 119, ce load #: 0)
+    pcie/u1_dut/u1_dut/u1_dut/u1_trnc/u1_cfg_top/load_id_reg (driver: pcie/u1_dut/u1_dut/u1_dut/u1_trnc/u1_cfg_top/u1_cfg_resp/SLICE_4667, clk load #: 0, sr load #: 0, ce load #: 49)
+    core_rst_n (driver: SLICE_971, clk load #: 0, sr load #: 21, ce load #: 20)
+    ep5cht/reset_n (driver: ep5cht/reset_n_gen/SLICE_1001, clk load #: 0, sr load #: 28, ce load #: 0)
+    pcie/u1_dut/u1_dut/u1_dut/u1_trnc/N_129_i (driver: pcie/u1_dut/u1_dut/u1_dut/u1_trnc/SLICE_2968, clk load #: 0, sr load #: 0, ce load #: 21)
+    ep5cht/lclk (driver: ep5cht/losc/SLICE_4316, clk load #: 9, sr load #: 0, ce load #: 0)
+
+Signal lip_ngo_xxxxxx_hardtimer is selected as Global Set/Reset.
+Starting Placer Phase 0.
+...........
+Finished Placer Phase 0.  REAL time: 15 secs 
+
+Starting Placer Phase 1.
+..................................
+Placer score = 2182260.
+Finished Placer Phase 1.  REAL time: 50 secs 
+
+Starting Placer Phase 2.
+.
+Placer score =  2140127
+Finished Placer Phase 2.  REAL time: 57 secs 
+
+
+------------------ Clock Report ------------------
+
+Global Clock Resources:
+  CLK_PIN    : 1 out of 6 (16%)
+  General PIO: 1 out of 328 (0%)
+  PLL        : 1 out of 4 (25%)
+  DCS        : 0 out of 8 (0%)
+
+Quadrants All (TL, TR, BL, BR) - Global Clocks:
+  PRIMARY "clk_125_keep" from FF_TX_H_CLK_0 on comp "pcie/u1_pcs_pipe/pcs_top_0/pcs_inst_0" on PCS site "PCSA", clk load = 2769
+  PRIMARY "pcie/pclk" from FF_TX_F_CLK_0 on comp "pcie/u1_pcs_pipe/pcs_top_0/pcs_inst_0" on PCS site "PCSA", clk load = 193
+  PRIMARY "clk_250" from CLKOP on comp "pll_1/PLLInst_0" on PLL site "PLL_R53C5", clk load = 12
+  PRIMARY "phy2_rx_clk_c" from comp "phy2_rx_clk" on CLK_PIN site "N19 (PR38A)", clk load = 63
+  PRIMARY "ep5cht/rdcnt_inferred_clock_9" from Q0 on comp "ep5cht/SLICE_792" on site "R33C3C", clk load = 22
+  SECONDARY "rstn_c" from comp "rstn" on PIO site "E18 (PT70A)", clk load = 0, ce load = 0, sr load = 119
+  SECONDARY "core_rst_n" from Q0 on comp "SLICE_971" on site "R2C36A", clk load = 0, ce load = 20, sr load = 21
+  SECONDARY "pcie/u1_pcs_pipe/ff_rx_fclk_0" from FF_RX_F_CLK_0 on comp "pcie/u1_pcs_pipe/pcs_top_0/pcs_inst_0" on PCS site "PCSA", clk load = 1, ce load = 0, sr load = 0
+  SECONDARY "pcie/u1_dut/u1_dut/u1_dut/u1_trnc/u1_cfg_top/load_id_reg" from Q0 on comp "pcie/u1_dut/u1_dut/u1_dut/u1_trnc/u1_cfg_top/u1_cfg_resp/SLICE_4667" on site "R37C2C", clk load = 0, ce load = 49, sr load = 0
+  SECONDARY "pcie/u1_dut/u1_dut/u1_dut/u1_trnc/N_129_i" from F1 on comp "pcie/u1_dut/u1_dut/u1_dut/u1_trnc/SLICE_2968" on site "R2C39C", clk load = 0, ce load = 21, sr load = 0
+  SECONDARY "ep5cht/lclk" from F0 on comp "ep5cht/losc/SLICE_4316" on site "R2C36C", clk load = 9, ce load = 0, sr load = 0
+  SECONDARY "ep5cht/reset_n" from Q0 on comp "ep5cht/reset_n_gen/SLICE_1001" on site "R36C73A", clk load = 0, ce load = 0, sr load = 28
+
+  PRIMARY  : 5 out of 8 (62%)
+     DCS   : 1 out of 2 (50%)
+     DCC   : 4 out of 6 (66%)
+  SECONDARY: 7 out of 8 (87%)
+
+Edge Clocks:
+  No edge clock selected.
+
+Regional Secondary Clocks:
+  No regional secondary clock selected.
+
+--------------- End of Clock Report ---------------
+
+
+I/O Usage Summary (final):
+   51 out of 332 (15.4%) PIO sites used.
+   51 out of 295 (17.3%) bonded PIO sites used.
+   Number of PIO comps: 51; differential: 0
+   Number of Vref pins used: 0
+
+I/O Bank Usage Summary:
+----------+------------------+-------+-----------------+----------------
+ I/O Bank | Usage            | Vccio |  Vref1 / Vref2  |  Vtt
+----------+------------------+-------+-----------------+----------------
+    0     |   0 / 42  (  0%) | 1.5V  |    OFF / OFF    |               
+    1     |   0 / 36  (  0%) | 3.3V  |    OFF / OFF    |               
+    2     |   0 / 28  (  0%) | 3.3V  |    OFF / OFF    |               
+    3     |  23 / 58  ( 39%) | 3.3V  |    OFF / OFF    |               
+    6     |  27 / 67  ( 40%) | 3.3V  |    OFF / OFF    |               
+    7     |   0 / 40  (  0%) | 1.5V  |    OFF / OFF    |               
+    8     |   1 / 24  (  4%) | 3.3V  |    OFF / OFF    |               
+----------+------------------+-------+-----------------+----------------
+
+---------------------------------- DSP Report ----------------------------------
+
+DSP Slice #:           1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16
+# of MULT9X9C                                                        
+# of MULT18X18C                                                      
+# of ALU24A                                                          
+# of ALU54A                                                          
+
+DSP Slice #:          17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32
+# of MULT9X9C                                                        
+# of MULT18X18C                                                      
+# of ALU24A                                                          
+# of ALU54A                                                          
+
+------------------------------ End of DSP Report -------------------------------
+Total placer CPU time: 57 secs 
+
+Dumping design to file top_impl1.dir/5_1.ncd.
+
+2 potential circuit loops found in timing analysis.
+0 connections routed; 33997 unrouted.
+Starting router resource preassignment
+
+Completed router resource preassignment. Real time: 1 mins 13 secs 
+
+Congestion Driven Router (CDR) is turned on.
+CDR effort level is set at 1.
+To turn CDR off, please set "-exp parCDR=0" on command line.
+
+Starting iterative routing.
+
+For each routing iteration the number inside the parenthesis is the
+total time (in picoseconds) the design is failing the timing constraints.
+For each routing iteration the router will attempt to reduce this number
+until the number of routing iterations is completed or the value is 0
+meaning the design setup analysis has met timing constraints.
+
+End of iteration 1
+33997 successful; 0 unrouted; (12488) real time: 2 mins 3 secs 
+Dumping design to file top_impl1.dir/5_1.ncd.
+End of iteration 2
+33997 successful; 0 unrouted; (11686) real time: 2 mins 10 secs 
+Dumping design to file top_impl1.dir/5_1.ncd.
+End of iteration 3
+33997 successful; 0 unrouted; (11686) real time: 2 mins 14 secs 
+End of iteration 4
+33997 successful; 0 unrouted; (11686) real time: 2 mins 18 secs 
+End of iteration 5
+33997 successful; 0 unrouted; (11686) real time: 2 mins 21 secs 
+End of iteration 6
+33997 successful; 0 unrouted; (10482) real time: 2 mins 32 secs 
+Dumping design to file top_impl1.dir/5_1.ncd.
+Total CPU time 2 mins 33 secs 
+Total REAL time: 2 mins 34 secs 
+Completely routed.
+End of route.  33997 routed (100.00%); 0 unrouted.
+Checking DRC ... 
+No errors found.
+
+2 potential circuit loops found in timing analysis.
+Timing score: 10482 
+
+Total REAL time to completion: 2 mins 42 secs 
+
+Dumping design to file top_impl1.dir/5_1.ncd.
+
+
+All signals are completely routed.
+
+
+par done!
+
+Copyright (c) 1991-1994 by NeoCAD Inc. All rights reserved.
+Copyright (c) 1995 AT&T Corp.   All rights reserved.
+Copyright (c) 1995-2001 Lucent Technologies Inc.  All rights reserved.
+Copyright (c) 2001 Agere Systems   All rights reserved.
+Copyright (c) 2002-2011 Lattice Semiconductor Corporation,  All rights reserved.

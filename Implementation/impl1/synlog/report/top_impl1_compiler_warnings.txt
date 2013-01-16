@@ -1,0 +1,54 @@
+@W: CS141 :"/home/sora/work/ethout/source/wb_tlc/async_pkt_fifo.v":83:18:83:30|Unrecognized synthesis directive syn_black_box
+@W: CS140 :"/home/sora/work/ethout/source/ipexpress/ecp3/pciex1/pcie_eval/models/ecp3/pcs_pipe_bb.v":55:2:55:2|black_box attribute has been renamed to syn_black_box. Change black_box usage to synthesis syn_black_box for upward compatibility.
+@W: CG146 :"/home/sora/work/ethout/source/ipexpress/ecp3/pciex1/pcie_bb.v":14:7:14:10|Creating black box for empty module pcie
+@W: CL168 :"/home/sora/work/ethout/Source/ipexpress/ecp3/ram_dp_true/ram_dp_true.v":187:8:187:21|Pruning instance scuba_vhi_inst -- not in use ...
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":11:17:11:23|No assignment to wire led_out
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":12:10:12:11|No assignment to wire dp
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":14:11:14:20|No assignment to wire phy1_rst_n
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":17:11:17:22|No assignment to wire phy1_gtx_clk
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":18:11:18:20|No assignment to wire phy1_tx_en
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":19:17:19:28|No assignment to wire phy1_tx_data
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":26:11:26:22|No assignment to wire phy1_mii_clk
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":47:44:47:53|No assignment to wire tx_dout_ur
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":227:5:227:7|No assignment to wire CLK
+@W: CG360 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":227:10:227:14|No assignment to wire CLKOP
+@W: CL169 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":177:0:177:5|Pruning register tx_st_d 
+@W: CL169 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":177:0:177:5|Pruning register rx_st_d 
+@W: CL169 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":177:0:177:5|Pruning register tx_tlp_cnt[15:0] 
+@W: CL169 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":177:0:177:5|Pruning register rx_tlp_cnt[15:0] 
+@W: CL265 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":418:0:418:5|Pruning bit 0 of rx2_status[1:0] -- not in use ...
+@W: CL156 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":206:28:206:36|*Input tx_req_ur to expression [instance] has undriven bits that are tied to 0 -- simulation mismatch possible.
+@W: CL156 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":47:44:47:53|*Input tx_dout_ur[15:0] to expression [instance] has undriven bits that are tied to 0 -- simulation mismatch possible.
+@W: CL156 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":206:73:206:81|*Input tx_sop_ur to expression [instance] has undriven bits that are tied to 0 -- simulation mismatch possible.
+@W: CL156 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":206:95:206:103|*Input tx_eop_ur to expression [instance] has undriven bits that are tied to 0 -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":11:17:11:23|*Output led_out has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":12:10:12:11|*Output dp has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":14:11:14:20|*Output phy1_rst_n has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":17:11:17:22|*Output phy1_gtx_clk has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":18:11:18:20|*Output phy1_tx_en has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":19:17:19:28|*Output phy1_tx_data has undriven bits -- simulation mismatch possible.
+@W: CL157 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":26:11:26:22|*Output phy1_mii_clk has undriven bits -- simulation mismatch possible.
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":10:15:10:24|Input dip_switch is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":15:10:15:22|Input phy1_125M_clk is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":16:10:16:20|Input phy1_tx_clk is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":20:10:20:20|Input phy1_rx_clk is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":21:10:21:19|Input phy1_rx_dv is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":22:10:22:19|Input phy1_rx_er is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":23:16:23:27|Input phy1_rx_data is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":24:10:24:17|Input phy1_col is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":25:10:25:17|Input phy1_crs is unused
+@W: CL158 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":27:10:27:22|Inout phy1_mii_data is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":30:10:30:22|Input phy2_125M_clk is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":31:10:31:20|Input phy2_tx_clk is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":37:10:37:19|Input phy2_rx_er is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":39:10:39:17|Input phy2_col is unused
+@W: CL159 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":40:10:40:17|Input phy2_crs is unused
+@W: CL157 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc.v":46:14:46:18|*Output debug has undriven bits -- simulation mismatch possible.
+@W: CL159 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cpld_fifo.v":17:14:17:21|Input din_dwen is unused
+@W: CL159 :"/home/sora/work/ethout/source/wb_tlc/wb_tlc_cpld.v":12:12:12:14|Input sel is unused
+@W: CL279 :"/home/sora/work/ethout/source/wb_tlc/wb_intf.v":71:0:71:5|Pruning register bits 2 to 1 of wb_cti_o[2:0] 
+@W: CL159 :"/home/sora/work/ethout/source/wb_tlc/wb_intf.v":15:14:15:20|Input din_bar is unused
+@W: CL169 :"/home/sora/work/ethout/source/ip_crpr_arb.v":49:0:49:5|Pruning register nph_cr_1p 
+@W: CL169 :"/home/sora/work/ethout/source/ip_crpr_arb.v":49:0:49:5|Pruning register ph_cr_1p 
+@W: CL246 :"/home/sora/work/ethout/source/ip_rx_crpr.v":14:12:14:21|Input port bits 6 to 2 of rx_bar_hit[6:0] are unused
+

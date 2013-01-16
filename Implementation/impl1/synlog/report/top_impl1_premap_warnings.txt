@@ -1,0 +1,2 @@
+@W: BN132 :"/home/sora/work/ethout/source/wb_tlc/wb_intf.v":71:0:71:5|Removing sequential instance wb_cyc_o_1,  because it is equivalent to instance wb_stb_o
+@W: BN132 :"/home/sora/work/ethout/source/wb_tlc/wb_intf.v":71:0:71:5|Removing sequential instance tran_length[9:0],  because it is equivalent to instance length[9:0]

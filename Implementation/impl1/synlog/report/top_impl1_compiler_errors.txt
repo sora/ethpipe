@@ -1,0 +1,2 @@
+@E: CG791 :"/home/sora/work/ethout/source/ecp3/pciwb_top.v":467:25:467:25|Could not resolve hierarchical name 'slot_status[1]'.
+

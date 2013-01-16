@@ -1,0 +1,296 @@
+----------------------------------------------------------------------
+Report for cell top.verilog
+
+Register bits: 690 of 33264 (2%)
+PIC Latch:       0
+I/O cells:       52
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                               AND2        1       100.0
+                              CCU2C      159       100.0
+                             DP16KC        4       100.0
+                            EHXPLLF        1       100.0
+                            FD1P3AX       58       100.0
+                            FD1P3BX        1       100.0
+                            FD1P3DX      350       100.0
+                            FD1P3IX       25       100.0
+                            FD1S3AX       36       100.0
+                            FD1S3BX        5       100.0
+                            FD1S3DX      205       100.0
+                            FD1S3IX        1       100.0
+                                GSR        1       100.0
+                                 IB       12       100.0
+                           IFS1P3IX        9       100.0
+                                INV        9       100.0
+                            L6MUX21        4       100.0
+                              MUX41       16       100.0
+                                 OB       13       100.0
+                                OBZ       27       100.0
+                           ORCALUT4      484       100.0
+                              PFUMX       44       100.0
+                                PUR        1       100.0
+                           SPR16X4C        4       100.0
+                                VHI        1       100.0
+                                VLO        1       100.0
+                               pcie        1       100.0
+                       pcs_pipe_top        1       100.0
+                      pmi_ram_dp_Z1        1       100.0
+                      pmi_ram_dp_Z2        1       100.0
+SUB MODULES 
+          async_pkt_fifo_18s_11s_100s_3s        1       100.0
+          async_pkt_fifo_27s_11s_100s_3s        1       100.0
+                   clk_sync_rx2_don        1       100.0
+                   clk_sync_rx2_rdy        1       100.0
+                        ip_crpr_arb        1       100.0
+                         ip_rx_crpr        1       100.0
+                           pcie_top        1       100.0
+                                pll        1       100.0
+                        ram_dp_true        1       100.0
+                   sync_logic_11s_1        1       100.0
+                   sync_logic_11s_3        1       100.0
+                            wb_intf        1       100.0
+                             wb_tlc        1       100.0
+                        wb_tlc_cpld        1       100.0
+          wb_tlc_cpld_fifo_16s_18s_11s_0s_1s_2s_3s_4s        1       100.0
+                          wb_tlc_cr        1       100.0
+                     wb_tlc_dec_16s        1       100.0
+            wb_tlc_req_fifo_16s_27s        1       100.0
+                            
+                         TOTAL          1494           
+----------------------------------------------------------------------
+Report for cell clk_sync_rx2_don.netlist
+  Original Cell name clk_sync
+     Instance path:  rx2_don
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                            FD1S3AX        4        11.1
+                           ORCALUT4        1         0.2
+                            
+                         TOTAL             5           
+----------------------------------------------------------------------
+Report for cell clk_sync_rx2_rdy.netlist
+  Original Cell name clk_sync
+     Instance path:  rx2_rdy
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                            FD1S3AX        4        11.1
+                           ORCALUT4        1         0.2
+                            
+                         TOTAL             5           
+----------------------------------------------------------------------
+Report for cell ram_dp_true.netlist
+     Instance path:  mem0
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                               AND2        1       100.0
+                             DP16KC        4       100.0
+                            FD1P3DX        4         1.1
+                                INV        1        11.1
+                              MUX41       16       100.0
+                            
+                         TOTAL            26           
+----------------------------------------------------------------------
+Report for cell pll.netlist
+     Instance path:  pll_1
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                            EHXPLLF        1       100.0
+                            
+                         TOTAL             1           
+----------------------------------------------------------------------
+Report for cell wb_tlc.netlist
+     Instance path:  wb_tlc
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                              CCU2C      106        66.7
+                            FD1P3BX        1       100.0
+                            FD1P3DX      265        75.7
+                            FD1S3AX       18        50.0
+                            FD1S3BX        5       100.0
+                            FD1S3DX      144        70.2
+                                INV        4        44.4
+                           ORCALUT4      264        54.5
+                              PFUMX       15        34.1
+                           SPR16X4C        4       100.0
+                      pmi_ram_dp_Z1        1       100.0
+                      pmi_ram_dp_Z2        1       100.0
+SUB MODULES 
+          async_pkt_fifo_18s_11s_100s_3s        1       100.0
+          async_pkt_fifo_27s_11s_100s_3s        1       100.0
+                   sync_logic_11s_1        1       100.0
+                   sync_logic_11s_3        1       100.0
+                            wb_intf        1       100.0
+                        wb_tlc_cpld        1       100.0
+          wb_tlc_cpld_fifo_16s_18s_11s_0s_1s_2s_3s_4s        1       100.0
+                          wb_tlc_cr        1       100.0
+                     wb_tlc_dec_16s        1       100.0
+            wb_tlc_req_fifo_16s_27s        1       100.0
+                            
+                         TOTAL           838           
+----------------------------------------------------------------------
+Report for cell wb_tlc_cpld_fifo_16s_18s_11s_0s_1s_2s_3s_4s.netlist
+     Instance path:  wb_tlc.cpld_fifo
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                              CCU2C       31        19.5
+                            FD1P3DX       78        22.3
+                            FD1S3BX        2        40.0
+                            FD1S3DX       24        11.7
+                                INV        1        11.1
+                           ORCALUT4       39         8.1
+                      pmi_ram_dp_Z2        1       100.0
+SUB MODULES 
+          async_pkt_fifo_18s_11s_100s_3s        1       100.0
+                   sync_logic_11s_3        1       100.0
+                            
+                         TOTAL           178           
+----------------------------------------------------------------------
+Report for cell async_pkt_fifo_18s_11s_100s_3s.netlist
+     Instance path:  wb_tlc.cpld_fifo.I_async_pkt_fifo
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                              CCU2C       22        13.8
+                            FD1P3DX       43        12.3
+                            FD1S3BX        1        20.0
+                            FD1S3DX       20         9.8
+                                INV        1        11.1
+                           ORCALUT4        8         1.7
+                      pmi_ram_dp_Z2        1       100.0
+SUB MODULES 
+                   sync_logic_11s_3        1       100.0
+                            
+                         TOTAL            97           
+----------------------------------------------------------------------
+Report for cell sync_logic_11s_3.netlist
+  Original Cell name sync_logic_11s
+     Instance path:  wb_tlc.cpld_fifo.I_async_pkt_fifo.I_wr2rd_sync
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                            FD1P3DX       22         6.3
+                            FD1S3DX        8         3.9
+                                INV        1        11.1
+                           ORCALUT4        2         0.4
+                            
+                         TOTAL            33           
+----------------------------------------------------------------------
+Report for cell wb_tlc_cpld.netlist
+     Instance path:  wb_tlc.cpld
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                              CCU2C       16        10.1
+                            FD1P3DX       42        12.0
+                            FD1S3AX       18        50.0
+                            FD1S3DX       19         9.3
+                                INV        2        22.2
+                           ORCALUT4      133        27.5
+                              PFUMX       15        34.1
+                           SPR16X4C        4       100.0
+                            
+                         TOTAL           249           
+----------------------------------------------------------------------
+Report for cell wb_intf.netlist
+     Instance path:  wb_tlc.intf
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                              CCU2C       32        20.1
+                            FD1P3DX       85        24.3
+                            FD1S3BX        1        20.0
+                            FD1S3DX       29        14.1
+                           ORCALUT4       75        15.5
+                            
+                         TOTAL           222           
+----------------------------------------------------------------------
+Report for cell wb_tlc_cr.netlist
+     Instance path:  wb_tlc.phcr
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                            FD1S3DX        6         2.9
+                           ORCALUT4        2         0.4
+                            
+                         TOTAL             8           
+----------------------------------------------------------------------
+Report for cell wb_tlc_req_fifo_16s_27s.netlist
+     Instance path:  wb_tlc.req_fifo
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                              CCU2C       22        13.8
+                            FD1P3DX       43        12.3
+                            FD1S3BX        1        20.0
+                            FD1S3DX       20         9.8
+                                INV        1        11.1
+                           ORCALUT4        7         1.4
+                      pmi_ram_dp_Z1        1       100.0
+SUB MODULES 
+          async_pkt_fifo_27s_11s_100s_3s        1       100.0
+                   sync_logic_11s_1        1       100.0
+                            
+                         TOTAL            97           
+----------------------------------------------------------------------
+Report for cell async_pkt_fifo_27s_11s_100s_3s.netlist
+     Instance path:  wb_tlc.req_fifo.I_async_pkt_fifo
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                              CCU2C       22        13.8
+                            FD1P3DX       43        12.3
+                            FD1S3BX        1        20.0
+                            FD1S3DX       20         9.8
+                                INV        1        11.1
+                           ORCALUT4        7         1.4
+                      pmi_ram_dp_Z1        1       100.0
+SUB MODULES 
+                   sync_logic_11s_1        1       100.0
+                            
+                         TOTAL            96           
+----------------------------------------------------------------------
+Report for cell sync_logic_11s_1.netlist
+  Original Cell name sync_logic_11s
+     Instance path:  wb_tlc.req_fifo.I_async_pkt_fifo.I_wr2rd_sync
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                            FD1P3DX       22         6.3
+                            FD1S3DX        8         3.9
+                                INV        1        11.1
+                           ORCALUT4        2         0.4
+                            
+                         TOTAL            33           
+----------------------------------------------------------------------
+Report for cell wb_tlc_dec_16s.netlist
+     Instance path:  wb_tlc.dec
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                            FD1P3DX       10         2.9
+                            FD1S3DX       37        18.0
+                           ORCALUT4        6         1.2
+                            
+                         TOTAL            53           
+----------------------------------------------------------------------
+Report for cell ip_crpr_arb.netlist
+     Instance path:  crarb
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                            FD1S3DX       23        11.2
+                           ORCALUT4       24         5.0
+                              PFUMX        9        20.5
+                            
+                         TOTAL            56           
+----------------------------------------------------------------------
+Report for cell ip_rx_crpr.netlist
+     Instance path:  cr
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                              CCU2C        5         3.1
+                            FD1P3DX       16         4.6
+                            FD1S3DX        2         1.0
+                           ORCALUT4       35         7.2
+                            
+                         TOTAL            58           
+----------------------------------------------------------------------
+Report for cell pcie_top.netlist
+     Instance path:  pcie
+                                          Cell usage:
+                               cell       count    Res Usage(%)
+                           ORCALUT4        1         0.2
+                               pcie        1       100.0
+                       pcs_pipe_top        1       100.0
+                            
+                         TOTAL             3           

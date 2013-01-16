@@ -1,0 +1,33 @@
+# Synospys Constraint Checker(syntax only), version maplat, Build 239R, built Oct 19 2011
+# Copyright (C) 1994-2011, Synopsys Inc.  All Rights Reserved
+
+# Written on Thu Jan 17 03:23:51 2013
+
+
+##### DESIGN INFO #######################################################
+
+Top View:                "top"
+Constraint File(s):      "/home/sora/work/ethout/Implementation/top.sdc"
+
+#Run constraint checker to find more issues with constraints.
+#########################################################################
+
+
+
+No issues found in constraint syntax.
+
+
+
+Clock Summary
+**************
+
+Start                        Requested     Requested     Clock        Clock              
+Clock                        Frequency     Period        Type         Group              
+-----------------------------------------------------------------------------------------
+System                       1.0 MHz       1000.000      system       system_clkgroup    
+refclkp                      100.0 MHz     10.000        declared     default_clkgroup_1 
+refclkn                      100.0 MHz     10.000        declared     default_clkgroup_0 
+clk_125                      125.0 MHz     8.000         declared     default_clkgroup_3 
+top|phy2_rx_clk              200.0 MHz     5.000         inferred     Inferred_clkgroup_0
+pll|CLKOP_inferred_clock     200.0 MHz     5.000         inferred     Inferred_clkgroup_1
+=========================================================================================

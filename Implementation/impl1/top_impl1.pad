@@ -1,0 +1,542 @@
+PAD Specification File
+***************************
+
+PART TYPE:        LFE3-35EA
+Performance Grade:      8
+PACKAGE:          FPBGA484
+Package Status:                     Final          Version 1.59
+
+Thu Jan 17 03:25:07 2013
+
+Pinout by Port Name:
++----------------+----------+--------------+--------------+---------------------------------------------------------------------+
+| Port Name      | Pin/Bank | Buffer Type  | Site         | Properties                                                          |
++----------------+----------+--------------+--------------+---------------------------------------------------------------------+
+| dp             | W5/6     | LVCMOS33_OUT | PB7A         | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| hdinn          | Y14/50   | HSI          | PCSA_HDINN0  |                                                                     |
+| hdinp          | Y15/50   | HSI          | PCSA_HDINP0  |                                                                     |
+| hdoutn         | AB14/50  | HSO          | PCSA_HDOUTN0 |                                                                     |
+| hdoutp         | AB15/50  | HSO          | PCSA_HDOUTP0 |                                                                     |
+| led_out_0      | V6/6     | LVCMOS33_OUT | PB10A        | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_1      | U7/6     | LVCMOS33_OUT | PB10B        | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_10     | W4/6     | LVCMOS33_OUT | PB4A         | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_11     | Y5/6     | LVCMOS33_OUT | PB4B         | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_12     | AA4/6    | LVCMOS33_OUT | PB5A         | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_13     | AA5/6    | LVCMOS33_OUT | PB5B         | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_2      | Y6/6     | LVCMOS33_OUT | PB11A        | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_3      | AA6/6    | LVCMOS33_OUT | PB11B        | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_4      | U8/6     | LVCMOS33_OUT | PB13A        | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_5      | T8/6     | LVCMOS33_OUT | PB13B        | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_6      | R9/6     | LVCMOS33_OUT | PB16A        | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_7      | T9/6     | LVCMOS33_OUT | PB16B        | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_8      | AB3/6    | LVCMOS33_OUT | PB2A         | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| led_out_9      | AB4/6    | LVCMOS33_OUT | PB2B         | DRIVE:12mA SLEW:SLOW PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_gtx_clk   | M2/6     | LVCMOS33_OUT | PL39A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_mii_clk   | V4/6     | LVCMOS33_OUT | PL71A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_rst_n     | L3/6     | LVCMOS33_OUT | PL36A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_tx_data_0 | V1/6     | LVCMOS33_OUT | PL57A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_tx_data_1 | U1/6     | LVCMOS33_OUT | PL53A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_tx_data_2 | R3/6     | LVCMOS33_OUT | PL51A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_tx_data_3 | P1/6     | LVCMOS33_OUT | PL48A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_tx_data_4 | N5/6     | LVCMOS33_OUT | PL47A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_tx_data_5 | N3/6     | LVCMOS33_OUT | PL45A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_tx_data_6 | N4/6     | LVCMOS33_OUT | PL44A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_tx_data_7 | N2/6     | LVCMOS33_OUT | PL42A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy1_tx_en     | V3/6     | LVCMOS33_OUT | PL60A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_gtx_clk   | M19/3    | LVCMOS33_OUT | PR38B        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_mii_clk   | Y18/3    | LVCMOS33_OUT | PB68B        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_mii_data  | U16/3    | LVCMOS33_OUT | PB61A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_rst_n     | R21/3    | LVCMOS33_OUT | PR36B        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_rx_clk    | N19/3    | LVCMOS33_IN  | PR38A        | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
+| phy2_rx_data_0 | AB17/3   | LVCMOS33_IN  | PB62A        | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
+| phy2_rx_data_1 | AA17/3   | LVCMOS33_IN  | PB62B        | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
+| phy2_rx_data_2 | R19/3    | LVCMOS33_IN  | PR53A        | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
+| phy2_rx_data_3 | V21/3    | LVCMOS33_IN  | PR53E_A      | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
+| phy2_rx_data_4 | T17/3    | LVCMOS33_IN  | PR53E_D      | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
+| phy2_rx_data_5 | R18/3    | LVCMOS33_IN  | PR53B        | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
+| phy2_rx_data_6 | W21/3    | LVCMOS33_IN  | PR51B        | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
+| phy2_rx_data_7 | Y21/3    | LVCMOS33_IN  | PR51A        | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
+| phy2_rx_dv     | U15/3    | LVCMOS33_IN  | PB61B        | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
+| phy2_tx_data_0 | W22/3    | LVCMOS33_OUT | PR48B        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_tx_data_1 | R16/3    | LVCMOS33_OUT | PR47A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_tx_data_2 | P17/3    | LVCMOS33_OUT | PR47B        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_tx_data_3 | Y22/3    | LVCMOS33_OUT | PR48A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_tx_data_4 | T21/3    | LVCMOS33_OUT | PR50A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_tx_data_5 | U22/3    | LVCMOS33_OUT | PR45A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_tx_data_6 | P20/3    | LVCMOS33_OUT | PR44A        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_tx_data_7 | U20/3    | LVCMOS33_OUT | PR50B        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| phy2_tx_en     | V22/3    | LVCMOS33_OUT | PR45B        | DRIVE:12mA SLEW:FAST PULL:UP PCICLAMP:ON DIFFDRIVE:NA MULTDRIVE:NA  |
+| refclkn        | V11/50   | HSI          | PCSA_REFCLKN |                                                                     |
+| refclkp        | V12/50   | HSI          | PCSA_REFCLKP |                                                                     |
+| rstn           | E18/8    | LVCMOS25_IN  | PT70A        | SLEW:FAST PULL:UP PCICLAMP:ON EQ_CAL:0 DIFFDRIVE:NA MULTDRIVE:NA    |
++----------------+----------+--------------+--------------+---------------------------------------------------------------------+
+
+Vccio by Bank:
++------+-------+
+| Bank | Vccio |
++------+-------+
+| 0    | 1.5V  |
+| 1    | 3.3V  |
+| 2    | 3.3V  |
+| 3    | 3.3V  |
+| 6    | 3.3V  |
+| 7    | 1.5V  |
+| 8    | 3.3V  |
++------+-------+
+
+Vref by Bank:
++------+-----+-----------------+---------+
+| Vref | Pin | Bank # / Vref # | Load(s) |
++------+-----+-----------------+---------+
++------+-----+-----------------+---------+
+
+Vtt by Bank:
++------+-----+
+| Bank | Vtt |
++------+-----+
+| 3    |     |
+| 6    |     |
+| 8    |     |
++------+-----+
+
+Pinout by Pin Number:
++----------+---------------------+------------+--------------+--------------+-----------------------+
+| Pin/Bank | Pin Info            | Preference | Buffer Type  | Site         | Dual Function         |
++----------+---------------------+------------+--------------+--------------+-----------------------+
+| A2/0     |     unused, PULL:UP |            |              | PT8B         | TDQ7                  |
+| A3/0     |     unused, PULL:UP |            |              | PT11A        | TDQ16                 |
+| A4/0     |     unused, PULL:UP |            |              | PT11B        | TDQ16                 |
+| A5/0     |     unused, PULL:UP |            |              | PT14A        | TDQ16                 |
+| A6/0     |     unused, PULL:UP |            |              | PT14B        | TDQ16                 |
+| A7/0     |     unused, PULL:UP |            |              | PT26B        | TDQ25                 |
+| A8/0     |     unused, PULL:UP |            |              | PT29B        | TDQ34                 |
+| A9/0     |     unused, PULL:UP |            |              | PT32A        | TDQ34                 |
+| A10/0    |     unused, PULL:UP |            |              | PT35A        | TDQ34                 |
+| A11/0    |     unused, PULL:UP |            |              | PT35B        | TDQ34                 |
+| A12/1    |     unused, PULL:UP |            |              | PT41A        | TDQ43                 |
+| A13/1    |     unused, PULL:UP |            |              | PT41B        | TDQ43                 |
+| A14/1    |     unused, PULL:UP |            |              | PT47A        | TDQ52                 |
+| A15/1    |     unused, PULL:UP |            |              | PT50A        | TDQ52                 |
+| A16/1    |     unused, PULL:UP |            |              | PT56A        | TDQ61                 |
+| A17/1    |     unused, PULL:UP |            |              | PT59A        | TDQ61                 |
+| A18/1    |     unused, PULL:UP |            |              | PT62A        | TDQ61                 |
+| A19/1    |     unused, PULL:UP |            |              | PT62B        | TDQ61                 |
+| A20/8    |     unused, PULL:UP |            |              | PT71A        | XD12                  |
+| A21/8    |     unused, PULL:UP |            |              | PR9A         | DOUT/CSON/CSSPI1N     |
+| AA1/6    |     unused, PULL:UP |            |              | PL66A        | LDQ68                 |
+| AA2/6    |     unused, PULL:UP |            |              | PL69B        | LDQ68                 |
+| AA4/6    | led_out_12          | LOCATED    | LVCMOS33_OUT | PB5A         |                       |
+| AA5/6    | led_out_13          | LOCATED    | LVCMOS33_OUT | PB5B         |                       |
+| AA6/6    | led_out_3           | LOCATED    | LVCMOS33_OUT | PB11B        |                       |
+| AA17/3   | phy2_rx_data_1      | LOCATED    | LVCMOS33_IN  | PB62B        |                       |
+| AA19/3   |     unused, PULL:UP |            |              | PB71A        |                       |
+| AA20/3   |     unused, PULL:UP |            |              | PR71A        | RDQ68                 |
+| AA21/3   |     unused, PULL:UP |            |              | PR68A        | RDQS68                |
+| AA22/3   |     unused, PULL:UP |            |              | PR63A        | RDQ68                 |
+| AB3/6    | led_out_8           | LOCATED    | LVCMOS33_OUT | PB2A         |                       |
+| AB4/6    | led_out_9           | LOCATED    | LVCMOS33_OUT | PB2B         |                       |
+| AB5/6    |     unused, PULL:UP |            |              | PB8A         |                       |
+| AB6/6    |     unused, PULL:UP |            |              | PB8B         |                       |
+| AB17/3   | phy2_rx_data_0      | LOCATED    | LVCMOS33_IN  | PB62A        |                       |
+| AB18/3   |     unused, PULL:UP |            |              | PB65A        |                       |
+| AB19/3   |     unused, PULL:UP |            |              | PB65B        |                       |
+| AB20/3   |     unused, PULL:UP |            |              | PR71B        | RDQ68                 |
+| AB21/3   |     unused, PULL:UP |            |              | PR63B        | RDQ68                 |
+| B1/7     |     unused, PULL:UP |            |              | PL21A        | LDQ23                 |
+| B2/7     |     unused, PULL:UP |            |              | PL12A        | LDQ14                 |
+| B3/0     |     unused, PULL:UP |            |              | PT8A         | TDQ7                  |
+| B4/0     |     unused, PULL:UP |            |              | PT2B         | TDQ7                  |
+| B6/0     |     unused, PULL:UP |            |              | PT5B         | TDQ7                  |
+| B7/0     |     unused, PULL:UP |            |              | PT26A        | TDQ25                 |
+| B8/0     |     unused, PULL:UP |            |              | PT29A        | TDQ34                 |
+| B10/0    |     unused, PULL:UP |            |              | PT32B        | TDQ34                 |
+| B11/1    |     unused, PULL:UP |            |              | PT38A        | TDQ43                 |
+| B12/1    |     unused, PULL:UP |            |              | PT38B        | TDQ43                 |
+| B14/1    |     unused, PULL:UP |            |              | PT47B        | TDQ52                 |
+| B15/1    |     unused, PULL:UP |            |              | PT50B        | TDQ52                 |
+| B16/1    |     unused, PULL:UP |            |              | PT56B        | TDQ61                 |
+| B18/1    |     unused, PULL:UP |            |              | PT59B        | TDQ61                 |
+| B19/8    |     unused, PULL:UP |            |              | PT68B        | XD9                   |
+| B20/8    |     unused, PULL:UP |            |              | PT71B        | XD13                  |
+| B22/8    |     unused, PULL:UP |            |              | PR9B         | MCLK                  |
+| C1/7     |     unused, PULL:UP |            |              | PL21B        | LDQ23                 |
+| C2/7     |     unused, PULL:UP |            |              | PL12B        | LDQ14                 |
+| C3/40    |                     |            |              | TDO          |                       |
+| C4/40    |                     |            |              | TMS          |                       |
+| C5/0     |     unused, PULL:UP |            |              | PT2A         | TDQ7                  |
+| C6/0     |     unused, PULL:UP |            |              | PT5A         | TDQ7                  |
+| C7/0     |     unused, PULL:UP |            |              | PT20B        | TDQ25                 |
+| C8/0     |     unused, PULL:UP |            |              | PT20A        | TDQ25                 |
+| C9/0     |     unused, PULL:UP |            |              | PT23A        | TDQ25                 |
+| C10/0    |     unused, PULL:UP |            |              | PT23B        | TDQ25                 |
+| C12/1    |     unused, PULL:UP |            |              | PT40A        | PCLKT1_0/TDQ43        |
+| C13/1    |     unused, PULL:UP |            |              | PT44A        | TDQ43                 |
+| C14/1    |     unused, PULL:UP |            |              | PT44B        | TDQ43                 |
+| C15/1    |     unused, PULL:UP |            |              | PT53A        | TDQ52                 |
+| C16/1    |     unused, PULL:UP |            |              | PT61B        | TDQ61                 |
+| C17/1    |     unused, PULL:UP |            |              | PT61A        | TDQS61                |
+| C18/8    |     unused, PULL:UP |            |              | PT68A        | XD8                   |
+| C21/8    |     unused, PULL:UP |            |              | PR6A         |                       |
+| C22/8    |     unused, PULL:UP |            |              | PR12A        | D1                    |
+| D1/7     |     unused, PULL:UP |            |              | PL15B        | LDQ14                 |
+| D2/7     |     unused, PULL:UP |            |              | PL15A        | LDQ14                 |
+| D4/7     |     unused, PULL:UP |            |              | PL9B         | LDQ14                 |
+| D5/0     |     unused, PULL:UP |            |              | PT4B         | VREF2_0/TDQ7          |
+| D6/0     |     unused, PULL:UP |            |              | PT10A        | TDQ7                  |
+| D7/0     |     unused, PULL:UP |            |              | PT10B        | TDQ7                  |
+| D8/0     |     unused, PULL:UP |            |              | PT28A        | TDQ25                 |
+| D9/0     |     unused, PULL:UP |            |              | PT25A        | TDQS25                |
+| D10/0    |     unused, PULL:UP |            |              | PT25B        | TDQ25                 |
+| D11/0    |     unused, PULL:UP |            |              | PT34B        | TDQ34                 |
+| D12/1    |     unused, PULL:UP |            |              | PT40B        | PCLKC1_0/TDQ43        |
+| D13/1    |     unused, PULL:UP |            |              | PT46A        | TDQ43                 |
+| D14/1    |     unused, PULL:UP |            |              | PT46B        | TDQ43                 |
+| D15/1    |     unused, PULL:UP |            |              | PT53B        | TDQ52                 |
+| D16/1    |     unused, PULL:UP |            |              | PT64A        | VREF1_1/TDQ61         |
+| D17/1    |     unused, PULL:UP |            |              | PT64B        | VREF2_1/TDQ61         |
+| D18/8    |     unused, PULL:UP |            |              | PT73A        | XD14                  |
+| D19/8    |     unused, PULL:UP |            |              | PT73B        | XD15                  |
+| D21/8    |     unused, PULL:UP |            |              | PR6B         | DI/CSSPI0N/CEN/CSSPIN |
+| D22/8    |     unused, PULL:UP |            |              | PR12B        | D2                    |
+| E1/7     |     unused, PULL:UP |            |              | PL26A        | VREF1_7/LDQ23         |
+| E2/7     |     unused, PULL:UP |            |              | PL18A        | LDQ23                 |
+| E3/7     |     unused, PULL:UP |            |              | PL9A         | LDQ14                 |
+| E4/7     |     unused, PULL:UP |            |              | PL11B        | LDQ14                 |
+| E5/7     |     unused, PULL:UP |            |              | PL11A        | LDQ14                 |
+| E6/0     |     unused, PULL:UP |            |              | PT4A         | VREF1_0/TDQ7          |
+| E7/0     |     unused, PULL:UP |            |              | PT28B        | TDQ25                 |
+| E9/0     |     unused, PULL:UP |            |              | PT22B        | TDQ25                 |
+| E10/0    |     unused, PULL:UP |            |              | PT31B        | TDQ34                 |
+| E11/0    |     unused, PULL:UP |            |              | PT34A        | TDQS34                |
+| E12/1    |     unused, PULL:UP |            |              | PT43A        | TDQS43                |
+| E13/1    |     unused, PULL:UP |            |              | PT43B        | TDQ43                 |
+| E15/1    |     unused, PULL:UP |            |              | PT52B        | TDQ52                 |
+| E16/1    |     unused, PULL:UP |            |              | PT52A        | TDQS52                |
+| E17/8    |     unused, PULL:UP |            |              | PT70B        | XD11                  |
+| E18/8    | rstn                | LOCATED    | LVCMOS25_IN  | PT70A        | XD10                  |
+| E22/2    |     unused, PULL:UP |            |              | PR18A        | RDQ23                 |
+| F1/7     |     unused, PULL:UP |            |              | PL26B        | VREF2_7/LDQ23         |
+| F3/7     |     unused, PULL:UP |            |              | PL18B        | LDQ23                 |
+| F4/7     |     unused, PULL:UP |            |              | PL14B        | LDQ14                 |
+| F5/7     |     unused, PULL:UP |            |              | PL14A        | LDQS14                |
+| F7/0     |     unused, PULL:UP |            |              | PT13A        | TDQ16                 |
+| F8/0     |     unused, PULL:UP |            |              | PT7A         | TDQS7                 |
+| F9/0     |     unused, PULL:UP |            |              | PT22A        | TDQ25                 |
+| F10/0    |     unused, PULL:UP |            |              | PT31A        | TDQ34                 |
+| F11/0    |     unused, PULL:UP |            |              | PT37A        | PCLKT0_0/TDQ34        |
+| F12/0    |     unused, PULL:UP |            |              | PT37B        | PCLKC0_0/TDQ34        |
+| F13/1    |     unused, PULL:UP |            |              | PT49A        | TDQ52                 |
+| F14/1    |     unused, PULL:UP |            |              | PT49B        | TDQ52                 |
+| F15/1    |     unused, PULL:UP |            |              | PT58A        | TDQ61                 |
+| F16/1    |     unused, PULL:UP |            |              | PT58B        | TDQ61                 |
+| F18/8    |     unused, PULL:UP |            |              | PR8B         | CSN/SN/CONT1N/OEN     |
+| F19/8    |     unused, PULL:UP |            |              | PR8A         | CS1N/HOLDN/CONT2N/RDY |
+| F22/2    |     unused, PULL:UP |            |              | PR18B        | RDQ23                 |
+| G1/7     |     unused, PULL:UP |            |              | PL27A        | LDQ32                 |
+| G2/7     |     unused, PULL:UP |            |              | PL24B        | LDQ23                 |
+| G3/7     |     unused, PULL:UP |            |              | PL24A        | LDQ23                 |
+| G4/7     |     unused, PULL:UP |            |              | PL17A        | LDQ14                 |
+| G5/7     |     unused, PULL:UP |            |              | PL17B        | LDQ14                 |
+| G6/40    |                     |            |              | TDI          |                       |
+| G7/40    |                     |            |              | TCK          |                       |
+| G8/0     |     unused, PULL:UP |            |              | PT13B        | TDQ16                 |
+| G9/0     |     unused, PULL:UP |            |              | PT7B         | TDQ7                  |
+| G14/1    |     unused, PULL:UP |            |              | PT55B        | TDQ52                 |
+| G15/1    |     unused, PULL:UP |            |              | PT55A        | TDQ52                 |
+| G17/8    |     unused, PULL:UP |            |              | PR14A        | D3/SI                 |
+| G18/8    |     unused, PULL:UP |            |              | PR14B        | D4/SO                 |
+| G19/8    |     unused, PULL:UP |            |              | PR15A        | D5                    |
+| G20/8    |     unused, PULL:UP |            |              | PR15B        | D6/SPID1              |
+| G21/2    |     unused, PULL:UP |            |              | PR21A        | RDQ23                 |
+| G22/2    |     unused, PULL:UP |            |              | PR21B        | RDQ23                 |
+| H1/7     |     unused, PULL:UP |            |              | PL27B        | LDQ32                 |
+| H2/7     |     unused, PULL:UP |            |              | PL30A        | LUM0_GDLLT_FB_A/LDQ32 |
+| H3/7     |     unused, PULL:UP |            |              | PL30B        | LUM0_GDLLT_FB_B/LDQ32 |
+| H4/7     |     unused, PULL:UP |            |              | PL20A        | LDQ23                 |
+| H5/7     |     unused, PULL:UP |            |              | PL23A        | LDQS23                |
+| H6/7     |     unused, PULL:UP |            |              | PL23B        | LDQ23                 |
+| H17/8    |     unused, PULL:UP |            |              | PR11B        | D0/SPIFASTN           |
+| H19/8    |     unused, PULL:UP |            |              | PR17A        | D7/SPID0              |
+| H20/8    |     unused, PULL:UP |            |              | PR17B        | BUSY/SISPI/AVDN       |
+| H21/2    |     unused, PULL:UP |            |              | PR24A        | RDQ23                 |
+| H22/2    |     unused, PULL:UP |            |              | PR24B        | RDQ23                 |
+| J1/7     |     unused, PULL:UP |            |              | PL33B        | LDQ32                 |
+| J2/7     |     unused, PULL:UP |            |              | PL33A        | LDQ32                 |
+| J3/7     |     unused, PULL:UP |            |              | PL32A        | LDQS32                |
+| J4/7     |     unused, PULL:UP |            |              | PL20B        | LDQ23                 |
+| J6/7     |     unused, PULL:UP |            |              | PL29B        | LUM0_GDLLT_IN_B/LDQ32 |
+| J7/7     |     unused, PULL:UP |            |              | PL29A        | LUM0_GDLLT_IN_A/LDQ32 |
+| J16/8    |     unused, PULL:UP |            |              | PR11A        | WRITEN                |
+| J17/2    |     unused, PULL:UP |            |              | PR20A        | RDQ23                 |
+| J18/2    |     unused, PULL:UP |            |              | PR20B        | RDQ23                 |
+| J19/2    |     unused, PULL:UP |            |              | PR23A        | RDQS23                |
+| J20/2    |     unused, PULL:UP |            |              | PR23B        | RDQ23                 |
+| J22/2    |     unused, PULL:UP |            |              | PR27A        | RDQ32                 |
+| K1/7     |     unused, PULL:UP |            |              | PL35E_A      | LUM0_GPLLT_FB_A/LDQ32 |
+| K3/7     |     unused, PULL:UP |            |              | PL32B        | LDQ32                 |
+| K4/7     |     unused, PULL:UP |            |              | PL35A        | PCLKT7_0/LDQ32        |
+| K5/7     |     unused, PULL:UP |            |              | PL35B        | PCLKC7_0/LDQ32        |
+| K6/7     |     unused, PULL:UP |            |              | PL35E_D      | LUM0_GPLLT_IN_B/LDQ32 |
+| K17/2    |     unused, PULL:UP |            |              | PR26A        | VREF1_2/RDQ23         |
+| K18/2    |     unused, PULL:UP |            |              | PR26B        | VREF2_2/RDQ23         |
+| K19/2    |     unused, PULL:UP |            |              | PR29B        | RUM0_GDLLT_IN_B/RDQ32 |
+| K20/2    |     unused, PULL:UP |            |              | PR29A        | RUM0_GDLLT_IN_A/RDQ32 |
+| K21/2    |     unused, PULL:UP |            |              | PR30A        | RUM0_GDLLT_FB_A/RDQ32 |
+| K22/2    |     unused, PULL:UP |            |              | PR27B        | RDQ32                 |
+| L1/7     |     unused, PULL:UP |            |              | PL35E_B      | LUM0_GPLLT_FB_B/LDQ32 |
+| L2/6     |     unused, PULL:UP |            |              | PL36B        | LDQ41                 |
+| L3/6     | phy1_rst_n          | LOCATED    | LVCMOS33_OUT | PL36A        | LDQ41                 |
+| L4/6     |     unused, PULL:UP |            |              | PL38A        | PCLKT6_0/LDQ41        |
+| L5/7     |     unused, PULL:UP |            |              | PL35E_C      | LUM0_GPLLT_IN_A/LDQ32 |
+| L18/2    |     unused, PULL:UP |            |              | PR32A        | RDQS32                |
+| L19/2    |     unused, PULL:UP |            |              | PR32B        | RDQ32                 |
+| L21/2    |     unused, PULL:UP |            |              | PR30B        | RUM0_GDLLT_FB_B/RDQ32 |
+| L22/2    |     unused, PULL:UP |            |              | PR33A        | RDQ32                 |
+| M1/6     |     unused, PULL:UP |            |              | PL39B        | LDQ41                 |
+| M2/6     | phy1_gtx_clk        | LOCATED    | LVCMOS33_OUT | PL39A        | LDQ41                 |
+| M4/6     |     unused, PULL:UP |            |              | PL38B        | PCLKC6_0/LDQ41        |
+| M5/6     |     unused, PULL:UP |            |              | PL41A        | LDQS41                |
+| M18/2    |     unused, PULL:UP |            |              | PR35E_C      | RUM0_GPLLT_IN_A/RDQ32 |
+| M19/3    | phy2_gtx_clk        | LOCATED    | LVCMOS33_OUT | PR38B        | PCLKC3_0/RDQ41        |
+| M20/2    |     unused, PULL:UP |            |              | PR35B        | PCLKC2_0/RDQ32        |
+| M21/2    |     unused, PULL:UP |            |              | PR35A        | PCLKT2_0/RDQ32        |
+| M22/2    |     unused, PULL:UP |            |              | PR33B        | RDQ32                 |
+| N1/6     |     unused, PULL:UP |            |              | PL42B        | LDQ41                 |
+| N2/6     | phy1_tx_data_7      | LOCATED    | LVCMOS33_OUT | PL42A        | LDQ41                 |
+| N3/6     | phy1_tx_data_5      | LOCATED    | LVCMOS33_OUT | PL45A        | LDQ50                 |
+| N4/6     | phy1_tx_data_6      | LOCATED    | LVCMOS33_OUT | PL44A        | VREF1_6/LDQ41         |
+| N5/6     | phy1_tx_data_4      | LOCATED    | LVCMOS33_OUT | PL47A        | LDQ50                 |
+| N6/6     |     unused, PULL:UP |            |              | PL41B        | LDQ41                 |
+| N17/2    |     unused, PULL:UP |            |              | PR35E_D      | RUM0_GPLLT_IN_B/RDQ32 |
+| N18/3    |     unused, PULL:UP |            |              | PR41A        | RDQS41                |
+| N19/3    | phy2_rx_clk         | LOCATED    | LVCMOS33_IN  | PR38A        | PCLKT3_0/RDQ41        |
+| N20/3    |     unused, PULL:UP |            |              | PR44B        | VREF2_3/RDQ41         |
+| N22/2    |     unused, PULL:UP |            |              | PR35E_B      | RUM0_GPLLT_FB_B/RDQ32 |
+| P1/6     | phy1_tx_data_3      | LOCATED    | LVCMOS33_OUT | PL48A        | LDQ50                 |
+| P3/6     |     unused, PULL:UP |            |              | PL45B        | LDQ50                 |
+| P4/6     |     unused, PULL:UP |            |              | PL44B        | VREF2_6/LDQ41         |
+| P5/6     |     unused, PULL:UP |            |              | PL50A        | LDQS50                |
+| P6/6     |     unused, PULL:UP |            |              | PL47B        | LDQ50                 |
+| P7/6     |     unused, PULL:UP |            |              | PL56B        | LDQ59                 |
+| P17/3    | phy2_tx_data_2      | LOCATED    | LVCMOS33_OUT | PR47B        | RDQ50                 |
+| P19/3    |     unused, PULL:UP |            |              | PR41B        | RDQ41                 |
+| P20/3    | phy2_tx_data_6      | LOCATED    | LVCMOS33_OUT | PR44A        | VREF1_3/RDQ41         |
+| P21/2    |     unused, PULL:UP |            |              | PR35E_A      | RUM0_GPLLT_FB_A/RDQ32 |
+| P22/3    |     unused, PULL:UP |            |              | PR36A        | RDQ41                 |
+| PB14A/6  |     unused, PULL:UP |            |              | PB14A        |                       |
+| PB14B/6  |     unused, PULL:UP |            |              | PB14B        |                       |
+| PB59A/3  |     unused, PULL:UP |            |              | PB59A        |                       |
+| PB59B/3  |     unused, PULL:UP |            |              | PB59B        |                       |
+| Y14/50   | hdinn               |            |              | PCSA_HDINN0  |                       |
+| Y13/50   |                     |            |              | PCSA_HDINN1  |                       |
+| Y10/50   |                     |            |              | PCSA_HDINN2  |                       |
+| Y9/50    |                     |            |              | PCSA_HDINN3  |                       |
+| Y15/50   | hdinp               |            |              | PCSA_HDINP0  |                       |
+| Y12/50   |                     |            |              | PCSA_HDINP1  |                       |
+| Y11/50   |                     |            |              | PCSA_HDINP2  |                       |
+| Y8/50    |                     |            |              | PCSA_HDINP3  |                       |
+| AB14/50  | hdoutn              |            |              | PCSA_HDOUTN0 |                       |
+| AB13/50  |                     |            |              | PCSA_HDOUTN1 |                       |
+| AB10/50  |                     |            |              | PCSA_HDOUTN2 |                       |
+| AB9/50   |                     |            |              | PCSA_HDOUTN3 |                       |
+| AB15/50  | hdoutp              |            |              | PCSA_HDOUTP0 |                       |
+| AB12/50  |                     |            |              | PCSA_HDOUTP1 |                       |
+| AB11/50  |                     |            |              | PCSA_HDOUTP2 |                       |
+| AB8/50   |                     |            |              | PCSA_HDOUTP3 |                       |
+| V11/50   | refclkn             |            |              | PCSA_REFCLKN |                       |
+| V12/50   | refclkp             |            |              | PCSA_REFCLKP |                       |
+| PL3A/7   |     unused, PULL:UP |            |              | PL3A         |                       |
+| PL3B/7   |     unused, PULL:UP |            |              | PL3B         |                       |
+| PL5A/7   |     unused, PULL:UP |            |              | PL5A         |                       |
+| PL5B/7   |     unused, PULL:UP |            |              | PL5B         |                       |
+| PL6A/7   |     unused, PULL:UP |            |              | PL6A         |                       |
+| PL6B/7   |     unused, PULL:UP |            |              | PL6B         |                       |
+| PL8A/7   |     unused, PULL:UP |            |              | PL8A         |                       |
+| PL8B/7   |     unused, PULL:UP |            |              | PL8B         |                       |
+| PL54A/6  |     unused, PULL:UP |            |              | PL54A        | LDQ59                 |
+| PL54B/6  |     unused, PULL:UP |            |              | PL54B        | LDQ59                 |
+| PL56A/6  |     unused, PULL:UP |            |              | PL56A        | LDQ59                 |
+| PR54A/3  |     unused, PULL:UP |            |              | PR54A        | RDQ59                 |
+| PR54B/3  |     unused, PULL:UP |            |              | PR54B        | RDQ59                 |
+| PR56A/3  |     unused, PULL:UP |            |              | PR56A        | RDQ59                 |
+| PR56B/3  |     unused, PULL:UP |            |              | PR56B        | RDQ59                 |
+| PR57A/3  |     unused, PULL:UP |            |              | PR57A        | RDQ59                 |
+| PR57B/3  |     unused, PULL:UP |            |              | PR57B        | RDQ59                 |
+| PR59A/3  |     unused, PULL:UP |            |              | PR59A        | RDQS59                |
+| PR59B/3  |     unused, PULL:UP |            |              | PR59B        | RDQ59                 |
+| PR60A/3  |     unused, PULL:UP |            |              | PR60A        | RDQ59                 |
+| PR60B/3  |     unused, PULL:UP |            |              | PR60B        | RDQ59                 |
+| PR62A/3  |     unused, PULL:UP |            |              | PR62A        | RDQ59                 |
+| PR62B/3  |     unused, PULL:UP |            |              | PR62B        | RDQ59                 |
+| PT16A/0  |     unused, PULL:UP |            |              | PT16A        | TDQS16                |
+| PT16B/0  |     unused, PULL:UP |            |              | PT16B        | TDQ16                 |
+| PT17A/0  |     unused, PULL:UP |            |              | PT17A        | TDQ16                 |
+| PT17B/0  |     unused, PULL:UP |            |              | PT17B        | TDQ16                 |
+| PT19A/0  |     unused, PULL:UP |            |              | PT19A        | TDQ16                 |
+| PT19B/0  |     unused, PULL:UP |            |              | PT19B        | TDQ16                 |
+| R1/6     |     unused, PULL:UP |            |              | PL48B        | LDQ50                 |
+| R2/6     |     unused, PULL:UP |            |              | PL51B        | LDQ50                 |
+| R3/6     | phy1_tx_data_2      | LOCATED    | LVCMOS33_OUT | PL51A        | LDQ50                 |
+| R4/6     |     unused, PULL:UP |            |              | PL62A        | LDQ59                 |
+| R6/6     |     unused, PULL:UP |            |              | PL50B        | LDQ50                 |
+| R7/6     |     unused, PULL:UP |            |              | PL59A        | LDQS59                |
+| R9/6     | led_out_6           | LOCATED    | LVCMOS33_OUT | PB16A        |                       |
+| R14/3    |     unused, PULL:UP |            |              | PB64B        |                       |
+| R16/3    | phy2_tx_data_1      | LOCATED    | LVCMOS33_OUT | PR47A        | RDQ50                 |
+| R17/3    |     unused, PULL:UP |            |              | PR53E_C      | RLM1_GPLLT_IN_A/RDQ50 |
+| R18/3    | phy2_rx_data_5      | LOCATED    | LVCMOS33_IN  | PR53B        | RDQ50                 |
+| R19/3    | phy2_rx_data_2      | LOCATED    | LVCMOS33_IN  | PR53A        | RDQ50                 |
+| R20/3    |     unused, PULL:UP |            |              | PR42B        | RDQ41                 |
+| R21/3    | phy2_rst_n          | LOCATED    | LVCMOS33_OUT | PR36B        | RDQ41                 |
+| R22/3    |     unused, PULL:UP |            |              | PR39A        | RDQ41                 |
+| T1/6     |     unused, PULL:UP |            |              | PL53E_B      | LLM1_GPLLT_FB_B/LDQ50 |
+| T2/6     |     unused, PULL:UP |            |              | PL53E_A      | LLM1_GPLLT_FB_A/LDQ50 |
+| T3/6     |     unused, PULL:UP |            |              | PL53E_C      | LLM1_GPLLT_IN_A/LDQ50 |
+| T4/6     |     unused, PULL:UP |            |              | PL65A        | LDQ68                 |
+| T5/6     |     unused, PULL:UP |            |              | PL62B        | LDQ59                 |
+| T6/6     |     unused, PULL:UP |            |              | PL68A        | LDQS68                |
+| T7/6     |     unused, PULL:UP |            |              | PL59B        | LDQ59                 |
+| T8/6     | led_out_5           | LOCATED    | LVCMOS33_OUT | PB13B        |                       |
+| T9/6     | led_out_7           | LOCATED    | LVCMOS33_OUT | PB16B        |                       |
+| T14/3    |     unused, PULL:UP |            |              | PB64A        |                       |
+| T15/3    |     unused, PULL:UP |            |              | PB73A        |                       |
+| T16/3    |     unused, PULL:UP |            |              | PB73B        |                       |
+| T17/3    | phy2_rx_data_4      | LOCATED    | LVCMOS33_IN  | PR53E_D      | RLM1_GPLLT_IN_B/RDQ50 |
+| T18/3    |     unused, PULL:UP |            |              | PR65B        | RDQ68                 |
+| T19/3    |     unused, PULL:UP |            |              | PR65A        | RDQ68                 |
+| T20/3    |     unused, PULL:UP |            |              | PR42A        | RDQ41                 |
+| T21/3    | phy2_tx_data_4      | LOCATED    | LVCMOS33_OUT | PR50A        | RDQS50                |
+| T22/3    |     unused, PULL:UP |            |              | PR39B        | RDQ41                 |
+| U1/6     | phy1_tx_data_1      | LOCATED    | LVCMOS33_OUT | PL53A        | LDQ50                 |
+| U2/6     |     unused, PULL:UP |            |              | PL53B        | LDQ50                 |
+| U3/6     |     unused, PULL:UP |            |              | PL53E_D      | LLM1_GPLLT_IN_B/LDQ50 |
+| U4/6     |     unused, PULL:UP |            |              | PL65B        | LDQ68                 |
+| U5/6     |     unused, PULL:UP |            |              | PL68B        | LDQ68                 |
+| U7/6     | led_out_1           | LOCATED    | LVCMOS33_OUT | PB10B        |                       |
+| U8/6     | led_out_4           | LOCATED    | LVCMOS33_OUT | PB13A        |                       |
+| U15/3    | phy2_rx_dv          | LOCATED    | LVCMOS33_IN  | PB61B        |                       |
+| U16/3    | phy2_mii_data       | LOCATED    | LVCMOS33_OUT | PB61A        |                       |
+| U18/3    |     unused, PULL:UP |            |              | PR66B        | RDQ68                 |
+| U19/3    |     unused, PULL:UP |            |              | PR66A        | RDQ68                 |
+| U20/3    | phy2_tx_data_7      | LOCATED    | LVCMOS33_OUT | PR50B        | RDQ50                 |
+| U22/3    | phy2_tx_data_5      | LOCATED    | LVCMOS33_OUT | PR45A        | RDQ50                 |
+| V1/6     | phy1_tx_data_0      | LOCATED    | LVCMOS33_OUT | PL57A        | LDQ59                 |
+| V3/6     | phy1_tx_en          | LOCATED    | LVCMOS33_OUT | PL60A        | LDQ59                 |
+| V4/6     | phy1_mii_clk        | LOCATED    | LVCMOS33_OUT | PL71A        | LDQ68                 |
+| V5/6     |     unused, PULL:UP |            |              | PL71B        | LDQ68                 |
+| V6/6     | led_out_0           | LOCATED    | LVCMOS33_OUT | PB10A        |                       |
+| V17/3    |     unused, PULL:UP |            |              | PB70B        |                       |
+| V18/3    |     unused, PULL:UP |            |              | PB70A        |                       |
+| V19/3    |     unused, PULL:UP |            |              | PR69B        | RDQ68                 |
+| V20/3    |     unused, PULL:UP |            |              | PR53E_B      | RLM1_GPLLT_FB_B/RDQ50 |
+| V21/3    | phy2_rx_data_3      | LOCATED    | LVCMOS33_IN  | PR53E_A      | RLM1_GPLLT_FB_A/RDQ50 |
+| V22/3    | phy2_tx_en          | LOCATED    | LVCMOS33_OUT | PR45B        | RDQ50                 |
+| W1/6     |     unused, PULL:UP |            |              | PL57B        | LDQ59                 |
+| W2/6     |     unused, PULL:UP |            |              | PL63A        | LDQ68                 |
+| W3/6     |     unused, PULL:UP |            |              | PL60B        | LDQ59                 |
+| W4/6     | led_out_10          | LOCATED    | LVCMOS33_OUT | PB4A         |                       |
+| W5/6     | dp                  | LOCATED    | LVCMOS33_OUT | PB7A         |                       |
+| W6/6     |     unused, PULL:UP |            |              | PB7B         |                       |
+| W17/3    |     unused, PULL:UP |            |              | PB67B        |                       |
+| W18/3    |     unused, PULL:UP |            |              | PB67A        |                       |
+| W19/3    |     unused, PULL:UP |            |              | PR69A        | RDQ68                 |
+| W21/3    | phy2_rx_data_6      | LOCATED    | LVCMOS33_IN  | PR51B        | RDQ50                 |
+| W22/3    | phy2_tx_data_0      | LOCATED    | LVCMOS33_OUT | PR48B        | RDQ50                 |
+| Y1/6     |     unused, PULL:UP |            |              | PL63B        | LDQ68                 |
+| Y2/6     |     unused, PULL:UP |            |              | PL66B        | LDQ68                 |
+| Y3/6     |     unused, PULL:UP |            |              | PL69A        | LDQ68                 |
+| Y5/6     | led_out_11          | LOCATED    | LVCMOS33_OUT | PB4B         |                       |
+| Y6/6     | led_out_2           | LOCATED    | LVCMOS33_OUT | PB11A        |                       |
+| Y17/3    |     unused, PULL:UP |            |              | PB68A        |                       |
+| Y18/3    | phy2_mii_clk        | LOCATED    | LVCMOS33_OUT | PB68B        |                       |
+| Y19/3    |     unused, PULL:UP |            |              | PB71B        |                       |
+| Y20/3    |     unused, PULL:UP |            |              | PR68B        | RDQ68                 |
+| Y21/3    | phy2_rx_data_7      | LOCATED    | LVCMOS33_IN  | PR51A        | RDQ50                 |
+| Y22/3    | phy2_tx_data_3      | LOCATED    | LVCMOS33_OUT | PR48A        | RDQ50                 |
++----------+---------------------+------------+--------------+--------------+-----------------------+
+
+sysCONFIG Pins:
+    - Config_Mode: SPI
+    - Persistent : OFF
++----------+-----------------------+----------+-------------+
+| Pad Name | sysCONFIG Pin Name    | Pin/Bank | Buffer Type |
++----------+-----------------------+----------+-------------+
+| PR17B    | BUSY/SISPI/AVDN       | H20/8    |             |
+| PR17A    | D7/SPID0              | H19/8    |             |
+| PR11B    | D0/SPIFASTN           | H17/8    |             |
+| PR9B     | MCLK                  | B22/8    |             |
+| PR9A     | DOUT/CSON/CSSPI1N     | A21/8    |             |
+| PR8B     | CSN/SN/CONT1N/OEN     | F18/8    |             |
+| PR6B     | DI/CSSPI0N/CEN/CSSPIN | D21/8    |             |
+| PR8A     | CS1N/HOLDN/CONT2N/RDY | F19/8    |             |
++----------+-----------------------+----------+-------------+
+
+
+Locate Preferences for each Pin: 
+
+LOCATE  COMP  "dp"  SITE  "W5";
+LOCATE  COMP  "led_out_0"  SITE  "V6";
+LOCATE  COMP  "led_out_1"  SITE  "U7";
+LOCATE  COMP  "led_out_10"  SITE  "W4";
+LOCATE  COMP  "led_out_11"  SITE  "Y5";
+LOCATE  COMP  "led_out_12"  SITE  "AA4";
+LOCATE  COMP  "led_out_13"  SITE  "AA5";
+LOCATE  COMP  "led_out_2"  SITE  "Y6";
+LOCATE  COMP  "led_out_3"  SITE  "AA6";
+LOCATE  COMP  "led_out_4"  SITE  "U8";
+LOCATE  COMP  "led_out_5"  SITE  "T8";
+LOCATE  COMP  "led_out_6"  SITE  "R9";
+LOCATE  COMP  "led_out_7"  SITE  "T9";
+LOCATE  COMP  "led_out_8"  SITE  "AB3";
+LOCATE  COMP  "led_out_9"  SITE  "AB4";
+LOCATE  COMP  "phy1_gtx_clk"  SITE  "M2";
+LOCATE  COMP  "phy1_mii_clk"  SITE  "V4";
+LOCATE  COMP  "phy1_rst_n"  SITE  "L3";
+LOCATE  COMP  "phy1_tx_data_0"  SITE  "V1";
+LOCATE  COMP  "phy1_tx_data_1"  SITE  "U1";
+LOCATE  COMP  "phy1_tx_data_2"  SITE  "R3";
+LOCATE  COMP  "phy1_tx_data_3"  SITE  "P1";
+LOCATE  COMP  "phy1_tx_data_4"  SITE  "N5";
+LOCATE  COMP  "phy1_tx_data_5"  SITE  "N3";
+LOCATE  COMP  "phy1_tx_data_6"  SITE  "N4";
+LOCATE  COMP  "phy1_tx_data_7"  SITE  "N2";
+LOCATE  COMP  "phy1_tx_en"  SITE  "V3";
+LOCATE  COMP  "phy2_gtx_clk"  SITE  "M19";
+LOCATE  COMP  "phy2_mii_clk"  SITE  "Y18";
+LOCATE  COMP  "phy2_mii_data"  SITE  "U16";
+LOCATE  COMP  "phy2_rst_n"  SITE  "R21";
+LOCATE  COMP  "phy2_rx_clk"  SITE  "N19";
+LOCATE  COMP  "phy2_rx_data_0"  SITE  "AB17";
+LOCATE  COMP  "phy2_rx_data_1"  SITE  "AA17";
+LOCATE  COMP  "phy2_rx_data_2"  SITE  "R19";
+LOCATE  COMP  "phy2_rx_data_3"  SITE  "V21";
+LOCATE  COMP  "phy2_rx_data_4"  SITE  "T17";
+LOCATE  COMP  "phy2_rx_data_5"  SITE  "R18";
+LOCATE  COMP  "phy2_rx_data_6"  SITE  "W21";
+LOCATE  COMP  "phy2_rx_data_7"  SITE  "Y21";
+LOCATE  COMP  "phy2_rx_dv"  SITE  "U15";
+LOCATE  COMP  "phy2_tx_data_0"  SITE  "W22";
+LOCATE  COMP  "phy2_tx_data_1"  SITE  "R16";
+LOCATE  COMP  "phy2_tx_data_2"  SITE  "P17";
+LOCATE  COMP  "phy2_tx_data_3"  SITE  "Y22";
+LOCATE  COMP  "phy2_tx_data_4"  SITE  "T21";
+LOCATE  COMP  "phy2_tx_data_5"  SITE  "U22";
+LOCATE  COMP  "phy2_tx_data_6"  SITE  "P20";
+LOCATE  COMP  "phy2_tx_data_7"  SITE  "U20";
+LOCATE  COMP  "phy2_tx_en"  SITE  "V22";
+LOCATE  COMP  "rstn"  SITE  "E18";
+
+#PLL
+LOCATE  COMP  "pll_1/PLLInst_0"  SITE  "PLL_R53C5" ;
+
+
+
+
+PAR: Place And Route Diamond_1.4_Production (87).
+Copyright (c) 1991-1994 by NeoCAD Inc. All rights reserved.
+Copyright (c) 1995 AT&T Corp.   All rights reserved.
+Copyright (c) 1995-2001 Lucent Technologies Inc.  All rights reserved.
+Copyright (c) 2001 Agere Systems   All rights reserved.
+Copyright (c) 2002-2011 Lattice Semiconductor Corporation,  All rights reserved.
+Thu Jan 17 03:25:07 2013
+

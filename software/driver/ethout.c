@@ -30,12 +30,12 @@ static ssize_t ethout_read(struct file *filp, char __user *buf,
 
 	printk("%s\n", __func__);
 
-	if ( count > 256 )
-		copy_len = 256;
+	if ( count > 2048 )
+		copy_len = 2048;
 	else
 		copy_len = count;
 
-	if ( copy_to_user( buf, mmio_ptr, copy_len ) ) {
+	if ( copy_to_user( buf, ((char *)mmio_ptr + 0x8000), copy_len ) ) {
 		printk( KERN_INFO "copy_to_user failed\n" );
 		return -EFAULT;
 	}

@@ -96,12 +96,12 @@ pcie_top pcie(
    .msi                        (  8'd0 ),
    .inta_n                     (  1'b1 ),
    // This PCIe interface uses dynamic IDs.
-   .vendor_id                  (16'h1204),
-   .device_id                  (16'hec30),
+   .vendor_id                  (16'h3776),
+   .device_id                  (16'h8001),
    .rev_id                     (8'h00),
    .class_code                 (24'h000000),
-   .subsys_ven_id              (16'h1204),
-   .subsys_id                  (16'h3010),
+   .subsys_ven_id              (16'h3776),
+   .subsys_id                  (16'h8001),
    .load_id                    (1'b1),
    // Inputs
    .force_lsm_active           ( 1'b0 ),
@@ -246,13 +246,12 @@ wire [15:0] mem_qA;
 wire [15:0] mem_qB;
 ram_dp_true mem0 (
     .DataInA(mem_dataA)
-//  , .DataInB({4'b0,mem_addressB})  //mem_dataB)
-  , .DataInB(mem_dataB)  //mem_dataB)
+  , .DataInB(mem_dataB)
   , .ByteEnA(mem_byte_enA)
   , .ByteEnB(mem_byte_enB)
-  , .AddressA(wr ? mem_addressA : pcie_adr[12:1]) //mem_addressA)
+  , .AddressA(mem_addressA)
   , .AddressB(mem_addressB)
-  , .ClockA(clk_250)
+  , .ClockA(clk_125) // clk_250)
   , .ClockB(phy2_rx_clk)
   , .ClockEnA(core_rst_n)
   , .ClockEnB(core_rst_n)
@@ -280,7 +279,7 @@ assign phy2_mii_clk = 1'b0;
 assign phy2_mii_data = 1'b0;
 assign phy2_tx_en = 1'b0;
 assign phy2_tx_data = 8'h0;
-assign phy2_gtx_clk = 1'b0;
+assign phy2_gtx_clk = phy2_125M_clk;
 
 // Wishbone BUS
 // clk_125, core_rst_n
@@ -290,6 +289,8 @@ assign rd = ~pcie_we && pcie_cyc && pcie_stb;
 assign wr = pcie_we && pcie_cyc && pcie_stb;
 reg [15:0] wb_dat;
 reg wb_ack;
+assign next_wb_ack = ~wb_ack && pcie_cyc && pcie_stb;
+reg [1:0] waiting;
 reg [ 3:0] slots_status;
 reg [31:0] global_counter;
 always @(posedge clk_125 or negedge core_rst_n) begin
@@ -301,15 +302,18 @@ always @(posedge clk_125 or negedge core_rst_n) begin
         mem_addressA   <= 12'b0;
         global_counter <= 32'b0;
     end else begin
+		waiting <= 2'h0;
+        wb_ack <= 0;
         global_counter <= global_counter + 32'b1;
 
         if (rx2_done)
-            slots_status[1] <= 1'b0;
+            slots_status[1:0] <= 2'b01;
 
         mem_wr_enA   <= 1'b0;
         case (pcie_adr[15:13])
             // global config
             3'b000: begin
+				wb_ack <= next_wb_ack;
                 if (pcie_adr[12:3] == 10'b0) begin
                     case (pcie_adr[3:1])
                         // slots status
@@ -318,7 +322,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                                 wb_dat <= { 12'b0, slots_status };
                             end else if (wr) begin
                                 if (pcie_sel[1])
-                                    slots_status <= pcie_dat_o[7:4];
+                                    slots_status <= pcie_dat_o[3:0];
                             end
                         end
                         // global counter [15:0]
@@ -358,6 +362,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
             // RX1 receive
             3'b100: begin
                 if (pcie_adr[12:3] == 10'b0) begin
+					wb_ack <= next_wb_ack;
                     case (pcie_adr[3:1])
                         // rx timestamp [15:0]
                         3'd0: begin
@@ -380,8 +385,15 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                     endcase
                 end else begin
                     if (rd) begin
+						waiting <= waiting + 2'h1;
+						if (waiting == 2'h2) begin
+							wb_ack <= next_wb_ack;
+							waiting <= 2'h0;
+						end
+                        mem_addressA <= pcie_adr[12:1];
                         wb_dat <= mem_qA;
                     end else if (wr) begin
+						wb_ack <= next_wb_ack;
                         mem_wr_enA   <= 1'b1;
                         mem_addressA <= pcie_adr[12:1];
                         mem_byte_enA <= {pcie_sel[0], pcie_sel[1]};
@@ -395,9 +407,11 @@ always @(posedge clk_125 or negedge core_rst_n) begin
             // TX1
             //3'b000: begin
             //end
-            default:
+            default: begin
+				wb_ack <= next_wb_ack;
                 if (rd)
                     wb_dat <= 16'h0;
+			end
         endcase
     end
 end
@@ -424,41 +438,39 @@ always @(posedge phy2_rx_clk) begin
         rx2_status   <= 2'b0;
         state        <= 1'b0;
     end else begin
-        case (state)
-            1'b0: begin
-                if (rx2_ready)
-                    state <= 1'b1;
-            end
-            1'b1: begin
-                mem_wr_enB <= 1'b0;
-                rx2_status <= RX_IDLE;
-                if (phy2_rx_dv) begin
-                    rx2_status <= RX_LOAD;
-                    // write receive timestamp
-                    if (!rx_counter)
-                        rx_timestamp <= global_counter;
-                    mem_wr_enB <= 1'b1;
-                    if (rx_counter[0]) begin
-                        mem_byte_enB <= 2'b10;
-                        mem_dataB    <= {phy2_rx_data, 8'b0};
-                    end else begin
-                        mem_byte_enB <= 2'b01;
-                        mem_dataB    <= {8'b0, phy2_rx_data};
-                        mem_addressB <= mem_addressB + 12'd1;
-                    end
-                    rx_counter <= rx_counter + 12'b1;
+        if (state == 1'b0) begin
+			rx_counter   <= 12'b0;
+            if (rx2_ready == 1'b1 && phy2_rx_dv == 1'b0)
+				state <= 1'b1;
+         end else begin
+			mem_wr_enB <= 1'b0;
+			rx2_status <= RX_IDLE;
+			if (phy2_rx_dv) begin
+				rx2_status <= RX_LOAD;
+				// write receive timestamp
+				if (!rx_counter)
+					rx_timestamp <= global_counter;
+                mem_wr_enB <= 1'b1;
+                if (rx_counter[0]) begin
+                    mem_byte_enB <= 2'b10;
+                    mem_dataB    <= {phy2_rx_data, 8'b0};
                 end else begin
-                    // frame terminated
-                    if (rx_counter != 12'b0) begin
-                        rx_frame_len <= rx_counter;
-                        rx_counter   <= 12'b0;
-                        mem_addressB <= 12'd3;
-                        rx2_status   <= RX_DONE;
-                        state        <= 1'b0;
-                    end
+                    mem_byte_enB <= 2'b01;
+                    mem_dataB    <= {8'b0, phy2_rx_data};
+                    mem_addressB <= mem_addressB + 12'd1;
+                end
+                rx_counter <= rx_counter + 12'b1;
+            end else begin
+                // frame terminated
+                if (rx_counter != 12'b0) begin
+                    rx_frame_len <= rx_counter;
+                    rx_counter   <= 12'b0;
+                    mem_addressB <= 12'd3;
+                    rx2_status   <= RX_DONE;
+                    state        <= 1'b0;
                 end
             end
-        endcase
+        end
     end
 end
 
@@ -470,27 +482,57 @@ clk_sync rx2_rdy (
   , .clk2 (phy2_rx_clk)
   , .o    (rx2_ready)
 );
-clk_sync rx2_don (
+clk_sync2 rx2_don (
     .clk1 (phy2_rx_clk)
   , .i    (rx2_status[1])
   , .clk2 (clk_125)
   , .o    (rx2_done)
 );
 
+`ifdef NO
 always @(posedge clk_125 or negedge core_rst_n)
     if (!core_rst_n) begin
         wb_ack <= 0;
     end else begin
         wb_ack <= pcie_cyc & pcie_stb & (~wb_ack);
     end
+`endif
 
 assign pcie_dat_i = wb_dat;
 assign pcie_ack = wb_ack;
+
+assign led_out[0] = ~state;
 
 endmodule
 
 
 module clk_sync (
+    input clk1
+  , input i
+  , input clk2
+  , output o
+);
+
+reg buf0, buf1, buf2, buf3;
+reg i0;
+
+always @(posedge clk1) begin
+	i0 <= i;
+    if (i & ~i0)
+        buf0 <= ~buf0;
+end
+
+always @(posedge clk2) begin
+    buf1 <= buf0;
+    buf2 <= buf1;
+    buf3 <= buf2;
+end
+
+assign o = buf2 ^ buf3;
+
+endmodule
+
+module clk_sync2 (
     input clk1
   , input i
   , input clk2
@@ -512,4 +554,3 @@ end
 assign o = buf2 ^ buf3;
 
 endmodule
-

@@ -3,6 +3,9 @@
 #include <linux/fs.h>
 #include <linux/poll.h>
 #include <linux/pci.h>
+#include <linux/wait.h>		/* wait_queue_head_t */
+#include <linux/sched.h>	/* wait_event_interruptible, wake_up_interruptible */
+#include <linux/interrupt.h>
 
 #define	DRV_NAME	"ethpipe"
 #define	DRV_VERSION	"0.0.1"
@@ -14,8 +17,19 @@ static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 };
 MODULE_DEVICE_TABLE(pci, ethpipe_pci_tbl);
 
-static unsigned long *mmio_ptr, mmio_start = 0L, mmio_end, mmio_flags, mmio_len;
+static unsigned long *mmio_ptr = 0L, mmio_start, mmio_end, mmio_flags, mmio_len;
 static struct pci_dev *pcidev = NULL;
+static wait_queue_head_t write_q;
+static wait_queue_head_t read_q;
+
+static irqreturn_t ethpipe_interrupt(int irq, struct pci_dev *pdev)
+{
+	printk("%s\n", __func__);
+
+	wake_up_interruptible( &read_q );
+
+	return IRQ_HANDLED;
+}
 
 static int ethpipe_open(struct inode *inode, struct file *filp)
 {
@@ -31,6 +45,11 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 
 	printk("%s\n", __func__);
 
+	if ((*(char *)mmio_ptr & 0x02) != 0)
+		*(char *)mmio_ptr = 0x02;	/* Request receiving PHY#2 */
+	if ( wait_event_interruptible( read_q, ( (*(char *)mmio_ptr & 0x1) != 0 ) ) )
+		return -ERESTARTSYS;
+
 	if ( count > 2048 )
 		copy_len = 2048;
 	else
@@ -40,6 +59,8 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 		printk( KERN_INFO "copy_to_user failed\n" );
 		return -EFAULT;
 	}
+
+	*(char *)mmio_ptr = 0x02;	/* Request receiving PHY#2 */
 
 	return copy_len;
 }
@@ -135,8 +156,13 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 		goto err_out;
 	}
 
+	if (request_irq(pdev->irq, ethpipe_interrupt, IRQF_SHARED, DRV_NAME, pdev)) {
+		printk(KERN_ERR "cannot request_irq\n");
+	}
+	
 	/* reset board */
 	pcidev = pdev;
+	*(char *)mmio_ptr = 0x02;	/* Request receiving PHY#2 */
 
 	return 0;
 
@@ -149,9 +175,11 @@ err_out:
 
 static void __devexit ethpipe_remove_one (struct pci_dev *pdev)
 {
-	if (mmio_start) {
-		iounmap(mmio_start);
-		mmio_start = 0L;
+	free_irq(pdev->irq, pdev);
+
+	if (mmio_ptr) {
+		iounmap(mmio_ptr);
+		mmio_ptr = 0L;
 	}
 	pci_release_regions (pdev);
 	pci_disable_device (pdev);
@@ -184,6 +212,9 @@ static int __init ethpipe_init(void)
 		printk("fail to misc_register (MISC_DYNAMIC_MINOR)\n");
 		return ret;
 	}
+
+	init_waitqueue_head( &write_q );
+	init_waitqueue_head( &read_q );
 	
 	printk("%s\n", __func__);
 	return pci_register_driver(&ethpipe_pci_driver);
@@ -191,8 +222,6 @@ static int __init ethpipe_init(void)
 
 static void __exit ethpipe_cleanup(void)
 {
-	if (pcidev)
-		ethpipe_remove_one (pcidev);
 	misc_deregister(&ethpipe_dev);
 	pci_unregister_driver(&ethpipe_pci_driver);
 	printk("%s\n", __func__);

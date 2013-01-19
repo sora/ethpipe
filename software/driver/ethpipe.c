@@ -14,7 +14,8 @@ static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 };
 MODULE_DEVICE_TABLE(pci, ethpipe_pci_tbl);
 
-static unsigned long *mmio_ptr, mmio_start, mmio_end, mmio_flags, mmio_len;
+static unsigned long *mmio_ptr, mmio_start = 0L, mmio_end, mmio_flags, mmio_len;
+static struct pci_dev *pcidev = NULL;
 
 static int ethpipe_open(struct inode *inode, struct file *filp)
 {
@@ -135,6 +136,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	}
 
 	/* reset board */
+	pcidev = pdev;
 
 	return 0;
 
@@ -147,7 +149,13 @@ err_out:
 
 static void __devexit ethpipe_remove_one (struct pci_dev *pdev)
 {
+	if (mmio_start) {
+		iounmap(mmio_start);
+		mmio_start = 0L;
+	}
+	pci_release_regions (pdev);
 	pci_disable_device (pdev);
+	printk("%s\n", __func__);
 }
 
 
@@ -177,14 +185,17 @@ static int __init ethpipe_init(void)
 		return ret;
 	}
 	
-	printk("Succefully loaded.\n");
+	printk("%s\n", __func__);
 	return pci_register_driver(&ethpipe_pci_driver);
 }
 
 static void __exit ethpipe_cleanup(void)
 {
+	if (pcidev)
+		ethpipe_remove_one (pcidev);
 	misc_deregister(&ethpipe_dev);
- 	printk("Unloaded.\n"); 
+	pci_unregister_driver(&ethpipe_pci_driver);
+	printk("%s\n", __func__);
 }
 
 MODULE_LICENSE("GPL");

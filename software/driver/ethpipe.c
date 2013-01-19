@@ -2,6 +2,7 @@
 #include <linux/miscdevice.h>
 #include <linux/fs.h>
 #include <linux/poll.h>
+#include <linux/string.h>
 #include <linux/pci.h>
 #include <linux/wait.h>		/* wait_queue_head_t */
 #include <linux/sched.h>	/* wait_event_interruptible, wake_up_interruptible */
@@ -10,6 +11,7 @@
 #define	DRV_NAME	"ethpipe"
 #define	DRV_VERSION	"0.0.1"
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
+#define	MAX_TEMP_BUF	2000
 
 static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 	{0x3776, 0x8001, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
@@ -17,14 +19,18 @@ static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 };
 MODULE_DEVICE_TABLE(pci, ethpipe_pci_tbl);
 
-static unsigned long *mmio_ptr = 0L, mmio_start, mmio_end, mmio_flags, mmio_len;
+static unsigned char *mmio_ptr = 0L;
+static unsigned long mmio_start, mmio_end, mmio_flags, mmio_len;
 static struct pci_dev *pcidev = NULL;
 static wait_queue_head_t write_q;
 static wait_queue_head_t read_q;
+static char temp_buf[MAX_TEMP_BUF];
 
 static irqreturn_t ethpipe_interrupt(int irq, struct pci_dev *pdev)
 {
+#ifdef DEBUG
 	printk("%s\n", __func__);
+#endif
 
 	wake_up_interruptible( &read_q );
 
@@ -41,26 +47,46 @@ static int ethpipe_open(struct inode *inode, struct file *filp)
 static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 			   size_t count, loff_t *ppos)
 {
-	int copy_len;
+	int copy_len, i;
+	unsigned int frame_len;
 
 	printk("%s\n", __func__);
 
-	if ((*(char *)mmio_ptr & 0x02) != 0)
-		*(char *)mmio_ptr = 0x02;	/* Request receiving PHY#2 */
-	if ( wait_event_interruptible( read_q, ( (*(char *)mmio_ptr & 0x1) != 0 ) ) )
+	if ((*mmio_ptr & 0x02) == 0)
+		*mmio_ptr = 0x02;	/* Request receiving PHY#2 */
+	if ( wait_event_interruptible( read_q, ( (*mmio_ptr & 0x1) != 0 ) ) )
 		return -ERESTARTSYS;
 
-	if ( count > 2048 )
-		copy_len = 2048;
+	frame_len = *(short *)(mmio_ptr + 0x8004);
+
+	if (frame_len < 72)
+		frame_len = 72;
+
+	if (frame_len > 2000)
+		frame_len = 2000;
+
+	if ( count > (frame_len+8) )
+		copy_len = (frame_len+8);
 	else
 		copy_len = count;
 
-	if ( copy_to_user( buf, ((char *)mmio_ptr + 0x8000), copy_len ) ) {
+	memcpy(temp_buf, mmio_ptr+0x8008, frame_len);
+
+	temp_buf[0] = 0x55;			/* magic code 0x55d5 */
+	temp_buf[1] = 0xd5;
+	temp_buf[2] = *(mmio_ptr + 0x8000);	/* counter[00:07] */
+	temp_buf[3] = *(mmio_ptr + 0x8001);	/* counter[15:08] */
+	temp_buf[4] = *(mmio_ptr + 0x8002);	/* counter[23:16] */
+	temp_buf[5] = *(mmio_ptr + 0x8003);	/* counter[31:24] */
+	temp_buf[6] = *(mmio_ptr + 0x8004);	/* frame_len[00:07] */
+	temp_buf[7] = *(mmio_ptr + 0x8005);	/* frame_len[15:08] */
+
+	*mmio_ptr = 0x02;	/* Request receiving PHY#2 */
+
+	if ( copy_to_user( buf, temp_buf, copy_len ) ) {
 		printk( KERN_INFO "copy_to_user failed\n" );
 		return -EFAULT;
 	}
-
-	*(char *)mmio_ptr = 0x02;	/* Request receiving PHY#2 */
 
 	return copy_len;
 }
@@ -162,7 +188,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	
 	/* reset board */
 	pcidev = pdev;
-	*(char *)mmio_ptr = 0x02;	/* Request receiving PHY#2 */
+	*mmio_ptr = 0x02;	/* Request receiving PHY#2 */
 
 	return 0;
 
@@ -175,6 +201,7 @@ err_out:
 
 static void __devexit ethpipe_remove_one (struct pci_dev *pdev)
 {
+	disable_irq(pdev->irq);
 	free_irq(pdev->irq, pdev);
 
 	if (mmio_ptr) {

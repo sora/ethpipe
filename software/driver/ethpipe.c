@@ -28,9 +28,7 @@ static char temp_buf[MAX_TEMP_BUF];
 
 static irqreturn_t ethpipe_interrupt(int irq, struct pci_dev *pdev)
 {
-#ifdef DEBUG
-	printk("%s\n", __func__);
-#endif
+//	printk("%s\n", __func__);
 
 	wake_up_interruptible( &read_q );
 

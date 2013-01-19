@@ -4,26 +4,26 @@
 #include <linux/poll.h>
 #include <linux/pci.h>
 
-#define	DRV_NAME	"ethout"
+#define	DRV_NAME	"ethpipe"
 #define	DRV_VERSION	"0.0.1"
-#define	ETHOUT_DRIVER_NAME	DRV_NAME " Ethout driver " DRV_VERSION
+#define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
 
-static DEFINE_PCI_DEVICE_TABLE(ethout_pci_tbl) = {
+static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 	{0x3776, 0x8001, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
 	{0,}
 };
-MODULE_DEVICE_TABLE(pci, ethout_pci_tbl);
+MODULE_DEVICE_TABLE(pci, ethpipe_pci_tbl);
 
 static unsigned long *mmio_ptr, mmio_start, mmio_end, mmio_flags, mmio_len;
 
-static int ethout_open(struct inode *inode, struct file *filp)
+static int ethpipe_open(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
 	/* */
 	return 0;
 }
 
-static ssize_t ethout_read(struct file *filp, char __user *buf,
+static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 			   size_t count, loff_t *ppos)
 {
 	int copy_len;
@@ -43,7 +43,7 @@ static ssize_t ethout_read(struct file *filp, char __user *buf,
 	return copy_len;
 }
 
-static ssize_t ethout_write(struct file *filp, const char __user *buf,
+static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 			    size_t count, loff_t *ppos)
 
 {
@@ -62,44 +62,44 @@ static ssize_t ethout_write(struct file *filp, const char __user *buf,
 	return copy_len;
 }
 
-static int ethout_release(struct inode *inode, struct file *filp)
+static int ethpipe_release(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
 	return 0;
 }
 
-static unsigned int ethout_poll(struct file *filp, poll_table *wait)
+static unsigned int ethpipe_poll(struct file *filp, poll_table *wait)
 {
 	printk("%s\n", __func__);
 	return 0;
 }
 
 
-static int ethout_ioctl(struct inode *inode, struct file *filp,
+static int ethpipe_ioctl(struct inode *inode, struct file *filp,
 			unsigned int cmd, unsigned long arg)
 {
 	printk("%s\n", __func__);
 	return  -ENOTTY;
 }
 
-static struct file_operations ethout_fops = {
+static struct file_operations ethpipe_fops = {
 	.owner		= THIS_MODULE,
-	.read		= ethout_read,
-	.write		= ethout_write,
-	.poll		= ethout_poll,
-	.compat_ioctl	= ethout_ioctl,
-	.open		= ethout_open,
-	.release	= ethout_release,
+	.read		= ethpipe_read,
+	.write		= ethpipe_write,
+	.poll		= ethpipe_poll,
+	.compat_ioctl	= ethpipe_ioctl,
+	.open		= ethpipe_open,
+	.release	= ethpipe_release,
 };
 
-static struct miscdevice ethout_dev = {
+static struct miscdevice ethpipe_dev = {
 	.minor = MISC_DYNAMIC_MINOR,
-	.name = "ethout",
-	.fops = &ethout_fops,
+	.name = "ethpipe",
+	.fops = &ethpipe_fops,
 };
 
 
-static int __devinit ethout_init_one (struct pci_dev *pdev,
+static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 				       const struct pci_device_id *ent)
 {
 	int rc;
@@ -145,48 +145,48 @@ err_out:
 }
 
 
-static void __devexit ethout_remove_one (struct pci_dev *pdev)
+static void __devexit ethpipe_remove_one (struct pci_dev *pdev)
 {
 	pci_disable_device (pdev);
 }
 
 
-static struct pci_driver ethout_pci_driver = {
+static struct pci_driver ethpipe_pci_driver = {
 	.name		= DRV_NAME,
-	.id_table	= ethout_pci_tbl,
-	.probe		= ethout_init_one,
-	.remove		= __devexit_p(ethout_remove_one),
+	.id_table	= ethpipe_pci_tbl,
+	.probe		= ethpipe_init_one,
+	.remove		= __devexit_p(ethpipe_remove_one),
 #ifdef CONFIG_PM
-//	.suspend	= ethout_suspend,
-//	.resume		= ethout_resume,
+//	.suspend	= ethpipe_suspend,
+//	.resume		= ethpipe_resume,
 #endif /* CONFIG_PM */
 };
 
 
-static int __init ethout_init(void)
+static int __init ethpipe_init(void)
 {
 	int ret;
 
 #ifdef MODULE
-	pr_info(ETHOUT_DRIVER_NAME "\n");
+	pr_info(ethpipe_DRIVER_NAME "\n");
 #endif
 
-	ret = misc_register(&ethout_dev);
+	ret = misc_register(&ethpipe_dev);
 	if (ret) {
 		printk("fail to misc_register (MISC_DYNAMIC_MINOR)\n");
 		return ret;
 	}
 	
 	printk("Succefully loaded.\n");
-	return pci_register_driver(&ethout_pci_driver);
+	return pci_register_driver(&ethpipe_pci_driver);
 }
 
-static void __exit ethout_cleanup(void)
+static void __exit ethpipe_cleanup(void)
 {
-	misc_deregister(&ethout_dev);
+	misc_deregister(&ethpipe_dev);
  	printk("Unloaded.\n"); 
 }
 
 MODULE_LICENSE("GPL");
-module_init(ethout_init);
-module_exit(ethout_cleanup);
+module_init(ethpipe_init);
+module_exit(ethpipe_cleanup);

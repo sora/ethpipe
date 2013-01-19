@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-obj-m		:= ethout.o
+obj-m		:= ethpipe.o
 else
 KDIR		:= /lib/modules/$(shell uname -r)/build
 all:

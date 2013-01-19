@@ -95,7 +95,7 @@ pcie_top pcie(
    .hdoutp0                    ( hdoutp ),
    .hdoutn0                    ( hdoutn ),
    .msi                        (  8'd0 ),
-   .inta_n                     (  1'b1 ),
+   .inta_n                     (  ~rx2_done ),
    // This PCIe interface uses dynamic IDs.
    .vendor_id                  (16'h3776),
    .device_id                  (16'h8001),
@@ -491,15 +491,6 @@ clk_sync2 rx2_don (
   , .clk2 (clk_125)
   , .o    (rx2_done)
 );
-
-`ifdef NO
-always @(posedge clk_125 or negedge core_rst_n)
-    if (!core_rst_n) begin
-        wb_ack <= 0;
-    end else begin
-        wb_ack <= pcie_cyc & pcie_stb & (~wb_ack);
-    end
-`endif
 
 assign pcie_dat_i = wb_dat;
 assign pcie_ack = wb_ack;

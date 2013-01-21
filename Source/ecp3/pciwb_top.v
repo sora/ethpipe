@@ -95,7 +95,7 @@ pcie_top pcie(
    .hdoutp0                    ( hdoutp ),
    .hdoutn0                    ( hdoutn ),
    .msi                        (  8'd0 ),
-   .inta_n                     (  ~rx2_done ),
+   .inta_n                     (  ~rx1_done ),
    // This PCIe interface uses dynamic IDs.
    .vendor_id                  (16'h3776),
    .device_id                  (16'h8001),
@@ -224,14 +224,6 @@ wb_tlc wb_tlc(.clk_125(clk_125), .wb_clk(clk_125), .rstn(core_rst_n),
 
 
 // ------------------ User Application -------------------
-wire clk_250;
-wire CLK, CLKOP, LOCK;
-pll pll_1 (
-    .CLK(clk_125),
-    .CLKOP(clk_250),
-    .LOCK(LOCK)
-);
-
 //-----------------------------------
 // memory (inoutA: PCIe, inoutB: ethernet)
 //-----------------------------------
@@ -252,8 +244,8 @@ ram_dp_true mem0 (
   , .ByteEnB(mem_byte_enB)
   , .AddressA(mem_addressA)
   , .AddressB(mem_addressB)
-  , .ClockA(clk_125) // clk_250)
-  , .ClockB(phy2_rx_clk)
+  , .ClockA(clk_125)
+  , .ClockB(phy1_rx_clk)
   , .ClockEnA(core_rst_n)
   , .ClockEnB(core_rst_n)
   , .WrA(mem_wr_enA)
@@ -271,16 +263,16 @@ reg [9:0] coldsys_rst = 0;
 assign coldsys_rst520 = (coldsys_rst==10'd520);
 always @(posedge clk_125)
     coldsys_rst <= !coldsys_rst520 ? coldsys_rst + 10'd1 : 10'd520;
-assign phy2_rst_n = coldsys_rst520 & reset_n;
+assign phy1_rst_n = coldsys_rst520 & reset_n;
 
 //-------------------------------------
 // PHY tmp wire
 //-------------------------------------
-assign phy2_mii_clk = 1'b0;
-assign phy2_mii_data = 1'b0;
-assign phy2_tx_en = 1'b0;
-assign phy2_tx_data = 8'h0;
-assign phy2_gtx_clk = phy2_125M_clk;
+assign phy1_mii_clk = 1'b0;
+assign phy1_mii_data = 1'b0;
+assign phy1_tx_en = 1'b0;
+assign phy1_tx_data = 8'h0;
+assign phy1_gtx_clk = phy1_125M_clk;
 
 // Wishbone BUS
 // clk_125, core_rst_n
@@ -308,7 +300,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
         wb_ack <= 0;
         global_counter <= global_counter + 32'b1;
 
-        if (rx2_done)
+        if (rx1_done)
             slots_status[1:0] <= 2'b01;
 
         mem_wr_enA   <= 1'b0;
@@ -422,7 +414,7 @@ end
 /////////////
 //Ether frame receiver
 //////////////
-reg [1:0] rx2_status;
+reg [1:0] rx1_status;
 parameter [1:0]
     RX_IDLE = 2'b00
   , RX_LOAD = 2'b01
@@ -431,35 +423,35 @@ reg [11:0] rx_counter;
 reg [31:0] rx_timestamp;
 reg [11:0] rx_frame_len;
 reg state;
-always @(posedge phy2_rx_clk) begin
+always @(posedge phy1_rx_clk) begin
     if (!core_rst_n) begin
         mem_wr_enB   <= 1'b0;
         mem_addressB <= 12'b0;
         mem_dataB    <= 16'b0;
         rx_counter   <= 12'b0;
         rx_frame_len <= 12'b0;
-        rx2_status   <= 2'b0;
+        rx1_status   <= 2'b0;
         state        <= 1'b0;
     end else begin
         if (state == 1'b0) begin
             rx_counter   <= 12'b0;
-            if (rx2_ready == 1'b1 && phy2_rx_dv == 1'b0)
+            if (rx1_ready == 1'b1 && phy1_rx_dv == 1'b0)
                 state <= 1'b1;
          end else begin
             mem_wr_enB <= 1'b0;
-            rx2_status <= RX_IDLE;
-            if (phy2_rx_dv) begin
-                rx2_status <= RX_LOAD;
+            rx1_status <= RX_IDLE;
+            if (phy1_rx_dv) begin
+                rx1_status <= RX_LOAD;
                 // write receive timestamp
                 if (!rx_counter)
                     rx_timestamp <= global_counter;
                 mem_wr_enB <= 1'b1;
                 if (rx_counter[0]) begin
                     mem_byte_enB <= 2'b10;
-                    mem_dataB    <= {phy2_rx_data, 8'b0};
+                    mem_dataB    <= {phy1_rx_data, 8'b0};
                 end else begin
                     mem_byte_enB <= 2'b01;
-                    mem_dataB    <= {8'b0, phy2_rx_data};
+                    mem_dataB    <= {8'b0, phy1_rx_data};
                     mem_addressB <= mem_addressB + 12'd1;
                 end
                 rx_counter <= rx_counter + 12'b1;
@@ -469,7 +461,7 @@ always @(posedge phy2_rx_clk) begin
                     rx_frame_len <= rx_counter;
                     rx_counter   <= 12'b0;
                     mem_addressB <= 12'd2;
-                    rx2_status   <= RX_DONE;
+                    rx1_status   <= RX_DONE;
                     state        <= 1'b0;
                 end
             end
@@ -477,19 +469,19 @@ always @(posedge phy2_rx_clk) begin
     end
 end
 
-wire rx2_ready;
-wire rx2_done;
-clk_sync rx2_rdy (
+wire rx1_ready;
+wire rx1_done;
+clk_sync rx1_rdy (
     .clk1 (clk_125)
   , .i    (slots_status[1])
-  , .clk2 (phy2_rx_clk)
-  , .o    (rx2_ready)
+  , .clk2 (phy1_rx_clk)
+  , .o    (rx1_ready)
 );
-clk_sync2 rx2_don (
-    .clk1 (phy2_rx_clk)
-  , .i    (rx2_status[1])
+clk_sync2 rx1_don (
+    .clk1 (phy1_rx_clk)
+  , .i    (rx1_status[1])
   , .clk2 (clk_125)
-  , .o    (rx2_done)
+  , .o    (rx1_done)
 );
 
 assign pcie_dat_i = wb_dat;

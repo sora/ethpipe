@@ -286,7 +286,7 @@ assign next_wb_ack = ~wb_ack && pcie_cyc && pcie_stb;
 reg [1:0] waiting;
 reg [15:0] prev_data = 16'h0;
 reg [ 3:0] slots_status;
-reg [31:0] global_counter;
+reg [63:0] global_counter;
 always @(posedge clk_125 or negedge core_rst_n) begin
     if (!core_rst_n) begin
         wb_dat         <= 16'h0;
@@ -294,11 +294,11 @@ always @(posedge clk_125 or negedge core_rst_n) begin
         mem_wr_enA     <= 1'b0;
         mem_byte_enA   <= 2'b0;
         mem_addressA   <= 12'b0;
-        global_counter <= 32'b0;
+        global_counter <= 64'b0;
     end else begin
         waiting <= 2'h0;
         wb_ack <= 0;
-        global_counter <= global_counter + 32'b1;
+        global_counter <= global_counter + 64'b1;
 
         if (rx1_done)
             slots_status[1:0] <= 2'b01;
@@ -339,6 +339,28 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                                     global_counter[23:16] <= pcie_dat_o[15:8];
                                 if (pcie_sel[1])
                                     global_counter[31:24] <= pcie_dat_o[7:0];
+                            end
+                        end
+                        // global counter [47:32]
+                        3'd3: begin
+                            if (rd) begin
+                                wb_dat <= global_counter[47:32];
+                            end else if (wr) begin
+                                if (pcie_sel[0])
+                                    global_counter[39:32] <= pcie_dat_o[15:8];
+                                if (pcie_sel[1])
+                                    global_counter[47:40] <= pcie_dat_o[7:0];
+                            end
+                        end
+                        // global counter [63:48]
+                        3'd4: begin
+                            if (rd) begin
+                                wb_dat <= global_counter[63:48];
+                            end else if (wr) begin
+                                if (pcie_sel[0])
+                                    global_counter[55:48] <= pcie_dat_o[15:8];
+                                if (pcie_sel[1])
+                                    global_counter[63:56] <= pcie_dat_o[7:0];
                             end
                         end
                         default:
@@ -420,7 +442,7 @@ parameter [1:0]
   , RX_LOAD = 2'b01
   , RX_DONE = 2'b10;
 reg [11:0] rx_counter;
-reg [31:0] rx_timestamp;
+reg [63:0] rx_timestamp;
 reg [11:0] rx_frame_len;
 reg state;
 always @(posedge phy1_rx_clk) begin
@@ -428,7 +450,7 @@ always @(posedge phy1_rx_clk) begin
         mem_wr_enB   <= 1'b0;
         mem_addressB <= 12'b0;
         mem_dataB    <= 16'b0;
-        rx_counter   <= 12'b0;
+        rx_counter   <= 64'b0;
         rx_frame_len <= 12'b0;
         rx1_status   <= 2'b0;
         state        <= 1'b0;
@@ -540,3 +562,4 @@ end
 assign o = buf2 ^ buf3;
 
 endmodule
+

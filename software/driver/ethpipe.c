@@ -13,6 +13,8 @@
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
 #define	MAX_TEMP_BUF	2000
 
+#define HEADER_LEN	12
+
 static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 	{0x3776, 0x8001, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
 	{0,}
@@ -63,21 +65,25 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 	if (frame_len > 2000)
 		frame_len = 2000;
 
-	if ( count > (frame_len+8) )
-		copy_len = (frame_len+8);
+	if ( count > (frame_len+HEADER_LEN) )
+		copy_len = (frame_len+HEADER_LEN);
 	else
 		copy_len = count;
 
 	memcpy(temp_buf, mmio_ptr+0x8008, frame_len);
 
-	temp_buf[0] = 0x55;			/* magic code 0x55d5 */
-	temp_buf[1] = 0xd5;
-	temp_buf[2] = *(mmio_ptr + 0x8000);	/* counter[00:07] */
-	temp_buf[3] = *(mmio_ptr + 0x8001);	/* counter[15:08] */
-	temp_buf[4] = *(mmio_ptr + 0x8002);	/* counter[23:16] */
-	temp_buf[5] = *(mmio_ptr + 0x8003);	/* counter[31:24] */
-	temp_buf[6] = *(mmio_ptr + 0x8004);	/* frame_len[00:07] */
-	temp_buf[7] = *(mmio_ptr + 0x8005);	/* frame_len[15:08] */
+	temp_buf[0x00] = 0x55;			/* magic code 0x55d5 */
+	temp_buf[0x01] = 0xd5;
+	temp_buf[0x02] = *(mmio_ptr + 0x8000);	/* counter[00:07] */
+	temp_buf[0x03] = *(mmio_ptr + 0x8001);	/* counter[15:08] */
+	temp_buf[0x04] = *(mmio_ptr + 0x8002);	/* counter[23:16] */
+	temp_buf[0x05] = *(mmio_ptr + 0x8003);	/* counter[31:24] */
+	temp_buf[0x06] = *(mmio_ptr + 0x8004);	/* counter[39:32] */
+	temp_buf[0x07] = *(mmio_ptr + 0x8005);	/* counter[47:40] */
+	temp_buf[0x08] = *(mmio_ptr + 0x8006);	/* counter[55:48] */
+	temp_buf[0x09] = *(mmio_ptr + 0x8007);	/* counter[63:56] */
+	temp_buf[0x0a] = *(mmio_ptr + 0x8008);	/* frame_len[00:07] */
+	temp_buf[0x0b] = *(mmio_ptr + 0x8009);	/* frame_len[15:08] */
 
 	*mmio_ptr = 0x02;	/* Request receiving PHY#2 */
 
@@ -255,3 +261,4 @@ static void __exit ethpipe_cleanup(void)
 MODULE_LICENSE("GPL");
 module_init(ethpipe_init);
 module_exit(ethpipe_cleanup);
+

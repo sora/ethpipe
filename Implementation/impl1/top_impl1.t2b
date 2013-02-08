@@ -1,9 +1,0 @@
-
-
-top_impl1.bit
-
--g CfgMode:Disable
--g RamCfg:Reset
--path "/home/sora/work/ethout/Implementation" 
--path "/home/sora/work/ethout/Implementation"
--g ES:No

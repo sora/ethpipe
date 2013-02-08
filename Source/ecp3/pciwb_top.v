@@ -223,37 +223,36 @@ wb_tlc wb_tlc(.clk_125(clk_125), .wb_clk(clk_125), .rstn(core_rst_n),
 );
 
 
-// ------------------ User Application -------------------
 //-----------------------------------
-// memory (inoutA: PCIe, inoutB: ethernet)
+// receive memory (inoutA: PCIe, inoutB: ethernet)
 //-----------------------------------
-reg [15:0]  mem_dataA;
-reg [15:0]  mem_dataB;
-reg [ 1:0]  mem_byte_enA;
-reg [ 1:0]  mem_byte_enB;
-reg [11:0]  mem_addressA;
-reg [11:0]  mem_addressB;
-reg         mem_wr_enA;
-reg         mem_wr_enB;
-wire [15:0] mem_qA;
-wire [15:0] mem_qB;
-ram_dp_true mem0 (
-    .DataInA(mem_dataA)
-  , .DataInB(mem_dataB)
-  , .ByteEnA(mem_byte_enA)
-  , .ByteEnB(mem_byte_enB)
-  , .AddressA(mem_addressA)
-  , .AddressB(mem_addressB)
+reg [15:0]  mem_rd_dataA;
+reg [15:0]  mem_rd_dataB;
+reg [ 1:0]  mem_rd_byte_enA;
+reg [ 1:0]  mem_rd_byte_enB;
+reg [11:0]  mem_rd_addressA;
+reg [11:0]  mem_rd_addressB;
+reg         mem_rd_wr_enA;
+reg         mem_rd_wr_enB;
+wire [15:0] mem_rd_qA;
+wire [15:0] mem_rd_qB;
+ram_dp_true mem0read (
+    .DataInA(mem_rd_dataA)
+  , .DataInB(mem_rd_dataB)
+  , .ByteEnA(mem_rd_byte_enA)
+  , .ByteEnB(mem_rd_byte_enB)
+  , .AddressA(mem_rd_addressA)
+  , .AddressB(mem_rd_addressB)
   , .ClockA(clk_125)
   , .ClockB(phy1_rx_clk)
   , .ClockEnA(core_rst_n)
   , .ClockEnB(core_rst_n)
-  , .WrA(mem_wr_enA)
-  , .WrB(mem_wr_enB)
+  , .WrA(mem_rd_wr_enA)
+  , .WrB(mem_rd_wr_enB)
   , .ResetA(~core_rst_n)
   , .ResetB(~core_rst_n)
-  , .QA(mem_qA)
-  , .QB(mem_qB)
+  , .QA(mem_rd_qA)
+  , .QB(mem_rd_qB)
 );
 
 //-------------------------------------
@@ -289,12 +288,12 @@ reg [ 3:0] slots_status;
 reg [63:0] global_counter;
 always @(posedge clk_125 or negedge core_rst_n) begin
     if (!core_rst_n) begin
-        wb_dat         <= 16'h0;
-        mem_dataA      <= 16'h0;
-        mem_wr_enA     <= 1'b0;
-        mem_byte_enA   <= 2'b0;
-        mem_addressA   <= 12'b0;
-        global_counter <= 64'b0;
+        wb_dat          <= 16'h0;
+        mem_rd_dataA    <= 16'h0;
+        mem_rd_wr_enA   <= 1'b0;
+        mem_rd_byte_enA <= 2'b0;
+        mem_rd_addressA <= 12'b0;
+        global_counter  <= 64'b0;
     end else begin
         waiting <= 2'h0;
         wb_ack <= 0;
@@ -303,7 +302,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
         if (rx1_done)
             slots_status[1:0] <= 2'b01;
 
-        mem_wr_enA   <= 1'b0;
+        mem_rd_wr_enA <= 1'b0;
         case (pcie_adr[15:13])
             // global config
             3'b000: begin
@@ -402,22 +401,22 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                 end else begin
                     if (rd) begin
                         if (waiting == 2'h0) begin
-                            mem_addressA <= pcie_adr[12:1];
+                            mem_rd_addressA <= pcie_adr[12:1];
                         end else if (waiting == 2'h2) begin
-                            wb_ack <= next_wb_ack;
-                            wb_dat <= mem_qA;
+                            wb_ack  <= next_wb_ack;
+                            wb_dat  <= mem_rd_qA;
                             waiting <= 2'h0;
                         end
                         waiting <= waiting + 2'h1;
                     end else if (wr) begin
                         wb_ack <= next_wb_ack;
-                        mem_wr_enA   <= 1'b1;
-                        mem_addressA <= pcie_adr[12:1];
-                        mem_byte_enA <= {pcie_sel[0], pcie_sel[1]};
+                        mem_rd_wr_enA   <= 1'b1;
+                        mem_rd_addressA <= pcie_adr[12:1];
+                        mem_rd_byte_enA <= {pcie_sel[0], pcie_sel[1]};
                         if (pcie_sel[0])
-                            mem_dataA[15:8] <= pcie_dat_o[15:8];
+                            mem_rd_dataA[15:8] <= pcie_dat_o[15:8];
                         if (pcie_sel[1])
-                            mem_dataA[7:0] <= pcie_dat_o[7:0];
+                            mem_rd_dataA[7:0] <= pcie_dat_o[7:0];
                     end
                 end
             end
@@ -447,45 +446,45 @@ reg [11:0] rx_frame_len;
 reg state;
 always @(posedge phy1_rx_clk) begin
     if (!core_rst_n) begin
-        mem_wr_enB   <= 1'b0;
-        mem_addressB <= 12'b0;
-        mem_dataB    <= 16'b0;
-        rx_counter   <= 12'b0;
-        rx_timestamp <= 64'b0;
-        rx_frame_len <= 12'b0;
-        rx1_status   <= 2'b0;
-        state        <= 1'b0;
+        mem_rd_wr_enB   <= 1'b0;
+        mem_rd_addressB <= 12'b0;
+        mem_rd_dataB    <= 16'b0;
+        rx_counter      <= 12'b0;
+        rx_timestamp    <= 64'b0;
+        rx_frame_len    <= 12'b0;
+        rx1_status      <= 2'b0;
+        state           <= 1'b0;
     end else begin
         if (state == 1'b0) begin
             rx_counter   <= 12'b0;
             if (rx1_ready == 1'b1 && phy1_rx_dv == 1'b0)
                 state <= 1'b1;
          end else begin
-            mem_wr_enB <= 1'b0;
+            mem_rd_wr_enB <= 1'b0;
             rx1_status <= RX_IDLE;
             if (phy1_rx_dv) begin
                 rx1_status <= RX_LOAD;
                 // write receive timestamp
                 if (!rx_counter)
                     rx_timestamp <= global_counter;
-                mem_wr_enB <= 1'b1;
+                mem_rd_wr_enB <= 1'b1;
                 if (rx_counter[0]) begin
-                    mem_byte_enB <= 2'b10;
-                    mem_dataB    <= {phy1_rx_data, 8'b0};
+                    mem_rd_byte_enB <= 2'b10;
+                    mem_rd_dataB    <= {phy1_rx_data, 8'b0};
                 end else begin
-                    mem_byte_enB <= 2'b01;
-                    mem_dataB    <= {8'b0, phy1_rx_data};
-                    mem_addressB <= mem_addressB + 12'd1;
+                    mem_rd_byte_enB <= 2'b01;
+                    mem_rd_dataB    <= {8'b0, phy1_rx_data};
+                    mem_rd_addressB <= mem_rd_addressB + 12'd1;
                 end
                 rx_counter <= rx_counter + 12'b1;
             end else begin
                 // frame terminated
                 if (rx_counter != 12'b0) begin
-                    rx_frame_len <= rx_counter;
-                    rx_counter   <= 12'b0;
-                    mem_addressB <= 12'd2;
-                    rx1_status   <= RX_DONE;
-                    state        <= 1'b0;
+                    rx_frame_len    <= rx_counter;
+                    rx_counter      <= 12'b0;
+                    mem_rd_addressB <= 12'd2;
+                    rx1_status      <= RX_DONE;
+                    state           <= 1'b0;
                 end
             end
         end

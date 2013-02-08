@@ -450,7 +450,8 @@ always @(posedge phy1_rx_clk) begin
         mem_wr_enB   <= 1'b0;
         mem_addressB <= 12'b0;
         mem_dataB    <= 16'b0;
-        rx_counter   <= 64'b0;
+        rx_counter   <= 12'b0;
+        rx_timestamp <= 64'b0;
         rx_frame_len <= 12'b0;
         rx1_status   <= 2'b0;
         state        <= 1'b0;

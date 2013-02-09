@@ -255,6 +255,38 @@ ram_dp_true mem0read (
   , .QB(mem_rd_qB)
 );
 
+//-----------------------------------
+// send memory (inoutA: PCIe, inoutB: ethernet)
+//-----------------------------------
+reg [15:0]  mem_wr_dataA;
+reg [15:0]  mem_wr_dataB;
+reg [ 1:0]  mem_wr_byte_enA;
+reg [ 1:0]  mem_wr_byte_enB;
+reg [11:0]  mem_wr_addressA;
+reg [11:0]  mem_wr_addressB;
+reg         mem_wr_wr_enA;
+reg         mem_wr_wr_enB;
+wire [15:0] mem_wr_qA;
+wire [15:0] mem_wr_qB;
+ram_dp_true mem0write (
+    .DataInA(mem_wr_dataA)
+  , .DataInB(mem_wr_dataB)
+  , .ByteEnA(mem_wr_byte_enA)
+  , .ByteEnB(mem_wr_byte_enB)
+  , .AddressA(mem_wr_addressA)
+  , .AddressB(mem_wr_addressB)
+  , .ClockA(clk_125)
+  , .ClockB(phy1_rx_clk)
+  , .ClockEnA(core_rst_n)
+  , .ClockEnB(core_rst_n)
+  , .WrA(mem_wr_wr_enA)
+  , .WrB(mem_wr_wr_enB)
+  , .ResetA(~core_rst_n)
+  , .ResetB(~core_rst_n)
+  , .QA(mem_wr_qA)
+  , .QB(mem_wr_qB)
+);
+
 //-------------------------------------
 // PYH cold reset
 //-------------------------------------
@@ -273,10 +305,9 @@ assign phy1_tx_en = 1'b0;
 assign phy1_tx_data = 8'h0;
 assign phy1_gtx_clk = phy1_125M_clk;
 
-// Wishbone BUS
-// clk_125, core_rst_n
-// pcie_adr[31:0], pcie_we, pcie_dat_o[15:0], pcie_dat_i[15:0], pcie_sel[1:0]
-// pcie_cyc, pcie_stb, pcie_ack, pcie_cti[2:0]
+//-------------------------------------
+// PCI I/O memory mapping
+//-------------------------------------
 assign rd = ~pcie_we && pcie_cyc && pcie_stb;
 assign wr = pcie_we && pcie_cyc && pcie_stb;
 reg [15:0] wb_dat;
@@ -296,7 +327,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
         global_counter  <= 64'b0;
     end else begin
         waiting <= 2'h0;
-        wb_ack <= 0;
+        wb_ack  <= 1'b0;
         global_counter <= global_counter + 64'b1;
 
         if (rx1_done)
@@ -374,7 +405,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
             // TX0
             //3'b000: begin
             //end
-            // RX1 receive
+            // RX1
             3'b100: begin
                 if (pcie_adr[12:3] == 10'b0) begin
                     wb_ack <= next_wb_ack;
@@ -421,7 +452,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                 end
             end
             // TX1
-            //3'b000: begin
+            //3'b101: begin
             //end
             default: begin
                 wb_ack <= next_wb_ack;
@@ -432,9 +463,9 @@ always @(posedge clk_125 or negedge core_rst_n) begin
     end
 end
 
-/////////////
-//Ether frame receiver
-//////////////
+//-------------------------------------
+// Ether frame receiver
+//-------------------------------------
 reg [1:0] rx1_status;
 parameter [1:0]
     RX_IDLE = 2'b00
@@ -507,9 +538,9 @@ clk_sync2 rx1_don (
 );
 
 assign pcie_dat_i = wb_dat;
-assign pcie_ack = wb_ack;
+assign pcie_ack   = wb_ack;
 
-assign led_out[0] = ~state;
+//assign led_out[0] = ~state;
 
 endmodule
 

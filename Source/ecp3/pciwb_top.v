@@ -420,8 +420,18 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                             if (rd)
                                 wb_dat <= rx_timestamp[31:16];
                         end
-                        // rx frame length
+                        // rx timestamp [47:32]
                         3'd2: begin
+                            if (rd)
+                                wb_dat <= rx_timestamp[47:32];
+                        end
+                        // rx timestamp [63:48]
+                        3'd3: begin
+                            if (rd)
+                                wb_dat <= rx_timestamp[63:48];
+                        end
+                        // rx frame length
+                        3'd4: begin
                             if (rd)
                                 wb_dat <= { 4'b0, rx_frame_len[11:0] };
                         end

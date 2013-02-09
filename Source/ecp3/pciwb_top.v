@@ -462,8 +462,8 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                 end
             end
             // TX1
-            //3'b101: begin
-            //end
+            3'b101: begin
+            end
             default: begin
                 wb_ack <= next_wb_ack;
                 if (rd)
@@ -484,7 +484,7 @@ parameter [1:0]
 reg [11:0] rx_counter;
 reg [63:0] rx_timestamp;
 reg [11:0] rx_frame_len;
-reg state;
+reg        rx_active;
 always @(posedge phy1_rx_clk) begin
     if (!core_rst_n) begin
         mem_rd_wr_enB   <= 1'b0;
@@ -494,15 +494,15 @@ always @(posedge phy1_rx_clk) begin
         rx_timestamp    <= 64'b0;
         rx_frame_len    <= 12'b0;
         rx1_status      <= 2'b0;
-        state           <= 1'b0;
+        rx_active       <= 1'b0;
     end else begin
-        if (state == 1'b0) begin
-            rx_counter   <= 12'b0;
+        if (rx_active == 1'b0) begin
+            rx_counter <= 12'b0;
             if (rx1_ready == 1'b1 && phy1_rx_dv == 1'b0)
-                state <= 1'b1;
+                rx_active <= 1'b1;
          end else begin
             mem_rd_wr_enB <= 1'b0;
-            rx1_status <= RX_IDLE;
+            rx1_status    <= RX_IDLE;
             if (phy1_rx_dv) begin
                 rx1_status <= RX_LOAD;
                 // write receive timestamp
@@ -525,7 +525,7 @@ always @(posedge phy1_rx_clk) begin
                     rx_counter      <= 12'b0;
                     mem_rd_addressB <= 12'd2;
                     rx1_status      <= RX_DONE;
-                    state           <= 1'b0;
+                    rx_active       <= 1'b0;
                 end
             end
         end
@@ -550,7 +550,7 @@ clk_sync2 rx1_don (
 assign pcie_dat_i = wb_dat;
 assign pcie_ack   = wb_ack;
 
-//assign led_out[0] = ~state;
+//assign led_out[0] = ~rx_active;
 
 endmodule
 

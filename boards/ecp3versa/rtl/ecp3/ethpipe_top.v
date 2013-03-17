@@ -1,5 +1,3 @@
-`default_nettype none
-
 module top  (
    input rstn,
    input FLIP_LANES,
@@ -84,94 +82,6 @@ always @(posedge clk_125 or negedge rstn) begin
          rstn_cnt <= rstn_cnt + 1'b1 ;
    end
 end
-
-pcie_top pcie(
-   .refclkp                    ( refclkp ),
-   .refclkn                    ( refclkn ),
-   .sys_clk_125                ( clk_125 ),
-   .ext_reset_n                ( rstn ),
-   .rstn                       ( core_rst_n ),
-   .flip_lanes                 ( FLIP_LANES ),
-   .hdinp0                     ( hdinp ),
-   .hdinn0                     ( hdinn ),
-   .hdoutp0                    ( hdoutp ),
-   .hdoutn0                    ( hdoutn ),
-   .msi                        (  8'd0 ),
-   .inta_n                     (  ~rx1_done ),
-   // This PCIe interface uses dynamic IDs.
-   .vendor_id                  (16'h3776),
-   .device_id                  (16'h8001),
-   .rev_id                     (8'h00),
-   .class_code                 (24'h000000),
-   .subsys_ven_id              (16'h3776),
-   .subsys_id                  (16'h8001),
-   .load_id                    (1'b1),
-   // Inputs
-   .force_lsm_active           ( 1'b0 ),
-   .force_rec_ei               ( 1'b0 ),
-   .force_phy_status           ( 1'b0 ),
-   .force_disable_scr          ( 1'b0 ),
-   .hl_snd_beacon              ( 1'b0 ),
-   .hl_disable_scr             ( 1'b0 ),
-   .hl_gto_dis                 ( 1'b0 ),
-   .hl_gto_det                 ( 1'b0 ),
-   .hl_gto_hrst                ( 1'b0 ),
-   .hl_gto_l0stx               ( 1'b0 ),
-   .hl_gto_l1                  ( 1'b0 ),
-   .hl_gto_l2                  ( 1'b0 ),
-   .hl_gto_l0stxfts            ( 1'b0 ),
-   .hl_gto_lbk                 ( 1'd0 ),
-   .hl_gto_rcvry               ( 1'b0 ),
-   .hl_gto_cfg                 ( 1'b0 ),
-   .no_pcie_train              ( 1'b0 ),
-   // Power Management Interface
-   .tx_dllp_val                ( 2'd0 ),
-   .tx_pmtype                  ( 3'd0 ),
-   .tx_vsd_data                ( 24'd0 ),
-   .tx_req_vc0                 ( tx_req ),
-   .tx_data_vc0                ( tx_data ),
-   .tx_st_vc0                  ( tx_st ),
-   .tx_end_vc0                 ( tx_end ),
-   .tx_nlfy_vc0                ( 1'b0 ),
-   .ph_buf_status_vc0       ( 1'b0 ),
-   .pd_buf_status_vc0       ( 1'b0 ),
-   .nph_buf_status_vc0      ( 1'b0 ),
-   .npd_buf_status_vc0      ( 1'b0 ),
-   .ph_processed_vc0        ( ph_cr ),
-   .pd_processed_vc0        ( pd_cr ),
-   .nph_processed_vc0       ( nph_cr ),
-   .npd_processed_vc0       ( npd_cr ),
-   .pd_num_vc0              ( pd_num ),
-   .npd_num_vc0             ( 8'd1 ),
-   // From User logic
-   .cmpln_tout                 ( 1'b0 ),
-   .cmpltr_abort_np            ( 1'b0 ),
-   .cmpltr_abort_p             ( 1'b0 ),
-   .unexp_cmpln                ( 1'b0 ),
-   .ur_np_ext                  ( 1'b0 ),
-   .ur_p_ext                   ( 1'b0 ),
-   .np_req_pend                ( 1'b0 ),
-   .pme_status                 ( 1'b0 ),
-   .tx_rdy_vc0                 ( tx_rdy),
-   .tx_ca_ph_vc0               ( tx_ca_ph),
-   .tx_ca_pd_vc0               ( tx_ca_pd),
-   .tx_ca_nph_vc0              ( tx_ca_nph),
-   .tx_ca_npd_vc0              ( tx_ca_npd ),
-   .tx_ca_cplh_vc0             ( tx_ca_cplh ),
-   .tx_ca_cpld_vc0             ( tx_ca_cpld ),
-   .tx_ca_p_recheck_vc0        ( tx_ca_p_recheck ),
-   .tx_ca_cpl_recheck_vc0      ( tx_ca_cpl_recheck ),
-   .rx_data_vc0                ( rx_data),
-   .rx_st_vc0                  ( rx_st),
-   .rx_end_vc0                 ( rx_end),
-   .rx_us_req_vc0              ( rx_us_req ),
-   .rx_malf_tlp_vc0            ( rx_malf_tlp ),
-   .rx_bar_hit                 ( rx_bar_hit ),
-   // From Config Registers
-   .bus_num                    ( bus_num  ),
-   .dev_num                    ( dev_num  ),
-   .func_num                   ( func_num  )
-);
 
 reg rx_st_d;
 reg tx_st_d;
@@ -291,6 +201,110 @@ reg [ 1:0] waiting;
 reg [15:0] prev_data = 16'h0;
 reg [ 3:0] slots_status;
 reg [31:0] global_counter;
+
+wire rx1_ready;
+wire rx1_done;
+clk_sync rx1_rdy (
+    .clk1 (clk_125)
+  , .i    (slots_status[1])
+  , .clk2 (phy1_rx_clk)
+  , .o    (rx1_ready)
+);
+clk_sync2 rx1_don (
+    .clk1 (phy1_rx_clk)
+  , .i    (rx1_status[1])
+  , .clk2 (clk_125)
+  , .o    (rx1_done)
+);
+
+pcie_top pcie(
+   .refclkp                    ( refclkp ),
+   .refclkn                    ( refclkn ),
+   .sys_clk_125                ( clk_125 ),
+   .ext_reset_n                ( rstn ),
+   .rstn                       ( core_rst_n ),
+   .flip_lanes                 ( FLIP_LANES ),
+   .hdinp0                     ( hdinp ),
+   .hdinn0                     ( hdinn ),
+   .hdoutp0                    ( hdoutp ),
+   .hdoutn0                    ( hdoutn ),
+   .msi                        (  8'd0 ),
+   .inta_n                     (  ~rx1_done ),
+   // This PCIe interface uses dynamic IDs.
+   .vendor_id                  (16'h3776),
+   .device_id                  (16'h8001),
+   .rev_id                     (8'h00),
+   .class_code                 (24'h000000),
+   .subsys_ven_id              (16'h3776),
+   .subsys_id                  (16'h8001),
+   .load_id                    (1'b1),
+   // Inputs
+   .force_lsm_active           ( 1'b0 ),
+   .force_rec_ei               ( 1'b0 ),
+   .force_phy_status           ( 1'b0 ),
+   .force_disable_scr          ( 1'b0 ),
+   .hl_snd_beacon              ( 1'b0 ),
+   .hl_disable_scr             ( 1'b0 ),
+   .hl_gto_dis                 ( 1'b0 ),
+   .hl_gto_det                 ( 1'b0 ),
+   .hl_gto_hrst                ( 1'b0 ),
+   .hl_gto_l0stx               ( 1'b0 ),
+   .hl_gto_l1                  ( 1'b0 ),
+   .hl_gto_l2                  ( 1'b0 ),
+   .hl_gto_l0stxfts            ( 1'b0 ),
+   .hl_gto_lbk                 ( 1'd0 ),
+   .hl_gto_rcvry               ( 1'b0 ),
+   .hl_gto_cfg                 ( 1'b0 ),
+   .no_pcie_train              ( 1'b0 ),
+   // Power Management Interface
+   .tx_dllp_val                ( 2'd0 ),
+   .tx_pmtype                  ( 3'd0 ),
+   .tx_vsd_data                ( 24'd0 ),
+   .tx_req_vc0                 ( tx_req ),
+   .tx_data_vc0                ( tx_data ),
+   .tx_st_vc0                  ( tx_st ),
+   .tx_end_vc0                 ( tx_end ),
+   .tx_nlfy_vc0                ( 1'b0 ),
+   .ph_buf_status_vc0       ( 1'b0 ),
+   .pd_buf_status_vc0       ( 1'b0 ),
+   .nph_buf_status_vc0      ( 1'b0 ),
+   .npd_buf_status_vc0      ( 1'b0 ),
+   .ph_processed_vc0        ( ph_cr ),
+   .pd_processed_vc0        ( pd_cr ),
+   .nph_processed_vc0       ( nph_cr ),
+   .npd_processed_vc0       ( npd_cr ),
+   .pd_num_vc0              ( pd_num ),
+   .npd_num_vc0             ( 8'd1 ),
+   // From User logic
+   .cmpln_tout                 ( 1'b0 ),
+   .cmpltr_abort_np            ( 1'b0 ),
+   .cmpltr_abort_p             ( 1'b0 ),
+   .unexp_cmpln                ( 1'b0 ),
+   .ur_np_ext                  ( 1'b0 ),
+   .ur_p_ext                   ( 1'b0 ),
+   .np_req_pend                ( 1'b0 ),
+   .pme_status                 ( 1'b0 ),
+   .tx_rdy_vc0                 ( tx_rdy),
+   .tx_ca_ph_vc0               ( tx_ca_ph),
+   .tx_ca_pd_vc0               ( tx_ca_pd),
+   .tx_ca_nph_vc0              ( tx_ca_nph),
+   .tx_ca_npd_vc0              ( tx_ca_npd ),
+   .tx_ca_cplh_vc0             ( tx_ca_cplh ),
+   .tx_ca_cpld_vc0             ( tx_ca_cpld ),
+   .tx_ca_p_recheck_vc0        ( tx_ca_p_recheck ),
+   .tx_ca_cpl_recheck_vc0      ( tx_ca_cpl_recheck ),
+   .rx_data_vc0                ( rx_data),
+   .rx_st_vc0                  ( rx_st),
+   .rx_end_vc0                 ( rx_end),
+   .rx_us_req_vc0              ( rx_us_req ),
+   .rx_malf_tlp_vc0            ( rx_malf_tlp ),
+   .rx_bar_hit                 ( rx_bar_hit ),
+   // From Config Registers
+   .bus_num                    ( bus_num  ),
+   .dev_num                    ( dev_num  ),
+   .func_num                   ( func_num  )
+);
+
 always @(posedge clk_125 or negedge core_rst_n) begin
     if (!core_rst_n) begin
         wb_dat         <= 16'h0;
@@ -417,6 +431,9 @@ always @(posedge clk_125 or negedge core_rst_n) begin
         endcase
     end
 end
+assign pcie_dat_i = wb_dat;
+assign pcie_ack   = wb_ack;
+
 
 //-------------------------------------
 // Ether frame receiver
@@ -477,27 +494,7 @@ always @(posedge phy1_rx_clk) begin
     end
 end
 
-wire rx1_ready;
-wire rx1_done;
-clk_sync rx1_rdy (
-    .clk1 (clk_125)
-  , .i    (slots_status[1])
-  , .clk2 (phy1_rx_clk)
-  , .o    (rx1_ready)
-);
-clk_sync2 rx1_don (
-    .clk1 (phy1_rx_clk)
-  , .i    (rx1_status[1])
-  , .clk2 (clk_125)
-  , .o    (rx1_done)
-);
-
-assign pcie_dat_i = wb_dat;
-assign pcie_ack   = wb_ack;
-
 assign led_out[0] = ~rx_active;
 
 endmodule
-
-`default_nettype wire
 

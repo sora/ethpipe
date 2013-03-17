@@ -1,3 +1,5 @@
+`default_nettype none
+
 module top  (
    input rstn,
    input FLIP_LANES,
@@ -496,4 +498,6 @@ assign pcie_ack   = wb_ack;
 assign led_out[0] = ~rx_active;
 
 endmodule
+
+`default_nettype wire
 

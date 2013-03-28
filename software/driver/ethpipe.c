@@ -7,6 +7,7 @@
 #include <linux/wait.h>		/* wait_queue_head_t */
 #include <linux/sched.h>	/* wait_event_interruptible, wake_up_interruptible */
 #include <linux/interrupt.h>
+#include <linux/version.h>
 
 #define	DRV_NAME	"ethpipe"
 #define	DRV_VERSION	"0.0.1"
@@ -14,6 +15,12 @@
 #define	MAX_TEMP_BUF	2000
 
 #define HEADER_LEN	12
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,8,0)
+#define	__devinit
+#define	__devexit
+#define	__devexit_p
+#endif
 
 static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 	{0x3776, 0x8001, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },

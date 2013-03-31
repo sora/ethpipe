@@ -1,4 +1,4 @@
 #!/bin/sh
-echo 'Push [ctrl+c] after 10 seconds and type "wc output.txt"'
+echo 'Measuring the GREP throughput. Waiting 10 seconds and type "wc output.txt"'
 echo grep '"001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt'
-grep "001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt
+grep "001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt & sleep 10; kill %1

@@ -1,6 +1,8 @@
 #!/bin/sh
-echo 'Measuring the /dev/ethpipe throughput.'
+echo 'Measuring the /dev/ethpipe receive throughput.'
 dd if=/dev/ethpipe of=/dev/null bs=1M count=1024
+echo 'Measuring the /dev/ethpipe receive and transmitte throughput(forwarding).'
+dd if=/dev/ethpipe of=/dev/ethpipe bs=1M count=1024
 echo 'Measuring the GREP throughput.'
 echo grep '"001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt'
 grep "001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt & sleep 5; kill %1

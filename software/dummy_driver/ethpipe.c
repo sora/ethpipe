@@ -46,7 +46,7 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 	if (copy_len > (MAX_TEMP_BUF - 4096))
 		copy_len = (MAX_TEMP_BUF - 4096);
 
-	copy_len = (count % 204) * 204;
+	copy_len = (count % 181) * 181;
 
 	if ( copy_to_user( buf, mmio_ptr, copy_len ) ) {
 		printk( KERN_INFO "copy_to_user failed\n" );
@@ -133,7 +133,7 @@ static int __init ethpipe_init(void)
 
 	num = 0;
 	for ( i = 0; i < (MAX_TEMP_BUF-4096); ) {
-		memcpy( mmio_ptr+i, "FFFFFFFFFFF 0022CF63967B 8899 23 1E 0A CF E5 3A DF 00 22 CF 63 96 7B 00 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 1A EF AE 92 53 45 41 52 43 48 20 2A\n", 204);
+		memcpy( mmio_ptr+i, "FFFFFFFFFFFF 0022CF63967B 8899 23 1E 0A CF E5 3A DF 00 22 CF 63 96 7B 00 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 1A EF AE 92\n", 181);
 		switch ( num % 10 ) {
 			case 0:  memcpy ( mmio_ptr+i, "001111111111", 12); break;
 			case 1:  memcpy ( mmio_ptr+i, "002222222222", 12); break;
@@ -146,7 +146,7 @@ static int __init ethpipe_init(void)
 			case 8:  memcpy ( mmio_ptr+i, "009999999999", 12); break;
 			default: break;
 		}
-		i += 204;
+		i += 181;
 		++num;
 	}
 	

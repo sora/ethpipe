@@ -1,4 +1,9 @@
 #!/bin/sh
-echo 'Measuring the GREP throughput. Waiting 10 seconds and type "wc output.txt"'
+echo 'Measuring the /dev/ethpipe throughput.'
+dd if=/dev/ethpipe of=/dev/null bs=1M count=1024
+echo 'Measuring the GREP throughput.'
 echo grep '"001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt'
-grep "001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt & sleep 10; kill %1
+grep "001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt & sleep 5; kill %1
+sleep 1
+echo "(`wc -l output.txt | cut -d' ' -f1` / 5 * 2 * 169) / 1024 / 1024" | bc;echo "MB/s"
+echo "(`wc -l output.txt | cut -d' ' -f1` / 5 * 2)" | bc;echo "/Packet Per Second"

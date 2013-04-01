@@ -7,5 +7,8 @@ echo 'Measuring the GREP throughput.'
 echo grep '"001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt'
 grep "001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt & sleep 5; kill %1
 sleep 1
-echo "(`wc -l output.txt | cut -d' ' -f1` / 5 * 2 * 169) / 1024 / 1024" | bc;echo "MB/s"
-echo "(`wc -l output.txt | cut -d' ' -f1` / 5 * 2)" | bc;echo "/Packet Per Second"
+NLINE=`wc -l output.txt | cut -d' ' -f1`
+VALUE1=`echo "($NLINE / 5 * 2 * 169) / 1024 / 1024" | bc`;
+VALUE2=`echo "($NLINE / 5 * 2)" | bc`;
+echo $VALUE1 "MB/s"
+echo $VALUE2 "/Packet Per Second"

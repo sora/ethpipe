@@ -34,23 +34,6 @@ module ethpipe (
   , output wire        rx_complete    // Received a ethernet frame
 );
 
-//-------------------------------------
-// clock sync
-//-------------------------------------
-wire rx_ready;
-clk_sync rx_rdy (
-    .clk1 (pci_clk)
-  , .i    (rx_empty)
-  , .clk2 (gmii_rx_clk)
-  , .o    (rx_ready)
-);
-clk_sync2 rx_don (
-    .clk1 (gmii_rx_clk)
-  , .i    (rx_status[1])
-  , .clk2 (pci_clk)
-  , .o    (rx_complete)
-);
-
 
 //-------------------------------------
 // Ether frame receiver
@@ -62,6 +45,7 @@ parameter [1:0]    // RX status
 reg [ 1:0] rx_status;
 reg [11:0] rx_counter;
 reg        rx_active;
+wire       rx_ready;
 always @(posedge gmii_rx_clk) begin
     if (sys_rst) begin
         slot_rx_eth_wr_en   <=  1'b0;
@@ -109,6 +93,23 @@ always @(posedge gmii_rx_clk) begin
         end
     end
 end
+
+
+//-------------------------------------
+// clock sync
+//-------------------------------------
+clk_sync rx_rdy (
+    .clk1 (pci_clk)
+  , .i    (rx_empty)
+  , .clk2 (gmii_rx_clk)
+  , .o    (rx_ready)
+);
+clk_sync2 rx_don (
+    .clk1 (gmii_rx_clk)
+  , .i    (rx_status[1])
+  , .clk2 (pci_clk)
+  , .o    (rx_complete)
+);
 
 endmodule
 

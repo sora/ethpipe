@@ -306,11 +306,6 @@ ethpipe ethpipe_port1 (
   // PCI user registers
 
   // RX frame slot
-  , .slot_rx_host_data(mem_dataA)
-  , .slot_rx_host_byte_en(mem_byte_enA)
-  , .slot_rx_host_address(mem_addressA)
-  , .slot_rx_host_wr_en(mem_wr_enA)
-  , .slot_rx_host_q(mem_qA)
   , .slot_rx_eth_data(mem_dataB)
   , .slot_rx_eth_byte_en(mem_byte_enB)
   , .slot_rx_eth_address(mem_addressB)

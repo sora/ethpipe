@@ -7,6 +7,7 @@
 module ethpipe (
   // system
     input  wire        sys_rst
+
   , input  wire [31:0] global_counter
 
   // GMII interfaces
@@ -20,11 +21,6 @@ module ethpipe (
   // PCI user registers
 
   // RX frame slot
-  , input  wire [15:0] slot_rx_host_data
-  , input  wire [ 1:0] slot_rx_host_byte_en
-  , input  wire [11:0] slot_rx_host_address
-  , input  wire        slot_rx_host_wr_en
-  , input  wire [15:0] slot_rx_host_q
   , output reg  [15:0] slot_rx_eth_data
   , output reg  [ 1:0] slot_rx_eth_byte_en
   , output reg  [11:0] slot_rx_eth_address
@@ -67,7 +63,7 @@ always @(posedge gmii_rx_clk) begin
             rx_status <= RX_IDLE;
             if (gmii_rx_dv) begin
                 rx_counter <= rx_counter + 12'b1;
-                rx_status <= RX_LOAD;
+                rx_status  <= RX_LOAD;
 
                 // write receive timestamp
                 if (rx_counter != 12'b0)

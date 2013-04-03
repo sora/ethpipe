@@ -95,7 +95,7 @@ pcie_top pcie(
    .hdoutp0                    ( hdoutp ),
    .hdoutn0                    ( hdoutn ),
    .msi                        (  8'd0 ),
-   .inta_n                     (  ~rx_done ),
+   .inta_n                     (  ~rx_slot_ready ),
    // This PCIe interface uses dynamic IDs.
    .vendor_id                  (16'h3776),
    .device_id                  (16'h8001),
@@ -266,30 +266,11 @@ ram_dp_true mem0read (
 
 
 //-------------------------------------
-// clock sync
-//-------------------------------------
-wire rx_ready;
-wire rx_done;
-clk_sync rx_rdy (
-    .clk1 (clk_125)
-  , .i    (slots_status[1])
-  , .clk2 (phy1_rx_clk)
-  , .o    (rx_ready)
-);
-clk_sync2 rx_don (
-    .clk1 (phy1_rx_clk)
-  , .i    (rx_complete)
-  , .clk2 (clk_125)
-  , .o    (rx_done)
-);
-
-
-//-------------------------------------
 // ethpipe Port1
 //-------------------------------------
 wire [31:0] rx_timestamp;
 wire [11:0] rx_frame_len;
-wire        rx_complete;
+wire        rx_slot_ready;
 ethpipe ethpipe_port1 (
   // system
     .sys_rst(~core_rst_n)
@@ -304,6 +285,7 @@ ethpipe ethpipe_port1 (
   , .gmii_rx_clk(phy1_rx_clk)
 
   // PCI user registers
+  , .pci_clk(clk_125)
 
   // RX frame slot
   , .slot_rx_eth_data(mem_dataB)
@@ -314,8 +296,8 @@ ethpipe ethpipe_port1 (
 
   , .rx_timestamp(rx_timestamp)
   , .rx_frame_len(rx_frame_len)
-  , .rx_empty(rx_ready)             // RX slot empty
-  , .rx_complete(rx_complete)       // Received a ethernet frame
+  , .rx_empty(slots_status[1])      // RX slot empty
+  , .rx_complete(rx_slot_ready)     // RX slot read ready
 );
 assign phy1_mii_clk  = 1'b0;
 assign phy1_mii_data = 1'b0;
@@ -351,7 +333,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
         wb_ack  <= 1'b0;
         global_counter <= global_counter + 32'b1;
 
-        if (rx_done)
+        if (rx_slot_ready)
             slots_status[1:0] <= 2'b01;
 
         mem_wr_enA <= 1'b0;

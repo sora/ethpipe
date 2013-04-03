@@ -128,12 +128,12 @@ static int __init ethpipe_init(void)
 		return ret;
 	}
 
-	if ( ( phy0_rx_ptr = kmalloc(MAX_TEMP_BUF, GFP_DMA) ) == 0 ) {
+	if ( ( phy0_rx_ptr = kmalloc(MAX_TEMP_BUF, GFP_KERNEL | GFP_DMA) ) == 0 ) {
 		printk("fail to kmalloc\n");
 		return -1;
 	}
 
-	if ( ( phy0_tx_ptr = kmalloc(MAX_TEMP_BUF, GFP_DMA) ) == 0 ) {
+	if ( ( phy0_tx_ptr = kmalloc(MAX_TEMP_BUF, GFP_KERNEL | GFP_DMA) ) == 0 ) {
 		printk("fail to kmalloc\n");
 		return -1;
 	}

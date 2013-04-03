@@ -69,7 +69,7 @@
         <Source name="../../../cores/ethpipe/rtl/ethpipe.v" type="Verilog" type_short="Verilog">
             <Options/>
         </Source>
-        <Source name="impl1/impl1.xcf" type="ispVM Download Project" type_short="ispVM">
+        <Source name="impl1.xcf" type="ispVM Download Project" type_short="ispVM" excluded="TRUE">
             <Options/>
         </Source>
         <Source name="top.lpf" type="Logic Preference" type_short="LPF">

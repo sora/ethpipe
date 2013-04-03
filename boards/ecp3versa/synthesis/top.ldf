@@ -63,7 +63,10 @@
         <Source name="pll.ipx" type="IPX_Module" type_short="IPX">
             <Options/>
         </Source>
-        <Source name="../rtl/ecp3/clk_sync.v" type="Verilog" type_short="Verilog">
+        <Source name="../../../cores/clk_sync/rtl/clk_sync.v" type="Verilog" type_short="Verilog">
+            <Options/>
+        </Source>
+        <Source name="../../../cores/ethpipe/rtl/ethpipe.v" type="Verilog" type_short="Verilog">
             <Options/>
         </Source>
         <Source name="impl1/impl1.xcf" type="ispVM Download Project" type_short="ispVM">

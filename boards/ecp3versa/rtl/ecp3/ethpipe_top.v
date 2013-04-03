@@ -1,46 +1,48 @@
 module top  (
-   input rstn,
-   input FLIP_LANES,
-   input refclkp,
-   input refclkn,
-   input hdinp,
-   input hdinn,
-   output hdoutp,
-   output hdoutn,
-   input [7:0] dip_switch,
-   output [13:0] led_out,
-   output dp,
-   input reset_n,
- // Ethernet PHY#1
-    output phy1_rst_n,
-    input phy1_125M_clk,
-    input phy1_tx_clk,
-    output phy1_gtx_clk,
-    output phy1_tx_en,
-    output [7:0] phy1_tx_data,
-    input phy1_rx_clk,
-    input phy1_rx_dv,
-    input phy1_rx_er,
-    input [7:0] phy1_rx_data,
-    input phy1_col,
-    input phy1_crs,
-    output phy1_mii_clk,
-    inout phy1_mii_data,
-// Ethernet PHY#2
-    output phy2_rst_n,
-    input phy2_125M_clk,
-    input phy2_tx_clk,
-    output phy2_gtx_clk,
-    output phy2_tx_en,
-    output [7:0] phy2_tx_data,
-    input phy2_rx_clk,
-    input phy2_rx_dv,
-    input phy2_rx_er,
-    input [7:0] phy2_rx_data,
-    input phy2_col,
-    input phy2_crs,
-    output phy2_mii_clk,
-    inout phy2_mii_data
+    input  rstn
+  , input  FLIP_LANES
+  , input  refclkp
+  , input  refclkn
+  , input  hdinp
+  , input  hdinn
+  , output hdoutp
+  , output hdoutn
+  , input  [7:0] dip_switch
+  , output [13:0] led_out
+  , output dp
+  , input  reset_n
+
+  // Ethernet PHY#1
+  , output phy1_rst_n
+  , input  phy1_125M_clk
+  , input  phy1_tx_clk
+  , output phy1_gtx_clk
+  , output phy1_tx_en
+  , output [7:0] phy1_tx_data
+  , input  phy1_rx_clk
+  , input  phy1_rx_dv
+  , input  phy1_rx_er
+  , input  [7:0] phy1_rx_data
+  , input  phy1_col
+  , input  phy1_crs
+  , output phy1_mii_clk
+  , inout  phy1_mii_data
+
+  // Ethernet PHY#2
+  , output phy2_rst_n
+  , input  phy2_125M_clk
+  , input  phy2_tx_clk
+  , output phy2_gtx_clk
+  , output phy2_tx_en
+  , output [7:0] phy2_tx_data
+  , input  phy2_rx_clk
+  , input  phy2_rx_dv
+  , input  phy2_rx_er
+  , input  [7:0] phy2_rx_data
+  , input  phy2_col
+  , input  phy2_crs
+  , output phy2_mii_clk
+  , inout  phy2_mii_data
 );
 
 reg  [20:0] rstn_cnt;
@@ -58,117 +60,117 @@ wire pcie_we;
 wire pcie_stb;
 wire pcie_ack;
 
-wire [7:0] bus_num ;
-wire [4:0] dev_num ;
-wire [2:0] func_num ;
+wire [7:0] bus_num;
+wire [4:0] dev_num;
+wire [2:0] func_num;
 
-wire [8:0] tx_ca_ph ;
-wire [12:0] tx_ca_pd  ;
-wire [8:0] tx_ca_nph ;
-wire [12:0] tx_ca_npd ;
+wire [8:0] tx_ca_ph;
+wire [12:0] tx_ca_pd;
+wire [8:0] tx_ca_nph;
+wire [12:0] tx_ca_npd;
 wire [8:0] tx_ca_cplh;
-wire [12:0] tx_ca_cpld ;
+wire [12:0] tx_ca_cpld;
 wire clk_125;
 wire tx_eop_wbm;
-// Reset management
+// PCI Reset management
 always @(posedge clk_125 or negedge rstn) begin
    if (!rstn) begin
-       rstn_cnt   <= 21'd0 ;
-       core_rst_n <= 1'b0 ;
+       rstn_cnt   <= 21'd0;
+       core_rst_n <= 1'b0;
    end else begin
       if (rstn_cnt[20])            // 4ms in real hardware
-         core_rst_n <= 1'b1 ;
+         core_rst_n <= 1'b1;
       else
-         rstn_cnt <= rstn_cnt + 1'b1 ;
+         rstn_cnt <= rstn_cnt + 1'b1;
    end
 end
 
-pcie_top pcie(
-   .refclkp                    ( refclkp ),
-   .refclkn                    ( refclkn ),
-   .sys_clk_125                ( clk_125 ),
-   .ext_reset_n                ( rstn ),
-   .rstn                       ( core_rst_n ),
-   .flip_lanes                 ( FLIP_LANES ),
-   .hdinp0                     ( hdinp ),
-   .hdinn0                     ( hdinn ),
-   .hdoutp0                    ( hdoutp ),
-   .hdoutn0                    ( hdoutn ),
-   .msi                        (  8'd0 ),
-   .inta_n                     (  ~rx_slot_ready ),
-   // This PCIe interface uses dynamic IDs.
-   .vendor_id                  (16'h3776),
-   .device_id                  (16'h8001),
-   .rev_id                     (8'h00),
-   .class_code                 (24'h000000),
-   .subsys_ven_id              (16'h3776),
-   .subsys_id                  (16'h8001),
-   .load_id                    (1'b1),
-   // Inputs
-   .force_lsm_active           ( 1'b0 ),
-   .force_rec_ei               ( 1'b0 ),
-   .force_phy_status           ( 1'b0 ),
-   .force_disable_scr          ( 1'b0 ),
-   .hl_snd_beacon              ( 1'b0 ),
-   .hl_disable_scr             ( 1'b0 ),
-   .hl_gto_dis                 ( 1'b0 ),
-   .hl_gto_det                 ( 1'b0 ),
-   .hl_gto_hrst                ( 1'b0 ),
-   .hl_gto_l0stx               ( 1'b0 ),
-   .hl_gto_l1                  ( 1'b0 ),
-   .hl_gto_l2                  ( 1'b0 ),
-   .hl_gto_l0stxfts            ( 1'b0 ),
-   .hl_gto_lbk                 ( 1'd0 ),
-   .hl_gto_rcvry               ( 1'b0 ),
-   .hl_gto_cfg                 ( 1'b0 ),
-   .no_pcie_train              ( 1'b0 ),
-   // Power Management Interface
-   .tx_dllp_val                ( 2'd0 ),
-   .tx_pmtype                  ( 3'd0 ),
-   .tx_vsd_data                ( 24'd0 ),
-   .tx_req_vc0                 ( tx_req ),
-   .tx_data_vc0                ( tx_data ),
-   .tx_st_vc0                  ( tx_st ),
-   .tx_end_vc0                 ( tx_end ),
-   .tx_nlfy_vc0                ( 1'b0 ),
-   .ph_buf_status_vc0       ( 1'b0 ),
-   .pd_buf_status_vc0       ( 1'b0 ),
-   .nph_buf_status_vc0      ( 1'b0 ),
-   .npd_buf_status_vc0      ( 1'b0 ),
-   .ph_processed_vc0        ( ph_cr ),
-   .pd_processed_vc0        ( pd_cr ),
-   .nph_processed_vc0       ( nph_cr ),
-   .npd_processed_vc0       ( npd_cr ),
-   .pd_num_vc0              ( pd_num ),
-   .npd_num_vc0             ( 8'd1 ),
-   // From User logic
-   .cmpln_tout                 ( 1'b0 ),
-   .cmpltr_abort_np            ( 1'b0 ),
-   .cmpltr_abort_p             ( 1'b0 ),
-   .unexp_cmpln                ( 1'b0 ),
-   .ur_np_ext                  ( 1'b0 ),
-   .ur_p_ext                   ( 1'b0 ),
-   .np_req_pend                ( 1'b0 ),
-   .pme_status                 ( 1'b0 ),
-   .tx_rdy_vc0                 ( tx_rdy),
-   .tx_ca_ph_vc0               ( tx_ca_ph),
-   .tx_ca_pd_vc0               ( tx_ca_pd),
-   .tx_ca_nph_vc0              ( tx_ca_nph),
-   .tx_ca_npd_vc0              ( tx_ca_npd ),
-   .tx_ca_cplh_vc0             ( tx_ca_cplh ),
-   .tx_ca_cpld_vc0             ( tx_ca_cpld ),
-   .tx_ca_p_recheck_vc0        ( tx_ca_p_recheck ),
-   .tx_ca_cpl_recheck_vc0      ( tx_ca_cpl_recheck ),
-   .rx_data_vc0                ( rx_data),
-   .rx_st_vc0                  ( rx_st),
-   .rx_end_vc0                 ( rx_end),
-   .rx_us_req_vc0              ( rx_us_req ),
-   .rx_malf_tlp_vc0            ( rx_malf_tlp ),
-   .rx_bar_hit                 ( rx_bar_hit ),
-   // From Config Registers
-   .bus_num                    ( bus_num  ),
-   .dev_num                    ( dev_num  ),
-   .func_num                   ( func_num  )
+pcie_top pcie (
+    .refclkp                    ( refclkp )
+  , .refclkn                    ( refclkn )
+  , .sys_clk_125                ( clk_125 )
+  , .ext_reset_n                ( rstn )
+  , .rstn                       ( core_rst_n )
+  , .flip_lanes                 ( FLIP_LANES )
+  , .hdinp0                     ( hdinp )
+  , .hdinn0                     ( hdinn )
+  , .hdoutp0                    ( hdoutp )
+  , .hdoutn0                    ( hdoutn )
+  , .msi                        (  8'd0 )
+  , .inta_n                     (  ~rx_slot_ready )
+  // This PCIe interface uses dynamic IDs.
+  , .vendor_id                  (16'h3776)
+  , .device_id                  (16'h8001)
+  , .rev_id                     (8'h00)
+  , .class_code                 (24'h000000)
+  , .subsys_ven_id              (16'h3776)
+  , .subsys_id                  (16'h8001)
+  , .load_id                    (1'b1)
+  // Inputs
+  , .force_lsm_active           ( 1'b0 )
+  , .force_rec_ei               ( 1'b0 )
+  , .force_phy_status           ( 1'b0 )
+  , .force_disable_scr          ( 1'b0 )
+  , .hl_snd_beacon              ( 1'b0 )
+  , .hl_disable_scr             ( 1'b0 )
+  , .hl_gto_dis                 ( 1'b0 )
+  , .hl_gto_det                 ( 1'b0 )
+  , .hl_gto_hrst                ( 1'b0 )
+  , .hl_gto_l0stx               ( 1'b0 )
+  , .hl_gto_l1                  ( 1'b0 )
+  , .hl_gto_l2                  ( 1'b0 )
+  , .hl_gto_l0stxfts            ( 1'b0 )
+  , .hl_gto_lbk                 ( 1'd0 )
+  , .hl_gto_rcvry               ( 1'b0 )
+  , .hl_gto_cfg                 ( 1'b0 )
+  , .no_pcie_train              ( 1'b0 )
+  // Power Management Interface
+  , .tx_dllp_val                ( 2'd0 )
+  , .tx_pmtype                  ( 3'd0 )
+  , .tx_vsd_data                ( 24'd0 )
+  , .tx_req_vc0                 ( tx_req )
+  , .tx_data_vc0                ( tx_data )
+  , .tx_st_vc0                  ( tx_st )
+  , .tx_end_vc0                 ( tx_end )
+  , .tx_nlfy_vc0                ( 1'b0 )
+  , .ph_buf_status_vc0       ( 1'b0 )
+  , .pd_buf_status_vc0       ( 1'b0 )
+  , .nph_buf_status_vc0      ( 1'b0 )
+  , .npd_buf_status_vc0      ( 1'b0 )
+  , .ph_processed_vc0        ( ph_cr )
+  , .pd_processed_vc0        ( pd_cr )
+  , .nph_processed_vc0       ( nph_cr )
+  , .npd_processed_vc0       ( npd_cr )
+  , .pd_num_vc0              ( pd_num )
+  , .npd_num_vc0             ( 8'd1 )
+  // From User logic
+  , .cmpln_tout                 ( 1'b0 )
+  , .cmpltr_abort_np            ( 1'b0 )
+  , .cmpltr_abort_p             ( 1'b0 )
+  , .unexp_cmpln                ( 1'b0 )
+  , .ur_np_ext                  ( 1'b0 )
+  , .ur_p_ext                   ( 1'b0 )
+  , .np_req_pend                ( 1'b0 )
+  , .pme_status                 ( 1'b0 )
+  , .tx_rdy_vc0                 ( tx_rdy)
+  , .tx_ca_ph_vc0               ( tx_ca_ph)
+  , .tx_ca_pd_vc0               ( tx_ca_pd)
+  , .tx_ca_nph_vc0              ( tx_ca_nph)
+  , .tx_ca_npd_vc0              ( tx_ca_npd )
+  , .tx_ca_cplh_vc0             ( tx_ca_cplh )
+  , .tx_ca_cpld_vc0             ( tx_ca_cpld )
+  , .tx_ca_p_recheck_vc0        ( tx_ca_p_recheck )
+  , .tx_ca_cpl_recheck_vc0      ( tx_ca_cpl_recheck )
+  , .rx_data_vc0                ( rx_data)
+  , .rx_st_vc0                  ( rx_st)
+  , .rx_end_vc0                 ( rx_end)
+  , .rx_us_req_vc0              ( rx_us_req )
+  , .rx_malf_tlp_vc0            ( rx_malf_tlp )
+  , .rx_bar_hit                 ( rx_bar_hit )
+  // From Config Registers
+  , .bus_num                    ( bus_num  )
+  , .dev_num                    ( dev_num  )
+  , .func_num                   ( func_num  )
 );
 
 reg rx_st_d;
@@ -232,9 +234,12 @@ always @(posedge clk_125)
 assign phy1_rst_n = coldsys_rst520 & reset_n;
 
 
-//-----------------------------------
-// RX slot (inoutA: PCIe, inoutB: ethernet)
-//-----------------------------------
+
+//-------------------------------------
+// ethpipe Port1
+//-------------------------------------
+
+// RX slot (A: host, B: ethernet)
 reg  [15:0] mem_dataA;
 reg  [ 1:0] mem_byte_enA;
 reg  [11:0] mem_addressA;
@@ -264,10 +269,6 @@ ram_dp_true mem0read (
   , .QB(mem_qB)
 );
 
-
-//-------------------------------------
-// ethpipe Port1
-//-------------------------------------
 wire [31:0] rx_timestamp;
 wire [11:0] rx_frame_len;
 wire        rx_slot_ready;
@@ -318,8 +319,6 @@ reg [ 1:0] waiting;
 reg [15:0] prev_data = 16'h0;
 reg [ 3:0] slots_status;
 reg [31:0] global_counter;
-
-
 always @(posedge clk_125 or negedge core_rst_n) begin
     if (!core_rst_n) begin
         wb_dat         <= 16'h0;

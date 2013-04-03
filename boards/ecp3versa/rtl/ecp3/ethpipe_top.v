@@ -83,140 +83,6 @@ always @(posedge clk_125 or negedge rstn) begin
    end
 end
 
-reg rx_st_d;
-reg tx_st_d;
-reg [15:0] tx_tlp_cnt;
-reg [15:0] rx_tlp_cnt;
-always @(posedge clk_125 or negedge core_rst_n)
-   if (!core_rst_n) begin
-      tx_st_d <= 0;
-      rx_st_d <= 0;
-      tx_tlp_cnt <= 0;
-      rx_tlp_cnt <= 0;
-   end else begin
-      tx_st_d <= tx_st;
-      rx_st_d <= rx_st;
-      if (tx_st_d) tx_tlp_cnt <= tx_tlp_cnt + 1;
-      if (rx_st_d) rx_tlp_cnt <= rx_tlp_cnt + 1;
-   end
-
-ip_rx_crpr cr (.clk(clk_125), .rstn(core_rst_n), .rx_bar_hit(rx_bar_hit),
-               .rx_st(rx_st), .rx_end(rx_end), .rx_din(rx_data),
-               .pd_cr(pd_cr_ur), .pd_num(pd_num_ur), .ph_cr(ph_cr_ur), .npd_cr(npd_cr_ur), .nph_cr(nph_cr_ur)
-);
-
-ip_crpr_arb crarb(.clk(clk_125), .rstn(core_rst_n),
-            .pd_cr_0(pd_cr_ur), .pd_num_0(pd_num_ur), .ph_cr_0(ph_cr_ur), .npd_cr_0(npd_cr_ur), .nph_cr_0(nph_cr_ur),
-            .pd_cr_1(pd_cr_wb), .pd_num_1(pd_num_wb), .ph_cr_1(ph_cr_wb), .npd_cr_1(1'b0), .nph_cr_1(nph_cr_wb),
-            .pd_cr(pd_cr), .pd_num(pd_num), .ph_cr(ph_cr), .npd_cr(npd_cr), .nph_cr(nph_cr)
-);
-
-ip_tx_arbiter #(.c_DATA_WIDTH (16))
-           tx_arb(.clk(clk_125), .rstn(core_rst_n), .tx_val(1'b1),
-                  .tx_req_0(tx_req_wbm), .tx_din_0(tx_dout_wbm), .tx_sop_0(tx_sop_wbm), .tx_eop_0(tx_eop_wbm), .tx_dwen_0(1'b0),
-                  .tx_req_1(1'b0), .tx_din_1(16'd0), .tx_sop_1(1'b0), .tx_eop_1(1'b0), .tx_dwen_1(1'b0),
-                  .tx_req_2(1'b0), .tx_din_2(16'd0), .tx_sop_2(1'b0), .tx_eop_2(1'b0), .tx_dwen_2(1'b0),
-                  .tx_req_3(tx_req_ur), .tx_din_3(tx_dout_ur), .tx_sop_3(tx_sop_ur), .tx_eop_3(tx_eop_ur), .tx_dwen_3(1'b0),
-                  .tx_rdy_0(tx_rdy_wbm), .tx_rdy_1(), .tx_rdy_2( ), .tx_rdy_3(tx_rdy_ur),
-                  .tx_req(tx_req), .tx_dout(tx_data), .tx_sop(tx_st), .tx_eop(tx_end), .tx_dwen(),
-                  .tx_rdy(tx_rdy)
-
-);
-
-wb_tlc wb_tlc(.clk_125(clk_125), .wb_clk(clk_125), .rstn(core_rst_n),
-              .rx_data(rx_data), .rx_st(rx_st), .rx_end(rx_end), .rx_bar_hit(rx_bar_hit),
-              .wb_adr_o(pcie_adr), .wb_dat_o(pcie_dat_o), .wb_cti_o(pcie_cti), .wb_we_o(pcie_we), .wb_sel_o(pcie_sel), .wb_stb_o(pcie_stb), .wb_cyc_o(pcie_cyc), .wb_lock_o(),
-              .wb_dat_i(pcie_dat_i), .wb_ack_i(pcie_ack),
-              .pd_cr(pd_cr_wb), .pd_num(pd_num_wb), .ph_cr(ph_cr_wb), .npd_cr(npd_cr_wb), .nph_cr(nph_cr_wb),
-              .tx_rdy(tx_rdy_wbm),
-              .tx_req(tx_req_wbm), .tx_data(tx_dout_wbm), .tx_st(tx_sop_wbm), .tx_end(tx_eop_wbm), .tx_ca_cpl_recheck(1'b0), .tx_ca_cplh(tx_ca_cplh), .tx_ca_cpld(tx_ca_cpld),
-              .comp_id({bus_num, dev_num, func_num}),
-              .debug()
-);
-
-
-//-----------------------------------
-// RX slot (inoutA: PCIe, inoutB: ethernet)
-//-----------------------------------
-reg [15:0]  mem_dataA;
-reg [15:0]  mem_dataB;
-reg [ 1:0]  mem_byte_enA;
-reg [ 1:0]  mem_byte_enB;
-reg [11:0]  mem_addressA;
-reg [11:0]  mem_addressB;
-reg         mem_wr_enA;
-reg         mem_wr_enB;
-wire [15:0] mem_qA;
-wire [15:0] mem_qB;
-ram_dp_true mem0read (
-    .DataInA(mem_dataA)
-  , .DataInB(mem_dataB)
-  , .ByteEnA(mem_byte_enA)
-  , .ByteEnB(mem_byte_enB)
-  , .AddressA(mem_addressA)
-  , .AddressB(mem_addressB)
-  , .ClockA(clk_125)
-  , .ClockB(phy1_rx_clk)
-  , .ClockEnA(core_rst_n)
-  , .ClockEnB(core_rst_n)
-  , .WrA(mem_wr_enA)
-  , .WrB(mem_wr_enB)
-  , .ResetA(~core_rst_n)
-  , .ResetB(~core_rst_n)
-  , .QA(mem_qA)
-  , .QB(mem_qB)
-);
-
-//-----------------------------------
-// TX slot (inoutA: PCIe, inoutB: ethernet)
-//-----------------------------------
-
-//-------------------------------------
-// PYH cold reset
-//-------------------------------------
-reg [9:0] coldsys_rst = 0;
-assign coldsys_rst520 = (coldsys_rst==10'd520);
-always @(posedge clk_125)
-    coldsys_rst <= !coldsys_rst520 ? coldsys_rst + 10'd1 : 10'd520;
-assign phy1_rst_n = coldsys_rst520 & reset_n;
-
-//-------------------------------------
-// PHY tmp wire
-//-------------------------------------
-assign phy1_mii_clk = 1'b0;
-assign phy1_mii_data = 1'b0;
-assign phy1_tx_en = 1'b0;
-assign phy1_tx_data = 8'h0;
-assign phy1_gtx_clk = phy1_125M_clk;
-
-//-------------------------------------
-// PCI I/O memory mapping
-//-------------------------------------
-assign rd = ~pcie_we && pcie_cyc && pcie_stb;
-assign wr = pcie_we && pcie_cyc && pcie_stb;
-reg [15:0] wb_dat;
-reg wb_ack;
-assign next_wb_ack = ~wb_ack && pcie_cyc && pcie_stb;
-reg [ 1:0] waiting;
-reg [15:0] prev_data = 16'h0;
-reg [ 3:0] slots_status;
-reg [31:0] global_counter;
-
-wire rx1_ready;
-wire rx1_done;
-clk_sync rx1_rdy (
-    .clk1 (clk_125)
-  , .i    (slots_status[1])
-  , .clk2 (phy1_rx_clk)
-  , .o    (rx1_ready)
-);
-clk_sync2 rx1_don (
-    .clk1 (phy1_rx_clk)
-  , .i    (rx1_status[1])
-  , .clk2 (clk_125)
-  , .o    (rx1_done)
-);
-
 pcie_top pcie(
    .refclkp                    ( refclkp ),
    .refclkn                    ( refclkn ),
@@ -229,7 +95,7 @@ pcie_top pcie(
    .hdoutp0                    ( hdoutp ),
    .hdoutn0                    ( hdoutn ),
    .msi                        (  8'd0 ),
-   .inta_n                     (  ~rx1_done ),
+   .inta_n                     (  ~rx_done ),
    // This PCIe interface uses dynamic IDs.
    .vendor_id                  (16'h3776),
    .device_id                  (16'h8001),
@@ -305,6 +171,178 @@ pcie_top pcie(
    .func_num                   ( func_num  )
 );
 
+reg rx_st_d;
+reg tx_st_d;
+reg [15:0] tx_tlp_cnt;
+reg [15:0] rx_tlp_cnt;
+always @(posedge clk_125 or negedge core_rst_n)
+   if (!core_rst_n) begin
+      tx_st_d <= 0;
+      rx_st_d <= 0;
+      tx_tlp_cnt <= 0;
+      rx_tlp_cnt <= 0;
+   end else begin
+      tx_st_d <= tx_st;
+      rx_st_d <= rx_st;
+      if (tx_st_d) tx_tlp_cnt <= tx_tlp_cnt + 1;
+      if (rx_st_d) rx_tlp_cnt <= rx_tlp_cnt + 1;
+   end
+
+ip_rx_crpr cr (.clk(clk_125), .rstn(core_rst_n), .rx_bar_hit(rx_bar_hit),
+               .rx_st(rx_st), .rx_end(rx_end), .rx_din(rx_data),
+               .pd_cr(pd_cr_ur), .pd_num(pd_num_ur), .ph_cr(ph_cr_ur), .npd_cr(npd_cr_ur), .nph_cr(nph_cr_ur)
+);
+
+ip_crpr_arb crarb(.clk(clk_125), .rstn(core_rst_n),
+            .pd_cr_0(pd_cr_ur), .pd_num_0(pd_num_ur), .ph_cr_0(ph_cr_ur), .npd_cr_0(npd_cr_ur), .nph_cr_0(nph_cr_ur),
+            .pd_cr_1(pd_cr_wb), .pd_num_1(pd_num_wb), .ph_cr_1(ph_cr_wb), .npd_cr_1(1'b0), .nph_cr_1(nph_cr_wb),
+            .pd_cr(pd_cr), .pd_num(pd_num), .ph_cr(ph_cr), .npd_cr(npd_cr), .nph_cr(nph_cr)
+);
+
+ip_tx_arbiter #(.c_DATA_WIDTH (16))
+           tx_arb(.clk(clk_125), .rstn(core_rst_n), .tx_val(1'b1),
+                  .tx_req_0(tx_req_wbm), .tx_din_0(tx_dout_wbm), .tx_sop_0(tx_sop_wbm), .tx_eop_0(tx_eop_wbm), .tx_dwen_0(1'b0),
+                  .tx_req_1(1'b0), .tx_din_1(16'd0), .tx_sop_1(1'b0), .tx_eop_1(1'b0), .tx_dwen_1(1'b0),
+                  .tx_req_2(1'b0), .tx_din_2(16'd0), .tx_sop_2(1'b0), .tx_eop_2(1'b0), .tx_dwen_2(1'b0),
+                  .tx_req_3(tx_req_ur), .tx_din_3(tx_dout_ur), .tx_sop_3(tx_sop_ur), .tx_eop_3(tx_eop_ur), .tx_dwen_3(1'b0),
+                  .tx_rdy_0(tx_rdy_wbm), .tx_rdy_1(), .tx_rdy_2( ), .tx_rdy_3(tx_rdy_ur),
+                  .tx_req(tx_req), .tx_dout(tx_data), .tx_sop(tx_st), .tx_eop(tx_end), .tx_dwen(),
+                  .tx_rdy(tx_rdy)
+
+);
+
+wb_tlc wb_tlc(.clk_125(clk_125), .wb_clk(clk_125), .rstn(core_rst_n),
+              .rx_data(rx_data), .rx_st(rx_st), .rx_end(rx_end), .rx_bar_hit(rx_bar_hit),
+              .wb_adr_o(pcie_adr), .wb_dat_o(pcie_dat_o), .wb_cti_o(pcie_cti), .wb_we_o(pcie_we), .wb_sel_o(pcie_sel), .wb_stb_o(pcie_stb), .wb_cyc_o(pcie_cyc), .wb_lock_o(),
+              .wb_dat_i(pcie_dat_i), .wb_ack_i(pcie_ack),
+              .pd_cr(pd_cr_wb), .pd_num(pd_num_wb), .ph_cr(ph_cr_wb), .npd_cr(npd_cr_wb), .nph_cr(nph_cr_wb),
+              .tx_rdy(tx_rdy_wbm),
+              .tx_req(tx_req_wbm), .tx_data(tx_dout_wbm), .tx_st(tx_sop_wbm), .tx_end(tx_eop_wbm), .tx_ca_cpl_recheck(1'b0), .tx_ca_cplh(tx_ca_cplh), .tx_ca_cpld(tx_ca_cpld),
+              .comp_id({bus_num, dev_num, func_num}),
+              .debug()
+);
+
+//-------------------------------------
+// PYH cold reset
+//-------------------------------------
+reg [9:0] coldsys_rst = 0;
+wire coldsys_rst520 = (coldsys_rst==10'd520);
+always @(posedge clk_125)
+    coldsys_rst <= !coldsys_rst520 ? coldsys_rst + 10'd1 : 10'd520;
+assign phy1_rst_n = coldsys_rst520 & reset_n;
+
+
+//-----------------------------------
+// RX slot (inoutA: PCIe, inoutB: ethernet)
+//-----------------------------------
+reg  [15:0] mem_dataA;
+reg  [ 1:0] mem_byte_enA;
+reg  [11:0] mem_addressA;
+reg         mem_wr_enA;
+wire [15:0] mem_qA;
+wire [15:0] mem_dataB;
+wire [ 1:0] mem_byte_enB;
+wire [11:0] mem_addressB;
+wire        mem_wr_enB;
+wire [15:0] mem_qB;
+ram_dp_true mem0read (
+    .DataInA(mem_dataA)
+  , .DataInB(mem_dataB)
+  , .ByteEnA(mem_byte_enA)
+  , .ByteEnB(mem_byte_enB)
+  , .AddressA(mem_addressA)
+  , .AddressB(mem_addressB)
+  , .ClockA(clk_125)
+  , .ClockB(phy1_rx_clk)
+  , .ClockEnA(core_rst_n)
+  , .ClockEnB(core_rst_n)
+  , .WrA(mem_wr_enA)
+  , .WrB(mem_wr_enB)
+  , .ResetA(~core_rst_n)
+  , .ResetB(~core_rst_n)
+  , .QA(mem_qA)
+  , .QB(mem_qB)
+);
+
+
+//-------------------------------------
+// clock sync
+//-------------------------------------
+wire rx_ready;
+wire rx_done;
+clk_sync rx_rdy (
+    .clk1 (clk_125)
+  , .i    (slots_status[1])
+  , .clk2 (phy1_rx_clk)
+  , .o    (rx_ready)
+);
+clk_sync2 rx_don (
+    .clk1 (phy1_rx_clk)
+  , .i    (rx_complete)
+  , .clk2 (clk_125)
+  , .o    (rx_done)
+);
+
+
+//-------------------------------------
+// ethpipe Port1
+//-------------------------------------
+wire [31:0] rx_timestamp;
+wire [11:0] rx_frame_len;
+wire        rx_complete;
+ethpipe ethpipe_port1 (
+  // system
+    .sys_rst(~core_rst_n)
+  , .global_counter(global_counter)
+
+  // GMII interfaces
+  , .gmii_tx_clk()
+  , .gmii_txd()
+  , .gmii_tx_en()
+  , .gmii_rxd(phy1_rx_data)
+  , .gmii_rx_dv(phy1_rx_dv)
+  , .gmii_rx_clk(phy1_rx_clk)
+
+  // PCI user registers
+
+  // RX frame slot
+  , .slot_rx_host_data(mem_dataA)
+  , .slot_rx_host_byte_en(mem_byte_enA)
+  , .slot_rx_host_address(mem_addressA)
+  , .slot_rx_host_wr_en(mem_wr_enA)
+  , .slot_rx_host_q(mem_qA)
+  , .slot_rx_eth_data(mem_dataB)
+  , .slot_rx_eth_byte_en(mem_byte_enB)
+  , .slot_rx_eth_address(mem_addressB)
+  , .slot_rx_eth_wr_en(mem_wr_enB)
+  , .slot_rx_eth_q(mem_qB)
+
+  , .rx_timestamp(rx_timestamp)
+  , .rx_frame_len(rx_frame_len)
+  , .rx_empty(rx_ready)             // RX slot empty
+  , .rx_complete(rx_complete)       // Received a ethernet frame
+);
+assign phy1_mii_clk  = 1'b0;
+assign phy1_mii_data = 1'b0;
+assign phy1_tx_en    = 1'b0;
+assign phy1_tx_data  = 8'h0;
+assign phy1_gtx_clk  = phy1_125M_clk;
+
+
+//-------------------------------------
+// PCI I/O memory mapping
+//-------------------------------------
+assign rd = ~pcie_we && pcie_cyc && pcie_stb;
+assign wr = pcie_we && pcie_cyc && pcie_stb;
+reg [15:0] wb_dat;
+reg wb_ack;
+assign next_wb_ack = ~wb_ack && pcie_cyc && pcie_stb;
+reg [ 1:0] waiting;
+reg [15:0] prev_data = 16'h0;
+reg [ 3:0] slots_status;
+reg [31:0] global_counter;
+
+
 always @(posedge clk_125 or negedge core_rst_n) begin
     if (!core_rst_n) begin
         wb_dat         <= 16'h0;
@@ -318,7 +356,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
         wb_ack  <= 1'b0;
         global_counter <= global_counter + 32'b1;
 
-        if (rx1_done)
+        if (rx_done)
             slots_status[1:0] <= 2'b01;
 
         mem_wr_enA <= 1'b0;
@@ -433,68 +471,6 @@ always @(posedge clk_125 or negedge core_rst_n) begin
 end
 assign pcie_dat_i = wb_dat;
 assign pcie_ack   = wb_ack;
-
-
-//-------------------------------------
-// Ether frame receiver
-//-------------------------------------
-reg [1:0] rx1_status;
-parameter [1:0]
-    RX_IDLE = 2'b00
-  , RX_LOAD = 2'b01
-  , RX_DONE = 2'b10;
-reg [11:0] rx_counter;
-reg [31:0] rx_timestamp;
-reg [11:0] rx_frame_len;
-reg        rx_active;
-always @(posedge phy1_rx_clk) begin
-    if (!core_rst_n) begin
-        mem_wr_enB   <=  1'b0;
-        mem_addressB <= 12'b0;
-        mem_dataB    <= 16'b0;
-        rx_counter   <= 12'b0;
-        rx_timestamp <= 32'b0;
-        rx_frame_len <= 12'b0;
-        rx1_status   <=  2'b0;
-        rx_active    <=  1'b0;
-    end else begin
-        if (rx_active == 1'b0) begin
-            rx_counter <= 12'b0;
-            if (rx1_ready == 1'b1 && phy1_rx_dv == 1'b0)
-                rx_active <= 1'b1;
-         end else begin
-            mem_wr_enB <= 1'b0;
-            rx1_status <= RX_IDLE;
-            if (phy1_rx_dv) begin
-                rx1_status <= RX_LOAD;
-                // write receive timestamp
-                if (!rx_counter)
-                    rx_timestamp <= global_counter;
-                mem_wr_enB <= 1'b1;
-                if (rx_counter[0]) begin
-                    mem_byte_enB <= 2'b10;
-                    mem_dataB    <= {phy1_rx_data, 8'b0};
-                end else begin
-                    mem_byte_enB <= 2'b01;
-                    mem_dataB    <= {8'b0, phy1_rx_data};
-                    mem_addressB <= mem_addressB + 12'd1;
-                end
-                rx_counter <= rx_counter + 12'b1;
-            end else begin
-                // frame terminated
-                if (rx_counter != 12'b0) begin
-                    rx_frame_len <= rx_counter;
-                    rx_counter   <= 12'b0;
-                    mem_addressB <= 12'd2;
-                    rx1_status   <= RX_DONE;
-                    rx_active    <= 1'b0;
-                end
-            end
-        end
-    end
-end
-
-assign led_out[0] = ~rx_active;
 
 endmodule
 

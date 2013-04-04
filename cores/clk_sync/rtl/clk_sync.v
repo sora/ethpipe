@@ -1,4 +1,4 @@
-module clk_sync (
+module clk_sync_ashot (
     input clk1
   , input i
   , input clk2
@@ -24,7 +24,7 @@ assign o = buf2 ^ buf3;
 
 endmodule
 
-module clk_sync2 (
+module clk_sync (
     input clk1
   , input i
   , input clk2

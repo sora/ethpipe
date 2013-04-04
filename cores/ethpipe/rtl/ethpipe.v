@@ -98,13 +98,13 @@ end
 //-------------------------------------
 // clock sync
 //-------------------------------------
-clk_sync rx_rdy (
+clk_sync_ashot pcie2gmii_sync (
     .clk1 (pci_clk)
   , .i    (rx_empty)
   , .clk2 (gmii_rx_clk)
   , .o    (rx_ready)
 );
-clk_sync2 rx_don (
+clk_sync gmii2pcie_sync (
     .clk1 (gmii_rx_clk)
   , .i    (rx_status[1])
   , .clk2 (pci_clk)

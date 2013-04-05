@@ -8,7 +8,7 @@ module ethpipe (
   // system
     input  wire        sys_rst
 
-  , input  wire [31:0] global_counter
+  , input  wire [63:0] global_counter
 
   // GMII interfaces
   , input  wire        gmii_tx_clk
@@ -28,7 +28,7 @@ module ethpipe (
   , output reg         slot_rx_eth_wr_en
   , input  wire [15:0] slot_rx_eth_q
 
-  , output reg  [31:0] rx_timestamp
+  , output reg  [63:0] rx_timestamp
   , output reg  [11:0] rx_frame_len
   , input  wire        rx_empty       // RX slot empty
   , output wire        rx_complete    // Received a ethernet frame
@@ -52,7 +52,7 @@ always @(posedge gmii_rx_clk) begin
         slot_rx_eth_address <= 12'b0;
         slot_rx_eth_data    <= 16'b0;
         rx_counter          <= 12'b0;
-        rx_timestamp        <= 32'b0;
+        rx_timestamp        <= 64'b0;
         rx_frame_len        <= 12'b0;
         rx_status           <=  2'b0;
         rx_active           <=  1'b0;

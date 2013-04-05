@@ -442,7 +442,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                     default: begin
                         if (rd) begin
                             if (waiting == 2'h0) begin
-                                mem_addressA <= pcie_adr[12:1] - 12'd1;
+                                mem_addressA <= pcie_adr[12:1] - 12'd2;
                                 wb_ack  <= 1'b0;
                             end else if (waiting == 2'h2) begin
                                 wb_dat  <= mem_qA;

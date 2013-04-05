@@ -64,7 +64,7 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 	if ( wait_event_interruptible( read_q, ( (*mmio_ptr & 0x1) != 0 ) ) )
 		return -ERESTARTSYS;
 
-	frame_len = *(short *)(mmio_ptr + 0x8004);
+	frame_len = *(short *)(mmio_ptr + 0x800a);
 
 	if (frame_len < 72)
 		frame_len = 72;
@@ -77,7 +77,7 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 	else
 		copy_len = count;
 
-	memcpy(temp_buf, mmio_ptr+0x8008, frame_len);
+	memcpy(temp_buf, mmio_ptr+0x8006, frame_len);
 
 	temp_buf[0x00] = 0x55;			/* magic code 0x55d5 */
 	temp_buf[0x01] = 0xd5;

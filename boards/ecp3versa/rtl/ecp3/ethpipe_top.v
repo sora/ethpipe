@@ -455,10 +455,10 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                     default: begin
                         if (rd) begin
                             if (pcie_adr[1] == 1'b0) begin
-                                if (waiting == 2'h0 || waiting == 2'h1) begin
-                                    mem_addressA <= pcie_adr[12:2] - 12'h1;
+                                if (waiting == 2'h0 || waiting == 2'h1 || waiting == 2'h2) begin
+                                    mem_addressA <= pcie_adr[12:2] + 12'h1;
                                     wb_ack  <= 1'b0;
-                                end else if (waiting == 2'h2) begin
+                                end else if (waiting == 2'h3) begin
                                     wb_dat  <= mem_qA[15:0];
                                     waiting <= 2'h0;
                                 end
@@ -468,7 +468,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                             end
                         end else if (wr) begin
                             mem_wr_enA   <= 1'b1;
-                            mem_addressA <= pcie_adr[12:2] - 12'h1;
+                            mem_addressA <= pcie_adr[12:2] + 12'h1;
                             if (pcie_adr[1] == 1'b0) begin
                                 mem_byte_enA <= {2'b00, pcie_sel[0], pcie_sel[1]};
                                 if (pcie_sel[0])

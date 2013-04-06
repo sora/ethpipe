@@ -22,11 +22,11 @@ module ethpipe (
   , input  wire        pci_clk
 
   // RX frame slot
-  , output reg  [15:0] slot_rx_eth_data
-  , output reg  [ 1:0] slot_rx_eth_byte_en
-  , output reg  [11:0] slot_rx_eth_address
+  , output reg  [31:0] slot_rx_eth_data
+  , output reg  [ 3:0] slot_rx_eth_byte_en
+  , output reg  [10:0] slot_rx_eth_address
   , output reg         slot_rx_eth_wr_en
-  , input  wire [15:0] slot_rx_eth_q
+  , input  wire [31:0] slot_rx_eth_q
 
   , output reg  [63:0] rx_timestamp
   , output reg  [11:0] rx_frame_len
@@ -49,8 +49,8 @@ wire       rx_ready;
 always @(posedge gmii_rx_clk) begin
     if (sys_rst) begin
         slot_rx_eth_wr_en   <=  1'b0;
-        slot_rx_eth_address <= 12'b0;
-        slot_rx_eth_data    <= 16'b0;
+        slot_rx_eth_address <= 11'b0;
+        slot_rx_eth_data    <= 32'b0;
         rx_counter          <= 12'b0;
         rx_timestamp        <= 64'b0;
         rx_frame_len        <= 12'b0;
@@ -69,21 +69,32 @@ always @(posedge gmii_rx_clk) begin
                 rx_status  <= RX_LOAD;
 
                 // write receive timestamp
-                if (rx_counter != 12'b0)
+                if (rx_counter != 12'h0)
                     rx_timestamp <= global_counter;
                 slot_rx_eth_wr_en <= 1'b1;
-                if (rx_counter[0]) begin
-                    slot_rx_eth_byte_en <= 2'b10;
-                    slot_rx_eth_data    <= {gmii_rxd, 8'b0};
-                end else begin
-                    slot_rx_eth_byte_en <= 2'b01;
-                    slot_rx_eth_data    <= {8'b0, gmii_rxd};
-                    slot_rx_eth_address <= slot_rx_eth_address + 12'd1;
-                end
+                case (rx_counter[1:0])
+                    2'b00: begin
+                        slot_rx_eth_byte_en <= 4'b0001;
+                        slot_rx_eth_data    <= {24'h0, gmii_rxd};
+                        slot_rx_eth_address <= slot_rx_eth_address + 12'd1;
+                    end
+                    2'b01: begin
+                        slot_rx_eth_byte_en <= 4'b0010;
+                        slot_rx_eth_data    <= {16'h0, gmii_rxd, 8'h0};
+                    end
+                    2'b10: begin
+                        slot_rx_eth_byte_en <= 4'b0100;
+                        slot_rx_eth_data    <= {8'h0, gmii_rxd, 16'h0};
+                    end
+                    2'b11: begin
+                        slot_rx_eth_byte_en <= 4'b1000;
+                        slot_rx_eth_data    <= {gmii_rxd, 24'h0};
+                    end
+                endcase
             end else begin
                 // frame terminated
-                if (rx_counter != 12'b0) begin
-                    rx_frame_len <= rx_counter;
+                if (rx_counter != 12'h0) begin
+                    rx_frame_len <= rx_counter - 12'h8;
                     rx_counter   <= 12'b0;
                     slot_rx_eth_address <= 12'd2;
                     rx_status <= RX_DONE;

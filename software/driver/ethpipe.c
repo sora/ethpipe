@@ -14,7 +14,7 @@
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
 #define	MAX_TEMP_BUF	2000
 
-#define HEADER_LEN	12
+#define HEADER_LEN	16
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(3,8,0)
 #define	__devinit
@@ -60,14 +60,17 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 	printk("%s\n", __func__);
 
 	if ((*mmio_ptr & 0x02) == 0)
-		*mmio_ptr = 0x02;	/* Request receiving PHY#2 */
+		*mmio_ptr = 0x02;	/* Request receiving PHY#1 */
 	if ( wait_event_interruptible( read_q, ( (*mmio_ptr & 0x1) != 0 ) ) )
 		return -ERESTARTSYS;
 
-	frame_len = *(short *)(mmio_ptr + 0x800a);
+	frame_len = *(short *)(mmio_ptr + 0x800c);
+#ifdef DEBUG
+	printk( "frame_len=%d\n", frame_len);
+#endif
 
-	if (frame_len < 72)
-		frame_len = 72;
+	if (frame_len < 64)
+		frame_len = 64;
 
 	if (frame_len > 2000)
 		frame_len = 2000;
@@ -77,22 +80,27 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 	else
 		copy_len = count;
 
-	memcpy(temp_buf, mmio_ptr+0x8006, frame_len);
+	memcpy(temp_buf+0x02, mmio_ptr+0x8000, 0x0e);
+	memcpy(temp_buf+0x10, mmio_ptr+0x8010, frame_len);
 
 	temp_buf[0x00] = 0x55;			/* magic code 0x55d5 */
 	temp_buf[0x01] = 0xd5;
-	temp_buf[0x02] = *(mmio_ptr + 0x8000);	/* counter[00:07] */
-	temp_buf[0x03] = *(mmio_ptr + 0x8001);	/* counter[15:08] */
-	temp_buf[0x04] = *(mmio_ptr + 0x8002);	/* counter[23:16] */
-	temp_buf[0x05] = *(mmio_ptr + 0x8003);	/* counter[31:24] */
-	temp_buf[0x06] = *(mmio_ptr + 0x8004);	/* counter[39:32] */
-	temp_buf[0x07] = *(mmio_ptr + 0x8005);	/* counter[47:40] */
-	temp_buf[0x08] = *(mmio_ptr + 0x8006);	/* counter[55:48] */
-	temp_buf[0x09] = *(mmio_ptr + 0x8007);	/* counter[63:56] */
-	temp_buf[0x0a] = *(mmio_ptr + 0x8008);	/* frame_len[00:07] */
-	temp_buf[0x0b] = *(mmio_ptr + 0x8009);	/* frame_len[15:08] */
+//	temp_buf[0x02] = *(mmio_ptr + 0x8000);	/* counter[00:07] */
+//	temp_buf[0x03] = *(mmio_ptr + 0x8001);	/* counter[15:08] */
+//	temp_buf[0x04] = *(mmio_ptr + 0x8002);	/* counter[23:16] */
+//	temp_buf[0x05] = *(mmio_ptr + 0x8003);	/* counter[31:24] */
+//	temp_buf[0x06] = *(mmio_ptr + 0x8004);	/* counter[39:32] */
+//	temp_buf[0x07] = *(mmio_ptr + 0x8005);	/* counter[47:40] */
+//	temp_buf[0x08] = *(mmio_ptr + 0x8006);	/* counter[55:48] */
+//	temp_buf[0x09] = *(mmio_ptr + 0x8007);	/* counter[63:56] */
+//	temp_buf[0x0a] = *(mmio_ptr + 0x8008);	/* hash   [00:07] */
+//	temp_buf[0x0b] = *(mmio_ptr + 0x8009);	/* hash   [00:07] */
+//	temp_buf[0x0c] = *(mmio_ptr + 0x800a);	/* hash   [00:07] */
+//	temp_buf[0x0d] = *(mmio_ptr + 0x800b);	/* hash   [00:07] */
+//	temp_buf[0x0e] = *(mmio_ptr + 0x800c);	/* frame_len[00:07] */
+//	temp_buf[0x0f] = *(mmio_ptr + 0x800d);	/* frame_len[15:08] */
 
-	*mmio_ptr = 0x02;	/* Request receiving PHY#2 */
+	*mmio_ptr = 0x02;	/* Request receiving PHY#1 */
 
 	if ( copy_to_user( buf, temp_buf, copy_len ) ) {
 		printk( KERN_INFO "copy_to_user failed\n" );
@@ -111,7 +119,9 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 		copy_len = 256;
 	else
 		copy_len = count;
+#ifdef DEBUG
 	printk("%s\n", __func__);
+#endif
 
 	if ( copy_from_user( mmio_ptr, buf, copy_len ) ) {
 		printk( KERN_INFO "copy_from_user failed\n" );
@@ -199,7 +209,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	
 	/* reset board */
 	pcidev = pdev;
-	*mmio_ptr = 0x02;	/* Request receiving PHY#2 */
+	*mmio_ptr = 0x02;	/* Request receiving PHY#1 */
 
 	return 0;
 

@@ -240,16 +240,16 @@ assign phy1_rst_n = coldsys_rst520 & reset_n;
 //-------------------------------------
 
 // RX slot (A: host, B: ethernet)
-reg  [15:0] mem_dataA;
-reg  [ 1:0] mem_byte_enA;
-reg  [11:0] mem_addressA;
+reg  [31:0] mem_dataA;
+reg  [ 3:0] mem_byte_enA;
+reg  [10:0] mem_addressA;
 reg         mem_wr_enA;
-wire [15:0] mem_qA;
-wire [15:0] mem_dataB;
-wire [ 1:0] mem_byte_enB;
-wire [11:0] mem_addressB;
+wire [31:0] mem_qA;
+wire [31:0] mem_dataB;
+wire [ 3:0] mem_byte_enB;
+wire [10:0] mem_addressB;
 wire        mem_wr_enB;
-wire [15:0] mem_qB;
+wire [31:0] mem_qB;
 ram_dp_true mem0read (
     .DataInA(mem_dataA)
   , .DataInB(mem_dataB)
@@ -322,10 +322,10 @@ reg [63:0] global_counter;
 always @(posedge clk_125 or negedge core_rst_n) begin
     if (!core_rst_n) begin
         wb_dat         <= 16'h0;
-        mem_dataA      <= 16'h0;
+        mem_dataA      <= 32'h0;
         mem_wr_enA     <=  1'b0;
-        mem_byte_enA   <=  2'b0;
-        mem_addressA   <= 12'b0;
+        mem_byte_enA   <=  4'b0;
+        mem_addressA   <= 11'b0;
         global_counter <= 64'b0;
     end else begin
         waiting <= 2'h0;
@@ -352,7 +352,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                             end
                         end
                         // global counter [15:0]
-                        3'b001: begin
+                        3'b010: begin
                             if (rd) begin
                                 wb_dat <= global_counter[15:0];
                             end else if (wr) begin
@@ -363,7 +363,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                             end
                         end
                         // global counter [31:16]
-                        3'b010: begin
+                        3'b011: begin
                             if (rd) begin
                                 wb_dat <= global_counter[31:16];
                             end else if (wr) begin
@@ -374,7 +374,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                             end
                         end
                         // global counter [47:32]
-                        3'b011: begin
+                        3'b100: begin
                             if (rd) begin
                                 wb_dat <= global_counter[47:32];
                             end else if (wr) begin
@@ -385,7 +385,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                             end
                         end
                         // global counter [63:48]
-                        3'b100: begin
+                        3'b101: begin
                             if (rd) begin
                                 wb_dat <= global_counter[63:48];
                             end else if (wr) begin
@@ -434,29 +434,54 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                         if (rd)
                             wb_dat <= rx_timestamp[63:48];
                     end
-                    // rx frame length
+                    // rx hash
                     12'd4: begin
+                        if (rd)
+                            wb_dat <= 16'h0;
+                    end
+                    12'd5: begin
+                        if (rd)
+                            wb_dat <= 16'h0;
+                    end
+                    // rx frame length
+                    12'd6: begin
                         if (rd)
                             wb_dat <= { 4'b0, rx_frame_len[11:0] };
                     end
+                    12'd7: begin
+                        if (rd)
+                            wb_dat <= 16'h0;
+                    end
                     default: begin
                         if (rd) begin
-                            if (waiting == 2'h0) begin
-                                mem_addressA <= pcie_adr[12:1] - 12'd2;
-                                wb_ack  <= 1'b0;
-                            end else if (waiting == 2'h2) begin
-                                wb_dat  <= mem_qA;
-                                waiting <= 2'h0;
+                            if (pcie_adr[1] == 1'b0) begin
+                                if (waiting == 2'h0 || waiting == 2'h1) begin
+                                    mem_addressA <= pcie_adr[12:2] - 12'h1;
+                                    wb_ack  <= 1'b0;
+                                end else if (waiting == 2'h2) begin
+                                    wb_dat  <= mem_qA[15:0];
+                                    waiting <= 2'h0;
+                                end
+                                waiting <= waiting + 2'h1;
+                            end else begin
+                                    wb_dat  <= mem_qA[31:16];
                             end
-                            waiting <= waiting + 2'h1;
                         end else if (wr) begin
                             mem_wr_enA   <= 1'b1;
-                            mem_addressA <= pcie_adr[12:1];
-                            mem_byte_enA <= {pcie_sel[0], pcie_sel[1]};
-                            if (pcie_sel[0])
-                                mem_dataA[15:8] <= pcie_dat_o[15:8];
-                            if (pcie_sel[1])
-                                mem_dataA[7:0] <= pcie_dat_o[7:0];
+                            mem_addressA <= pcie_adr[12:2] - 12'h1;
+                            if (pcie_adr[1] == 1'b0) begin
+                                mem_byte_enA <= {2'b00, pcie_sel[0], pcie_sel[1]};
+                                if (pcie_sel[0])
+                                    mem_dataA[15:8] <= pcie_dat_o[15:8];
+                                if (pcie_sel[1])
+                                    mem_dataA[7:0]  <= pcie_dat_o[7:0];
+                            end else begin
+                                mem_byte_enA <= {pcie_sel[0], pcie_sel[1], 2'b00};
+                                if (pcie_sel[0])
+                                    mem_dataA[31:24] <= pcie_dat_o[15:8];
+                                if (pcie_sel[1])
+                                    mem_dataA[23:16] <= pcie_dat_o[7:0];
+                            end
                         end
                     end
                 endcase
@@ -476,4 +501,3 @@ assign pcie_dat_i = wb_dat;
 assign pcie_ack   = wb_ack;
 
 endmodule
-

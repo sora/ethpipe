@@ -54,10 +54,11 @@ always @(posedge gmii_rx_clk) begin
         rx_counter          <= 12'b0;
         rx_timestamp        <= 64'b0;
         rx_frame_len        <= 12'b0;
-        rx_status           <=  2'b0;
+        rx_status           <= RX_IDLE;
         rx_active           <=  1'b0;
     end else begin
         if (rx_active == 1'b0) begin
+            rx_status  <= RX_IDLE;
             rx_counter <= 12'b0;
             if (rx_ready == 1'b1 && gmii_rx_dv == 1'b0)
                 rx_active <= 1'b1;

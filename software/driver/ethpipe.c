@@ -59,12 +59,9 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 
 	printk("%s\n", __func__);
 
-	if ((*mmio_ptr & 0x02) == 0)
-		*mmio_ptr = 0x02;	/* Request receiving PHY#1 */
-	else {
+	while ((*mmio_ptr & 0x02))
 		*mmio_ptr = 0x00;
-		*mmio_ptr = 0x02;	/* Request receiving PHY#1 */
-	}
+	*mmio_ptr = 0x02;		/* Request receiving PHY#1 */
 	if ( wait_event_interruptible( read_q, ( (*mmio_ptr & 0x1) != 0 ) ) )
 		return -ERESTARTSYS;
 

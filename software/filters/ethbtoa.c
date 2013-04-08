@@ -17,7 +17,7 @@ int main()
 //		if ( read(0, ibuf+4, pktlen+12) < 0)
 //			break;
 		clock = *(long long *)&ibuf[0x04];
-		sprintf( obuf, "%16X %4d %02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X %02X%02X",
+		sprintf( obuf, "%16X %4X %02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X %02X%02X",
 			clock, pktlen,
 			ibuf[0x10], ibuf[0x11], ibuf[0x12], ibuf[0x13], ibuf[0x14], ibuf[0x15], // dst mac address
 			ibuf[0x16], ibuf[0x17], ibuf[0x18], ibuf[0x19], ibuf[0x1a], ibuf[0x1b], // src mac address

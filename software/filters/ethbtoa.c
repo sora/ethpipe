@@ -10,12 +10,12 @@ int main()
 	long pktlen;
 	int olen;
 
-	while ( ( len = read(0, ibuf, 2000)) >= 0 ) {
+	while ( ( len = read(0, ibuf, 4)) > 0 ) {
 		pktlen = *(short *)&ibuf[0x02];
 		if ( ibuf[0] != 0x55 || ibuf[1] != 0xd5)
 			break;
-//		if ( read(0, ibuf+4, pktlen+12) < 0)
-//			break;
+		if ( read(0, ibuf+4, pktlen+12) < 0)
+			break;
 		clock = *(long long *)&ibuf[0x04];
 		sprintf( obuf, "%16X %4X %02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X %02X%02X",
 			clock, pktlen,

@@ -85,6 +85,8 @@ always @(posedge clk_125 or negedge rstn) begin
    end
 end
 
+reg [ 3:0] slots_status = 4'b0000;
+
 pcie_top pcie (
     .refclkp                    ( refclkp )
   , .refclkn                    ( refclkn )
@@ -97,7 +99,7 @@ pcie_top pcie (
   , .hdoutp0                    ( hdoutp )
   , .hdoutn0                    ( hdoutn )
   , .msi                        (  8'd0 )
-  , .inta_n                     (  ~rx_slot_ready )
+  , .inta_n                     (  ~slots_status[0] )
   // This PCIe interface uses dynamic IDs.
   , .vendor_id                  (16'h3776)
   , .device_id                  (16'h8001)
@@ -317,7 +319,6 @@ reg wb_ack;
 assign next_wb_ack = ~wb_ack && pcie_cyc && pcie_stb;
 reg [ 1:0] waiting;
 reg [15:0] prev_data = 16'h0;
-reg [ 3:0] slots_status;
 reg [63:0] global_counter;
 always @(posedge clk_125 or negedge core_rst_n) begin
     if (!core_rst_n) begin
@@ -327,6 +328,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
         mem_byte_enA   <=  4'b0;
         mem_addressA   <= 11'b0;
         global_counter <= 64'b0;
+        slots_status[3:0] <= 4'b0000;
     end else begin
         waiting <= 2'h0;
         wb_ack  <= 1'b0;

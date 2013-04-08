@@ -58,7 +58,6 @@ always @(posedge gmii_rx_clk) begin
         rx_active           <=  1'b0;
     end else begin
         if (rx_active == 1'b0) begin
-            rx_status  <= RX_IDLE;
             rx_counter <= 12'b0;
             if (rx_ready == 1'b1 && gmii_rx_dv == 1'b0)
                 rx_active <= 1'b1;
@@ -110,13 +109,13 @@ end
 //-------------------------------------
 // clock sync
 //-------------------------------------
-clk_sync_ashot pcie2gmii_sync (
+clk_sync pcie2gmii_sync (
     .clk1 (pci_clk)
   , .i    (rx_empty)
   , .clk2 (gmii_rx_clk)
   , .o    (rx_ready)
 );
-clk_sync gmii2pcie_sync (
+clk_sync_ashot gmii2pcie_sync (
     .clk1 (gmii_rx_clk)
   , .i    (rx_status[1])
   , .clk2 (pci_clk)
@@ -126,4 +125,3 @@ clk_sync gmii2pcie_sync (
 endmodule
 
 `default_nettype wire
-

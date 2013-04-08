@@ -73,8 +73,9 @@ static irqreturn_t ethpipe_interrupt(int irq, struct pci_dev *pdev)
 
 	pbuf0.rx_write_ptr[0x00] = 0x55;			/* magic code 0x55d5 */
 	pbuf0.rx_write_ptr[0x01] = 0xd5;
-	pbuf0.rx_write_ptr[0x02] = *(mmio_ptr + 0x800c);	/* frame_len[00:07] */
-	pbuf0.rx_write_ptr[0x03] = *(mmio_ptr + 0x800d);	/* frame_len[15:08] */
+	*(short *)(pbuf0.rx_write_ptr + 2) = frame_len;
+//	pbuf0.rx_write_ptr[0x02] = *(mmio_ptr + 0x800c);	/* frame_len[00:07] */
+//	pbuf0.rx_write_ptr[0x03] = *(mmio_ptr + 0x800d);	/* frame_len[15:08] */
 //	pbuf0.rx_write_ptr[0x04] = *(mmio_ptr + 0x8000);	/* counter[00:07] */
 //	pbuf0.rx_write_ptr[0x05] = *(mmio_ptr + 0x8001);	/* counter[15:08] */
 //	pbuf0.rx_write_ptr[0x06] = *(mmio_ptr + 0x8002);	/* counter[23:16] */

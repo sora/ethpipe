@@ -9,9 +9,7 @@ reg buf0, buf1, buf2, buf3;
 reg i0;
 
 always @(posedge clk1) begin
-    i0 <= i;
-    if (i & ~i0)
-        buf0 <= ~buf0;
+    buf0 <= i;
 end
 
 always @(posedge clk2) begin
@@ -20,7 +18,7 @@ always @(posedge clk2) begin
     buf3 <= buf2;
 end
 
-assign o = buf2 ^ buf3;
+assign o = buf3 & ~buf2;
 
 endmodule
 
@@ -34,8 +32,7 @@ module clk_sync (
 reg buf0, buf1, buf2, buf3;
 
 always @(posedge clk1)
-    if (i)
-        buf0 <= ~buf0;
+        buf0 <= i;
 
 always @(posedge clk2) begin
     buf1 <= buf0;
@@ -43,7 +40,7 @@ always @(posedge clk2) begin
     buf3 <= buf2;
 end
 
-assign o = buf2 ^ buf3;
+assign o = buf2 & buf3;
 
 endmodule
 

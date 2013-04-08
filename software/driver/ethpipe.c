@@ -10,9 +10,10 @@
 #include <linux/version.h>
 
 #define	DRV_NAME	"ethpipe"
-#define	DRV_VERSION	"0.0.1"
+#define	DRV_VERSION	"0.0.2"
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
-#define	MAX_TEMP_BUF	2000
+#define	PACKET_BUF_MAX	(1024*1024)
+#define	TEMP_BUF_MAX	2000
 
 #define HEADER_LEN	16
 
@@ -33,11 +34,63 @@ static unsigned long mmio_start, mmio_end, mmio_flags, mmio_len;
 static struct pci_dev *pcidev = NULL;
 static wait_queue_head_t write_q;
 static wait_queue_head_t read_q;
-static char temp_buf[MAX_TEMP_BUF];
+
+/* receive and transmitte buffer */
+struct _pbuf_dma {
+	unsigned char	*rx_start_ptr;		/* buf start */
+	unsigned char 	*rx_end_ptr;		/* buf end */
+	unsigned char	*rx_write_ptr;		/* write ptr */
+	unsigned char	*rx_read_ptr;		/* read ptr */
+} static pbuf0={0,0,0,0,0}, pbuf1={0,0,0,0,0};
+
 
 static irqreturn_t ethpipe_interrupt(int irq, struct pci_dev *pdev)
 {
-//	printk("%s\n", __func__);
+	unsigned int frame_len;
+
+	frame_len = *(short *)(mmio_ptr + 0x800c);
+#ifdef DEBUG
+	printk("%s\n", __func__);
+	printk( "frame_len=%d\n", frame_len);
+#endif
+
+	if (frame_len < 64)
+		frame_len = 64;
+
+	if (frame_len > 1518)
+		frame_len = 1518;
+
+	if ( (pbuf0.rx_write_ptr +  frame_len + 0x10) > pbuf0.rx_end_ptr ) {
+		memcpy( pbuf0.rx_start_ptr, pbuf0.rx_write_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr ));
+		pbuf0.rx_read_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr );
+		if ( pbuf0.rx_read_ptr < pbuf0.rx_start_ptr )
+			pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
+		pbuf0.rx_write_ptr = pbuf0.rx_start_ptr;
+	}
+
+	memcpy(pbuf0.rx_write_ptr+0x04, mmio_ptr+0x8000, 0x0c);
+	memcpy(pbuf0.rx_write_ptr+0x10, mmio_ptr+0x8010, frame_len);
+
+	pbuf0.rx_write_ptr[0x00] = 0x55;			/* magic code 0x55d5 */
+	pbuf0.rx_write_ptr[0x01] = 0xd5;
+	pbuf0.rx_write_ptr[0x02] = *(mmio_ptr + 0x800c);	/* frame_len[00:07] */
+	pbuf0.rx_write_ptr[0x03] = *(mmio_ptr + 0x800d);	/* frame_len[15:08] */
+//	pbuf0.rx_write_ptr[0x04] = *(mmio_ptr + 0x8000);	/* counter[00:07] */
+//	pbuf0.rx_write_ptr[0x05] = *(mmio_ptr + 0x8001);	/* counter[15:08] */
+//	pbuf0.rx_write_ptr[0x06] = *(mmio_ptr + 0x8002);	/* counter[23:16] */
+//	pbuf0.rx_write_ptr[0x07] = *(mmio_ptr + 0x8003);	/* counter[31:24] */
+//	pbuf0.rx_write_ptr[0x08] = *(mmio_ptr + 0x8004);	/* counter[39:32] */
+//	pbuf0.rx_write_ptr[0x09] = *(mmio_ptr + 0x8005);	/* counter[47:40] */
+//	pbuf0.rx_write_ptr[0x0a] = *(mmio_ptr + 0x8006);	/* counter[55:48] */
+//	pbuf0.rx_write_ptr[0x0b] = *(mmio_ptr + 0x8007);	/* counter[63:56] */
+//	pbuf0.rx_write_ptr[0x0c] = *(mmio_ptr + 0x8008);	/* hash   [00:07] */
+//	pbuf0.rx_write_ptr[0x0d] = *(mmio_ptr + 0x8009);	/* hash   [00:07] */
+//	pbuf0.rx_write_ptr[0x0e] = *(mmio_ptr + 0x800a);	/* hash   [00:07] */
+//	pbuf0.rx_write_ptr[0x0f] = *(mmio_ptr + 0x800b);	/* hash   [00:07] */
+
+	pbuf0.rx_write_ptr += (frame_len + 0x10);
+
+	*mmio_ptr = 0x02;		/* IRQ clear and Request receiving PHY#0 */
 
 	wake_up_interruptible( &read_q );
 
@@ -47,66 +100,38 @@ static irqreturn_t ethpipe_interrupt(int irq, struct pci_dev *pdev)
 static int ethpipe_open(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
-	/* */
+
+	*mmio_ptr = 0x02;		/* IRQ clear and Request receiving PHY#0 */
+
 	return 0;
 }
 
 static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 			   size_t count, loff_t *ppos)
 {
-	int copy_len, i;
-	unsigned int frame_len;
+	int copy_len, available_read_len;
 
-	printk("%s\n", __func__);
-
-	while ((*mmio_ptr & 0x02))
-		*mmio_ptr = 0x00;
-	*mmio_ptr = 0x02;		/* Request receiving PHY#1 */
-	if ( wait_event_interruptible( read_q, ( (*mmio_ptr & 0x1) != 0 ) ) )
-		return -ERESTARTSYS;
-
-	frame_len = *(short *)(mmio_ptr + 0x800c);
 #ifdef DEBUG
-	printk( "frame_len=%d\n", frame_len);
+	printk("%s\n", __func__);
 #endif
 
-	if (frame_len < 64)
-		frame_len = 64;
+	if ( wait_event_interruptible( read_q, ( pbuf0.rx_read_ptr != pbuf0.rx_write_ptr ) ) )
+		return -ERESTARTSYS;
 
-	if (frame_len > 2000)
-		frame_len = 2000;
+	available_read_len = (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr);
 
-	if ( count > (frame_len+HEADER_LEN) )
-		copy_len = (frame_len+HEADER_LEN);
+	if ( count > available_read_len )
+		copy_len = available_read_len;
 	else
 		copy_len = count;
 
-	memcpy(temp_buf+0x04, mmio_ptr+0x8000, 0x0c);
-	memcpy(temp_buf+0x10, mmio_ptr+0x8010, frame_len);
 
-	temp_buf[0x00] = 0x55;			/* magic code 0x55d5 */
-	temp_buf[0x01] = 0xd5;
-	temp_buf[0x02] = *(mmio_ptr + 0x800c);	/* frame_len[00:07] */
-	temp_buf[0x03] = *(mmio_ptr + 0x800d);	/* frame_len[15:08] */
-//	temp_buf[0x04] = *(mmio_ptr + 0x8000);	/* counter[00:07] */
-//	temp_buf[0x05] = *(mmio_ptr + 0x8001);	/* counter[15:08] */
-//	temp_buf[0x06] = *(mmio_ptr + 0x8002);	/* counter[23:16] */
-//	temp_buf[0x07] = *(mmio_ptr + 0x8003);	/* counter[31:24] */
-//	temp_buf[0x08] = *(mmio_ptr + 0x8004);	/* counter[39:32] */
-//	temp_buf[0x09] = *(mmio_ptr + 0x8005);	/* counter[47:40] */
-//	temp_buf[0x0a] = *(mmio_ptr + 0x8006);	/* counter[55:48] */
-//	temp_buf[0x0b] = *(mmio_ptr + 0x8007);	/* counter[63:56] */
-//	temp_buf[0x0c] = *(mmio_ptr + 0x8008);	/* hash   [00:07] */
-//	temp_buf[0x0d] = *(mmio_ptr + 0x8009);	/* hash   [00:07] */
-//	temp_buf[0x0e] = *(mmio_ptr + 0x800a);	/* hash   [00:07] */
-//	temp_buf[0x0f] = *(mmio_ptr + 0x800b);	/* hash   [00:07] */
-
-	*mmio_ptr = 0x02;	/* Request receiving PHY#1 */
-
-	if ( copy_to_user( buf, temp_buf, copy_len ) ) {
+	if ( copy_to_user( buf, pbuf0.rx_read_ptr, copy_len ) ) {
 		printk( KERN_INFO "copy_to_user failed\n" );
 		return -EFAULT;
 	}
+
+	pbuf0.rx_read_ptr += copy_len;
 
 	return copy_len;
 }
@@ -135,6 +160,9 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 static int ethpipe_release(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
+
+	*mmio_ptr = 0x00;		/* IRQ clear and not Request receiving PHY#0 */
+
 	return 0;
 }
 
@@ -262,6 +290,14 @@ static int __init ethpipe_init(void)
 		return ret;
 	}
 
+	if ( ( pbuf0.rx_start_ptr = kmalloc( PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
+		printk("fail to kmalloc\n");
+		return -1;
+	}
+	pbuf0.rx_end_ptr = (pbuf0.rx_start_ptr + PACKET_BUF_MAX - 1);
+	pbuf0.rx_write_ptr = pbuf0.rx_start_ptr;
+	pbuf0.rx_read_ptr  = pbuf0.rx_start_ptr;
+
 	init_waitqueue_head( &write_q );
 	init_waitqueue_head( &read_q );
 	
@@ -271,9 +307,11 @@ static int __init ethpipe_init(void)
 
 static void __exit ethpipe_cleanup(void)
 {
+	printk("%s\n", __func__);
 	misc_deregister(&ethpipe_dev);
 	pci_unregister_driver(&ethpipe_pci_driver);
-	printk("%s\n", __func__);
+	if ( pbuf0.rx_start_ptr )
+		kfree( pbuf0.rx_start_ptr );
 }
 
 MODULE_LICENSE("GPL");

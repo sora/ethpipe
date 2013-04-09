@@ -64,11 +64,13 @@ int main() {
 
 		pb_len = 28 + pktlen + padding + 4;
 
+#if 0
 		printf( "%llX %lX %d %d %02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X %02X%02X\n",
 			clock, pktlen, padding, pb_len,
 			ibuf[0x10], ibuf[0x11], ibuf[0x12], ibuf[0x13], ibuf[0x14], ibuf[0x15], // dst mac
 			ibuf[0x16], ibuf[0x17], ibuf[0x18], ibuf[0x19], ibuf[0x1a], ibuf[0x1b], // src mac
 			ibuf[0x1c], ibuf[0x1d] );                                               // frame type
+#endif
 
 		// PB header
 		sprintf( pb_head, "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",

@@ -38,9 +38,9 @@ int main() {
 	unsigned char ibuf[2000], obuf[4000];
 	int offset = 0;
 
-	long long clock;
+	long long clock_base, clock;
 	long pktlen;
-	int len, pb_len, i, padding;
+	int len, pb_len, i, padding, head_pkt_flg = 0;
 	unsigned char pb_head[40], pb_tail[4], padding_bit = 0x00;
 
 	// SHB
@@ -51,12 +51,22 @@ int main() {
 	offset += sizeof(IDB);
 
 	// PB
-	while ( (len = read(0, ibuf, 2000)) >= 0 ) {
+	while ( (len = read(0, ibuf, 4)) > 0 ) {
+		pktlen = *(short *)&ibuf[0x02];
+
 		if ( ibuf[0] != 0x55 || ibuf[1] != 0xd5 )
 			break;
+		if ( read(0, ibuf+4, pktlen+12) < 0)
+			break;
 
-		pktlen = *(short *)&ibuf[0x02];
-		clock  = *(long long *)&ibuf[0x04];
+		clock = *(long long *)&ibuf[0x04];
+		if (!head_pkt_flg) {
+			clock_base   = clock;
+			head_pkt_flg = 1;
+		}
+		fprintf (stderr, "clock1: %016llX\n", clock);
+		clock -= clock_base;
+		fprintf (stderr, "clock2: %016llX\t%016llX\n", clock_base, clock);
 		
 		padding = 4 - pktlen % 4;
 		if (padding == 4)

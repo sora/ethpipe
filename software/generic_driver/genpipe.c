@@ -43,7 +43,11 @@ struct _pbuf_dma {
 	unsigned char   *rx_end_ptr;		/* rx buf end */
 	unsigned char   *rx_write_ptr;		/* rx write ptr */
 	unsigned char   *rx_read_ptr;		/* rx read ptr */
-} static pbuf0={0,0,0,0,0};
+	unsigned char   *tx_start_ptr;		/* tx buf start */
+	unsigned char   *tx_end_ptr;		/* tx buf end */
+	unsigned char   *tx_write_ptr;		/* tx write ptr */
+	unsigned char   *tx_read_ptr;		/* tx read ptr */
+} static pbuf0={0,0,0,0,0,0,0,0};
 
 struct socket *kernel_soc= NULL;
 
@@ -91,7 +95,8 @@ static int genpipe_open(struct inode *inode, struct file *filp)
 static ssize_t genpipe_read(struct file *filp, char __user *buf,
 			   size_t count, loff_t *ppos)
 {
-	int copy_len, size, available_read_len;
+	int copy_len, available_read_len;
+//	int size;
 //	struct msghdr msg;
 //	struct iovec iov;
 //	mm_segment_t oldfs;
@@ -145,19 +150,41 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 
 {
 	int copy_len;
-	if (count > (PACKET_BUF_MAX - 169))
-		count = (PACKET_BUF_MAX - 169);
+	int size;
+	struct msghdr msg;
+	struct iovec iov;
+	mm_segment_t oldfs;
+	if (count > PACKET_BUF_MAX)
+		count = PACKET_BUF_MAX;
 
 	copy_len = count;
 
-#ifdef DEBUG
-	printk("%s\n", __func__);
-#endif
+//#ifdef DEBUG
+	printk("%s copy_len=%d\n", __func__, copy_len);
+//#endif
 
-//	if ( copy_from_user( pbuf0.tx_write_ptr, buf, copy_len ) ) {
-//		printk( KERN_INFO "copy_from_user failed\n" );
-//		return -EFAULT;
-//	}
+	if ( copy_from_user( pbuf0.tx_write_ptr, buf, copy_len ) ) {
+		printk( KERN_INFO "copy_from_user failed\n" );
+		return -EFAULT;
+	}
+	iov.iov_base = pbuf0.tx_write_ptr + 16;
+	iov.iov_len = copy_len - 16 - 4;
+
+	msg.msg_control = NULL;
+	msg.msg_controllen = 0;
+	msg.msg_flags = 0;
+	msg.msg_name = 0;
+	msg.msg_namelen = 0;
+	msg.msg_iov = &iov;
+	msg.msg_iovlen = 1;
+
+	oldfs = get_fs();
+	set_fs(KERNEL_DS);
+	size = sock_sendmsg( kernel_soc, &msg, copy_len - 16 - 4);
+	set_fs( oldfs );
+//#ifdef DEBUG
+	printk(KERN_WARNING "sock_sendmsg=%d\n", size);
+////#endif
 
 	return copy_len;
 }
@@ -225,6 +252,7 @@ static int __init genpipe_init(void)
 		return ret;
 	}
 
+	/* Set receive buffer */
 	if ( ( pbuf0.rx_start_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
 		printk("fail to kmalloc\n");
 		return -1;
@@ -232,6 +260,15 @@ static int __init genpipe_init(void)
 	pbuf0.rx_end_ptr = (pbuf0.rx_start_ptr + PACKET_BUF_MAX - 1);
 	pbuf0.rx_write_ptr = pbuf0.rx_start_ptr;
 	pbuf0.rx_read_ptr  = pbuf0.rx_start_ptr;
+
+	/* Set transmitte buffer */
+	if ( ( pbuf0.tx_start_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
+		printk("fail to kmalloc\n");
+		return -1;
+	}
+	pbuf0.tx_end_ptr = (pbuf0.tx_start_ptr + PACKET_BUF_MAX - 1);
+	pbuf0.tx_write_ptr = pbuf0.tx_start_ptr;
+	pbuf0.tx_read_ptr  = pbuf0.tx_start_ptr;
 
 	init_waitqueue_head( &write_q );
 	init_waitqueue_head( &read_q );
@@ -255,8 +292,13 @@ static int __init genpipe_init(void)
 
 static void __exit genpipe_cleanup(void)
 {
+	struct ifreq ifr;
 	/* Release kernel socket */
 	if (kernel_soc) {
+	/* Set the IFF_PROMISC flag */
+		kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
+		ifr.ifr_flags &= ~IFF_PROMISC;
+		kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
 		sock_release(kernel_soc);
 		kernel_soc = NULL;
 	}
@@ -265,8 +307,15 @@ static void __exit genpipe_cleanup(void)
 
 	dev_remove_pack(&genpipe_pack);
 
-	if ( pbuf0.rx_start_ptr )
+	if ( pbuf0.rx_start_ptr ) {
 		kfree( pbuf0.rx_start_ptr );
+		pbuf0.rx_start_ptr = NULL;
+	}
+
+	if ( pbuf0.tx_start_ptr ) {
+		kfree( pbuf0.tx_start_ptr );
+		pbuf0.tx_start_ptr = NULL;
+	}
 
 	printk("%s\n", __func__);
 }

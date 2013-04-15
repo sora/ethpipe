@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-obj-m		:= ethpipe.o
+obj-m		:= genpipe.o
 else
 KDIR		:= /lib/modules/$(shell uname -r)/build
 all:

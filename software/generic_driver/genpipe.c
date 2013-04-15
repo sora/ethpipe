@@ -45,12 +45,12 @@ struct _pbuf_dma {
 	unsigned char   *rx_read_ptr;		/* rx read ptr */
 } static pbuf0={0,0,0,0,0};
 
-//struct socket *kernel_soc= NULL;
+struct socket *kernel_soc= NULL;
 
 int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 {
 	int frame_len;
-	frame_len = skb->len + 14;
+	frame_len = skb->len + 18;
 #ifdef DEBUG
 	printk(KERN_DEBUG "Test protocol: Packet Received with length: %u\n", frame_len);
 #endif
@@ -69,8 +69,10 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 	*(long long *)(pbuf0.rx_write_ptr + 4) = 0;		/* counter */
 	*(long *)(pbuf0.rx_write_ptr + 0xc) = 0;		/* hash */
 
+//	memcpy(pbuf0.rx_write_ptr+0x10, skb->head + skb->mac_header, frame_len);
 	memcpy(pbuf0.rx_write_ptr+0x10, skb->head + skb->mac_header, 14);
 	memcpy(pbuf0.rx_write_ptr+0x1e, skb->data, skb->len);
+	*(long *)(pbuf0.rx_write_ptr + 0xc + frame_len) = 0;	/* FCS */
 
 	pbuf0.rx_write_ptr += (frame_len + 0x10);
 
@@ -81,20 +83,7 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 
 static int genpipe_open(struct inode *inode, struct file *filp)
 {
-	int rc = 0;
-	struct ifreq ifr;
 	printk("%s\n", __func__);
-	/* Create kernel socket */
-//	rc = sock_create( PF_PACKET, SOCK_RAW, htons(ETH_P_ALL), &kernel_soc );
-//	if (rc <0) {
-//		printk(KERN_WARNING "Could not create a PF_PACKET Socket, err %d\n", rc);
-////		return -1;
-//	}
-
-	/* Set the IFF_PROMISC flag */
-//	kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
-//	ifr.ifr_flags |= IFF_PROMISC;
-//	kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
 
 	return 0;
 }
@@ -177,12 +166,6 @@ static int genpipe_release(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
 
-	/* Release kernel socket */
-//	if (kernel_soc) {
-//		sock_release(kernel_soc);
-//		kernel_soc = NULL;
-//	}
-
 	return 0;
 }
 
@@ -229,10 +212,12 @@ static struct packet_type genpipe_pack =
 static int __init genpipe_init(void)
 {
 	int ret;
+	struct ifreq ifr;
 
 #ifdef MODULE
 	pr_info(genpipe_DRIVER_NAME "\n");
 #endif
+	printk("%s\n", __func__);
 
 	ret = misc_register(&genpipe_dev);
 	if (ret) {
@@ -253,12 +238,29 @@ static int __init genpipe_init(void)
 
 	dev_add_pack(&genpipe_pack);
 
-	printk("%s\n", __func__);
+	/* Create kernel socket */
+	ret = sock_create( PF_PACKET, SOCK_RAW, htons(ETH_P_ALL), &kernel_soc );
+	if (ret <0) {
+		printk(KERN_WARNING "Could not create a PF_PACKET Socket, err %d\n", ret);
+		return -1;
+	}
+
+	/* Set the IFF_PROMISC flag */
+	kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
+	ifr.ifr_flags |= IFF_PROMISC;
+	kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
+
 	return 0;
 }
 
 static void __exit genpipe_cleanup(void)
 {
+	/* Release kernel socket */
+	if (kernel_soc) {
+		sock_release(kernel_soc);
+		kernel_soc = NULL;
+	}
+
 	misc_deregister(&genpipe_dev);
 
 	dev_remove_pack(&genpipe_pack);

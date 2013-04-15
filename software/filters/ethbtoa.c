@@ -10,10 +10,20 @@ int main()
 	long pktlen;
 	int olen;
 
-	while ( ( len = read(0, ibuf, 4)) > 0 ) {
-		pktlen = *(short *)&ibuf[0x02];
-		if ( ibuf[0] != 0x55 || ibuf[1] != 0xd5)
+	while ( 1 ) {
+		if ( ( len = read(0, &ibuf[0], 1)) <= 0 )
 			break;
+		if ( ibuf[0] != 0x55 )
+			continue;
+
+		if ( ( len = read(0, &ibuf[1], 1)) <= 0 )
+			break;
+		if ( ibuf[1] != 0xd5 )
+			continue;
+
+		if ( ( len = read(0, &ibuf[2], 2)) <= 0 )
+			break;
+		pktlen = *(short *)&ibuf[2];
 		if ( read(0, ibuf+4, pktlen+12) < 0)
 			break;
 		clock = *(long long *)&ibuf[0x04];

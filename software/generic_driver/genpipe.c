@@ -149,26 +149,61 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 			    size_t count, loff_t *ppos)
 
 {
-	int copy_len;
-	int size;
+	int copy_len, available_write_len;
+	int i, size, frame_len;
 	struct msghdr msg;
 	struct iovec iov;
 	mm_segment_t oldfs;
-	if (count > PACKET_BUF_MAX)
-		count = PACKET_BUF_MAX;
 
-	copy_len = count;
+	if ( (pbuf0.tx_write_ptr +  count) > pbuf0.tx_end_ptr ) {
+		memcpy( pbuf0.tx_start_ptr, pbuf0.tx_write_ptr, (pbuf0.tx_write_ptr - pbuf0.tx_start_ptr ));
+		pbuf0.tx_read_ptr -= (pbuf0.tx_write_ptr - pbuf0.tx_start_ptr );
+		if ( pbuf0.tx_read_ptr < pbuf0.tx_start_ptr )
+			pbuf0.tx_read_ptr = pbuf0.tx_start_ptr;
+		pbuf0.tx_write_ptr = pbuf0.tx_start_ptr;
+	}
+
+	available_write_len = (pbuf0.tx_write_ptr - pbuf0.tx_read_ptr);
+
+	copy_len = 0;
 
 //#ifdef DEBUG
-	printk("%s copy_len=%d\n", __func__, copy_len);
+	printk("%s count=%d\n", __func__, count);
 //#endif
 
-	if ( copy_from_user( pbuf0.tx_write_ptr, buf, copy_len ) ) {
+	if ( copy_from_user( pbuf0.tx_write_ptr, buf, count ) ) {
 		printk( KERN_INFO "copy_from_user failed\n" );
 		return -EFAULT;
 	}
-	iov.iov_base = pbuf0.tx_write_ptr + 16;
-	iov.iov_len = copy_len - 16 - 4;
+
+	pbuf0.tx_write_ptr += count;
+
+genpipe_write_loop:
+	/* looking for magic code */
+	available_write_len = (pbuf0.tx_write_ptr - pbuf0.tx_read_ptr);
+
+	for (i = 0; i < available_write_len-1; ++pbuf0.tx_read_ptr, ++i) {
+		if (pbuf0.tx_read_ptr[0] == 0x55 && pbuf0.tx_read_ptr[1] == 0xd5)
+			break;
+	}
+	/* does not find magic code */
+	if (i == available_write_len - 1) {
+		copy_len += i+1;
+		goto genpipe_write_exit;
+	}
+
+	available_write_len = (pbuf0.tx_write_ptr - pbuf0.tx_read_ptr);
+	if ( available_write_len < 4 ) {
+		goto genpipe_write_exit;
+	}
+	frame_len = *(short *)(pbuf0.tx_read_ptr + 2);
+	/* data enough ? */
+	if ( available_write_len < ( 16 + frame_len ) ) {
+		goto genpipe_write_exit;
+	}
+
+	iov.iov_base = pbuf0.tx_read_ptr + 16;
+	iov.iov_len = frame_len - 4;
 
 	msg.msg_control = NULL;
 	msg.msg_controllen = 0;
@@ -180,11 +215,24 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 
 	oldfs = get_fs();
 	set_fs(KERNEL_DS);
-	size = sock_sendmsg( kernel_soc, &msg, copy_len - 16 - 4);
+	size = sock_sendmsg( kernel_soc, &msg, frame_len - 4);
 	set_fs( oldfs );
 //#ifdef DEBUG
 	printk(KERN_WARNING "sock_sendmsg=%d\n", size);
 ////#endif
+
+	pbuf0.tx_read_ptr += (frame_len + 16);
+	copy_len += (frame_len + 16);
+
+	i = (pbuf0.tx_read_ptr - pbuf0.tx_start_ptr );
+	if (i > 0) {
+		memcpy( pbuf0.tx_start_ptr, pbuf0.tx_read_ptr, i);
+		pbuf0.tx_read_ptr -= i;
+		pbuf0.tx_write_ptr -= i;
+	}
+	goto genpipe_write_loop;
+
+genpipe_write_exit:
 
 	return copy_len;
 }

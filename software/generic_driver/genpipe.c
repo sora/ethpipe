@@ -155,6 +155,8 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 	struct iovec iov;
 	mm_segment_t oldfs;
 
+	copy_len = 0;
+
 	if ( (pbuf0.tx_write_ptr +  count) > pbuf0.tx_end_ptr ) {
 		memcpy( pbuf0.tx_start_ptr, pbuf0.tx_write_ptr, (pbuf0.tx_write_ptr - pbuf0.tx_start_ptr ));
 		pbuf0.tx_read_ptr -= (pbuf0.tx_write_ptr - pbuf0.tx_start_ptr );
@@ -163,9 +165,8 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 		pbuf0.tx_write_ptr = pbuf0.tx_start_ptr;
 	}
 
-	available_write_len = (pbuf0.tx_write_ptr - pbuf0.tx_read_ptr);
-
-	copy_len = 0;
+	if ( count > (pbuf0.tx_end_ptr - pbuf0.tx_write_ptr))
+		count = (pbuf0.tx_end_ptr - pbuf0.tx_write_ptr);
 
 //#ifdef DEBUG
 	printk("%s count=%d\n", __func__, count);
@@ -177,6 +178,7 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 	}
 
 	pbuf0.tx_write_ptr += count;
+	copy_len = count;
 
 genpipe_write_loop:
 	/* looking for magic code */
@@ -188,7 +190,6 @@ genpipe_write_loop:
 	}
 	/* does not find magic code */
 	if (i == available_write_len - 1) {
-		copy_len += i+1;
 		goto genpipe_write_exit;
 	}
 
@@ -218,15 +219,14 @@ genpipe_write_loop:
 	size = sock_sendmsg( kernel_soc, &msg, frame_len - 4);
 	set_fs( oldfs );
 //#ifdef DEBUG
-	printk(KERN_WARNING "sock_sendmsg=%d\n", size);
+	printk(KERN_WARNING "frame_len=%d, sock_sendmsg=%d\n", frame_len, size);
 ////#endif
 
 	pbuf0.tx_read_ptr += (frame_len + 16);
-	copy_len += (frame_len + 16);
 
 	i = (pbuf0.tx_read_ptr - pbuf0.tx_start_ptr );
 	if (i > 0) {
-		memcpy( pbuf0.tx_start_ptr, pbuf0.tx_read_ptr, i);
+		memcpy( pbuf0.tx_start_ptr, pbuf0.tx_read_ptr, ( pbuf0.tx_write_ptr - pbuf0.tx_read_ptr ) );
 		pbuf0.tx_read_ptr -= i;
 		pbuf0.tx_write_ptr -= i;
 	}

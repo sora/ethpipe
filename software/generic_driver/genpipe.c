@@ -50,6 +50,7 @@ struct _pbuf_dma {
 } static pbuf0={0,0,0,0,0,0,0,0};
 
 struct socket *kernel_soc= NULL;
+struct ifreq ifr_backup;
 
 int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 {
@@ -333,6 +334,7 @@ static int __init genpipe_init(void)
 
 	/* Set the IFF_PROMISC flag */
 	kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
+	ifr_backup = ifr;
 	ifr.ifr_flags |= IFF_PROMISC;
 	kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
 
@@ -352,13 +354,10 @@ static int __init genpipe_init(void)
 
 static void __exit genpipe_cleanup(void)
 {
-	struct ifreq ifr;
 	/* Release kernel socket */
 	if (kernel_soc) {
-	/* Set the IFF_PROMISC flag */
-		kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
-		ifr.ifr_flags &= ~IFF_PROMISC;
-		kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
+	/* Restore the IFF flag */
+		kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr_backup);
 		sock_release(kernel_soc);
 		kernel_soc = NULL;
 	}

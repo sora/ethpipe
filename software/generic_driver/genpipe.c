@@ -239,6 +239,7 @@ static struct packet_type genpipe_pack =
 static int __init genpipe_init(void)
 {
 	int ret;
+	struct sockaddr_ll sock_addr;
 	struct ifreq ifr;
 
 #ifdef MODULE
@@ -286,6 +287,17 @@ static int __init genpipe_init(void)
 	kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
 	ifr.ifr_flags |= IFF_PROMISC;
 	kernel_sock_ioctl( kernel_soc, SIOCSIFFLAGS, &ifr);
+
+	memset(&sock_addr, 0, sizeof(sock_addr));
+	sock_addr.sll_family = PF_PACKET;
+	sock_addr.sll_protocol = htons(ETH_P_ALL);
+	sock_addr.sll_ifindex = 2;
+
+	ret = kernel_soc->ops->bind( kernel_soc, (struct sockaddr *)&sock_addr, sizeof(sock_addr));
+	if (ret < 0){
+		printk(KERN_WARNING "Error binding raw packet to device %d\n", ret);
+		return -1;
+	}
 
 	return 0;
 }

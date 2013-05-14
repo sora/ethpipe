@@ -38,14 +38,15 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 	int copy_len;
 	unsigned int frame_len;
 
-#ifdef DEBUG
-	printk("%s\n", __func__);
-#endif
+//#ifdef DEBUG
+	printk("%s:len=%d\n", __func__, count);
+//#endif
 
-	if (count > (MAX_TEMP_BUF - 169))
-		count = (MAX_TEMP_BUF - 169);
+//	if (count > (MAX_TEMP_BUF - 169))
+//		count = (MAX_TEMP_BUF - 169);
 
-	copy_len = (count / 169) * 169;
+//	copy_len = (count / 169) * 169;
+copy_len = count;
 
 	if ( copy_to_user( buf, phy0_rx_ptr, copy_len ) ) {
 		printk( KERN_INFO "copy_to_user failed\n" );
@@ -65,9 +66,9 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 
 	copy_len = count;
 
-#ifdef DEBUG
-	printk("%s\n", __func__);
-#endif
+//#ifdef DEBUG
+	printk("%s:len=%d\n", __func__, count);
+//#endif
 
 	if ( copy_from_user( phy0_tx_ptr, buf, copy_len ) ) {
 		printk( KERN_INFO "copy_from_user failed\n" );

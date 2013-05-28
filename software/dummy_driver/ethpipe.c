@@ -7,12 +7,13 @@
 #include <linux/wait.h>		/* wait_queue_head_t */
 #include <linux/interrupt.h>
 #include <linux/version.h>
+#include <linux/vmalloc.h>
 
 #define	DRV_NAME	"ethpipe"
-#define	DRV_VERSION	"0.0.1"
+#define	DRV_VERSION	"0.0.2"
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
 
-#define	MAX_TEMP_BUF	(4*1024*1024)
+#define	MAX_TEMP_BUF	(8*1024*1024)
 
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(3,8,0)
@@ -123,20 +124,20 @@ static int __init ethpipe_init(void)
 	pr_info(ethpipe_DRIVER_NAME "\n");
 #endif
 
+	if ( ( phy0_rx_ptr = vmalloc(MAX_TEMP_BUF) ) == 0 ) {
+		printk("fail to kmalloc\n");
+		return -1;
+	}
+
+	if ( ( phy0_tx_ptr = vmalloc(MAX_TEMP_BUF) ) == 0 ) {
+		printk("fail to kmalloc\n");
+		return -1;
+	}
+
 	ret = misc_register(&ethpipe_dev);
 	if (ret) {
 		printk("fail to misc_register (MISC_DYNAMIC_MINOR)\n");
 		return ret;
-	}
-
-	if ( ( phy0_rx_ptr = kmalloc(MAX_TEMP_BUF, GFP_KERNEL | GFP_DMA) ) == 0 ) {
-		printk("fail to kmalloc\n");
-		return -1;
-	}
-
-	if ( ( phy0_tx_ptr = kmalloc(MAX_TEMP_BUF, GFP_KERNEL | GFP_DMA) ) == 0 ) {
-		printk("fail to kmalloc\n");
-		return -1;
 	}
 
 	num = 0;

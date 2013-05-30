@@ -16,7 +16,7 @@
 #define	PACKET_SIZE	1518
 #define	PER_BUFFER	((PACKET_SIZE-18)*3+31)
 
-#define	MAX_TEMP_BUF	(8*1024*1024)
+#define	MAX_TEMP_BUF	(4*1024*1024)
 
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(3,8,0)
@@ -29,9 +29,12 @@
 static unsigned char *phy0_rx_ptr = 0L;
 static unsigned char *phy0_tx_ptr = 0L;
 
+static int phy0_read_pos;
+
 static int ethpipe_open(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
+	phy0_read_pos = 0;
 	/* */
 	return 0;
 }
@@ -46,16 +49,19 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 	printk("%s:len=%d\n", __func__, count);
 #endif
 
-//	if (count > (MAX_TEMP_BUF - 169))
-//		count = (MAX_TEMP_BUF - 169);
+	if ((phy0_read_pos + count) > (MAX_TEMP_BUF - PER_BUFFER))
+		copy_len = (MAX_TEMP_BUF - PER_BUFFER) - phy0_read_pos;
+	else
+		copy_len = count;
 
-//	copy_len = (count / 169) * 169;
-copy_len = count;
-
-	if ( copy_to_user( buf, phy0_rx_ptr, copy_len ) ) {
+	if ( copy_to_user( buf, phy0_rx_ptr + phy0_read_pos, copy_len ) ) {
 		printk( KERN_INFO "copy_to_user failed\n" );
 		return -EFAULT;
 	}
+
+	phy0_read_pos += copy_len;
+
+	phy0_read_pos = phy0_read_pos % (PER_BUFFER * 10);
 
 	return copy_len;
 }
@@ -65,8 +71,8 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 
 {
 	int copy_len;
-//	if (count > (MAX_TEMP_BUF - 169))
-//		count = (MAX_TEMP_BUF - 169);
+	if (count > (MAX_TEMP_BUF - PER_BUFFER))
+		count = (MAX_TEMP_BUF - PER_BUFFER);
 
 	copy_len = count;
 
@@ -172,10 +178,10 @@ static void __exit ethpipe_cleanup(void)
 	misc_deregister(&ethpipe_dev);
 
 	if (phy0_rx_ptr)
-		kfree(phy0_rx_ptr);
+		vfree(phy0_rx_ptr);
 
 	if (phy0_tx_ptr)
-		kfree(phy0_tx_ptr);
+		vfree(phy0_tx_ptr);
 
 	printk("%s\n", __func__);
 }

@@ -9,16 +9,21 @@
 #include <linux/version.h>
 #include <linux/vmalloc.h>
 
+#ifndef	DRV_NAME
 #define	DRV_NAME	"ethpipe"
+#endif
 #define	DRV_VERSION	"0.0.2"
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
 
+#ifndef	PACKET_SIZE
 //#define	PACKET_SIZE	64
 #define	PACKET_SIZE	1518
+#endif
 #define	PER_BUFFER	((PACKET_SIZE-18)*3+31)
 
-#define	MAX_TEMP_BUF	(4*1024*1024)
-
+#ifndef	MAX_TEMP_BUF
+#define	MAX_TEMP_BUF	(1*1024*1024)
+#endif
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(3,8,0)
 #define	__devinit
@@ -121,7 +126,7 @@ static struct file_operations ethpipe_fops = {
 
 static struct miscdevice ethpipe_dev = {
 	.minor = MISC_DYNAMIC_MINOR,
-	.name = "ethpipe",
+	.name = DRV_NAME,
 	.fops = &ethpipe_fops,
 };
 

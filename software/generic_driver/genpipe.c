@@ -21,11 +21,18 @@
 #include <linux/skbuff.h>
 #include <linux/init.h>
 
+#ifndef	DRV_NAME
 #define	DRV_NAME	"genpipe"
-#define	DRV_VERSION	"0.0.1"
+#endif
+#ifndef	IF_NAME
+#define	IF_NAME		"eth0"
+#endif
+#define	DRV_VERSION	"0.0.2"
 #define	genpipe_DRIVER_NAME	DRV_NAME " Generic Etherpipe driver " DRV_VERSION
 
+#ifndef	PACKET_BUF_MAX
 #define	PACKET_BUF_MAX	(1024*1024)
+#endif
 
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(3,8,0)
@@ -54,14 +61,19 @@ struct ifreq ifr_backup;
 
 int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 {
-	int frame_len;
-	frame_len = skb->len + 18;
-#ifdef DEBUG
-	printk(KERN_DEBUG "Test protocol: Packet Received with length: %u\n", frame_len);
-#endif
+	int i, frame_len;
+	unsigned char *p;
+
+	if ( strncmp( dev->name, IF_NAME, 5))
+		return 0;
+
+	frame_len = (skb->len)*3+31;
+//#ifdef DEBUG
+	printk(KERN_DEBUG "Test protocol: Packet Received with length: %u\n", skb->len+18);
+//#endif
 
 
-	if ( (pbuf0.rx_write_ptr +  frame_len + 0x10) > pbuf0.rx_end_ptr ) {
+	if ( (pbuf0.rx_write_ptr +  frame_len) > pbuf0.rx_end_ptr ) {
 		memcpy( pbuf0.rx_start_ptr, pbuf0.rx_write_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr ));
 		pbuf0.rx_read_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr );
 		if ( pbuf0.rx_read_ptr < pbuf0.rx_start_ptr )
@@ -69,17 +81,27 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 		pbuf0.rx_write_ptr = pbuf0.rx_start_ptr;
 	}
 
-	*(short *)(pbuf0.rx_write_ptr + 0) = 0xd555;		/* magic code 0x55d5 */
-	*(short *)(pbuf0.rx_write_ptr + 2) = frame_len;		/* frame len */
-	*(long long *)(pbuf0.rx_write_ptr + 4) = 0;		/* counter */
-	*(long *)(pbuf0.rx_write_ptr + 0xc) = 0;		/* hash */
+	p = skb->head + skb->mac_header;
+	sprintf(pbuf0.rx_write_ptr, "%02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X %02X%02X",
+		p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10], p[11], p[12], p[13]); 
+
+	p = skb->data;
+	for ( i = 0; i < (skb->len) ; ++i) {
+		sprintf(pbuf0.rx_write_ptr+30+i*3, " %02X", p[i] );
+	}
+	sprintf(pbuf0.rx_write_ptr+30+i*3, "\n");
+
+//	*(short *)(pbuf0.rx_write_ptr + 0) = 0xd555;		/* magic code 0x55d5 */
+//	*(short *)(pbuf0.rx_write_ptr + 2) = frame_len;		/* frame len */
+//	*(long long *)(pbuf0.rx_write_ptr + 4) = 0;		/* counter */
+//	*(long *)(pbuf0.rx_write_ptr + 0xc) = 0;		/* hash */
 
 //	memcpy(pbuf0.rx_write_ptr+0x10, skb->head + skb->mac_header, frame_len);
-	memcpy(pbuf0.rx_write_ptr+0x10, skb->head + skb->mac_header, 14);
-	memcpy(pbuf0.rx_write_ptr+0x1e, skb->data, skb->len);
-	*(long *)(pbuf0.rx_write_ptr + 0xc + frame_len) = 0;	/* FCS */
+//	memcpy(pbuf0.rx_write_ptr+0x10, skb->head + skb->mac_header, 14);
+//	memcpy(pbuf0.rx_write_ptr+0x1e, skb->data, skb->len);
+//	*(long *)(pbuf0.rx_write_ptr + 0xc + frame_len) = 0;	/* FCS */
 
-	pbuf0.rx_write_ptr += (frame_len + 0x10);
+	pbuf0.rx_write_ptr += frame_len;
 
 	wake_up_interruptible( &read_q );
 
@@ -271,7 +293,7 @@ static struct file_operations genpipe_fops = {
 
 static struct miscdevice genpipe_dev = {
 	.minor = MISC_DYNAMIC_MINOR,
-	.name = "genpipe",
+	.name = DRV_NAME,
 	.fops = &genpipe_fops,
 };
 

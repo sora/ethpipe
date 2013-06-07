@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-obj-m		:= genpipe.o
+obj-m		:= genpipe0.o genpipe1.o
 else
 KDIR		:= /lib/modules/$(shell uname -r)/build
 all:

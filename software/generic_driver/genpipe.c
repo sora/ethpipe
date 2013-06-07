@@ -81,7 +81,7 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 		pbuf0.rx_write_ptr = pbuf0.rx_start_ptr;
 	}
 
-	p = skb->head + skb->mac_header;
+	p = (unsigned char *)(skb->head) + (int)(skb->mac_header);
 	sprintf(pbuf0.rx_write_ptr, "%02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X %02X%02X",
 		p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10], p[11], p[12], p[13]); 
 

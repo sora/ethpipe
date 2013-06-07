@@ -1,3 +1,4 @@
+#include <linux/semaphore.h>
 #include <linux/module.h>
 #include <linux/miscdevice.h>
 #include <linux/fs.h>
@@ -43,6 +44,7 @@
 #define	__devexit_p
 #endif
 
+static struct semaphore genpipe_sem;
 static wait_queue_head_t write_q;
 static wait_queue_head_t read_q;
 
@@ -74,6 +76,11 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 	printk(KERN_DEBUG "Test protocol: Packet Received with length: %u\n", skb->len+18);
 #endif
 
+	if ( down_interruptible( &genpipe_sem ) ) {
+		printk( KERN_INFO "down_interruptible for read failed\n" );
+		return -ERESTARTSYS;
+	}
+
 	if ( (pbuf0.rx_write_ptr +  frame_len) > pbuf0.rx_end_ptr ) {
 		memcpy( pbuf0.rx_start_ptr, pbuf0.rx_write_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr ));
 		pbuf0.rx_read_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr );
@@ -95,6 +102,8 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 	pbuf0.rx_write_ptr += frame_len;
 
 	wake_up_interruptible( &read_q );
+
+	up( &genpipe_sem );
 
 	return skb->len;
 }
@@ -304,6 +313,7 @@ static int __init genpipe_init(void)
 		goto error;
 	}
 
+	sema_init( &genpipe_sem, 1 );
 	init_waitqueue_head( &read_q );
 	init_waitqueue_head( &write_q );
 

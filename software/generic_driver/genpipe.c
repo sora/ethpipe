@@ -68,9 +68,9 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 		return 0;
 
 	frame_len = (skb->len)*3+31;
-//#ifdef DEBUG
+#ifdef DEBUG
 	printk(KERN_DEBUG "Test protocol: Packet Received with length: %u\n", skb->len+18);
-//#endif
+#endif
 
 
 	if ( (pbuf0.rx_write_ptr +  frame_len) > pbuf0.rx_end_ptr ) {

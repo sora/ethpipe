@@ -38,6 +38,16 @@
 
 #define	MAX_IFR		20	/* Max Ethernet Interfaces */
 
+#define	INFO_SKB(X) \
+printk( "len=%u,", X->len); \
+printk( "data_len=%u,", X->data_len); \
+printk( "mac_header=%x,", (unsigned int)X->mac_header); \
+printk( "network_header=%x,", (unsigned int)X->network_header); \
+printk( "transport_header=%x,", (unsigned int)X->transport_header); \
+printk( "*head=%p,", X->head); \
+printk( "*data=%p,", X->data); \
+printk( "tail=%x,", (unsigned int)X->tail); \
+printk( "end=%x\n", (unsigned int)X->end);
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(3,8,0)
 #define	__devinit
@@ -61,7 +71,6 @@ struct _pbuf_dma {
 	unsigned char   *tx_read_ptr;		/* tx read ptr */
 } static pbuf0={0,0,0,0,0,0,0,0};
 
-struct ifreq ifr_backup;
 struct net_device* device = NULL; 
 
 int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
@@ -149,11 +158,12 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 
 {
 	int copy_len, available_write_len;
-	int i, ret, size, frame_len;
-	struct sk_buff *skb;
-static unsigned char test_packet[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xff,0xff,0xff,0xff,0xff,0xff, 0x00,0x01,0x02,0x03,0x04,0x05, 0x08,0x00, 0x45,0x00,0x05,0x00,0x00,0x00,0x00,0x00,32,0x11,0,0,10,0,21,100,10,0,21,255,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60};
+	int i, ret, frame_len;
+	struct sk_buff *tx_skb;
+static unsigned char test_packet[2000] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xff,0xff,0xff,0xff,0xff,0xff, 0x00,0x01,0x02,0x03,0x04,0x05, 0x08,0x00, 0x45,0x00,0x05,0x00,0x00,0x00,0x00,0x00,32,0x11,0,0,10,0,21,100,10,0,21,255,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60};
 
 	copy_len = 0;
+	tx_skb = NULL;
 
 	if ( (pbuf0.tx_write_ptr +  count) > pbuf0.tx_end_ptr ) {
 		memcpy( pbuf0.tx_start_ptr, pbuf0.tx_write_ptr, (pbuf0.tx_write_ptr - pbuf0.tx_start_ptr ));
@@ -166,9 +176,9 @@ static unsigned char test_packet[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xff,0xff,0xff
 	if ( count > (pbuf0.tx_end_ptr - pbuf0.tx_write_ptr))
 		count = (pbuf0.tx_end_ptr - pbuf0.tx_write_ptr);
 
-//#ifdef DEBUG
+#ifdef DEBUG
 	printk("%s count=%d\n", __func__, count);
-//#endif
+#endif
 
 	if ( copy_from_user( pbuf0.tx_write_ptr, buf, count ) ) {
 		printk( KERN_INFO "copy_from_user failed\n" );
@@ -179,46 +189,27 @@ static unsigned char test_packet[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xff,0xff,0xff
 	copy_len = count;
 
 genpipe_write_loop:
+	frame_len=1514;
+	tx_skb = netdev_alloc_skb_ip_align(device, frame_len+14);
+	skb_reserve(tx_skb, 2);	/* align IP on 16B boundary */
+	if (likely(tx_skb)) {
+INFO_SKB(tx_skb);
 
-skb = netdev_alloc_skb_ip_align(device, 1514);
-if (likely(skb)) {
-printk( "len=%u,", skb->len);
-printk( "data_len=%u,", skb->data_len);
-printk( "mac_header=%x,", skb->mac_header);
-printk( "network_header=%x,", skb->network_header);
-printk( "transport_header=%x,", skb->transport_header);
-printk( "*head=%p,", skb->head);
-printk( "*data=%p,", skb->data);
-printk( "tail=%x,", skb->tail);
-printk( "end=%x\n", skb->end);
-
-//	skb_reserve(skb, 2);	/* align IP on 16B boundary */
-//	memcpy(skb_put(skb, 60), test_packet, 60);
-skb_reset_mac_header(skb);
-skb_reset_transport_header(skb);
-skb_reset_network_header(skb);
-memcpy(skb_put(skb, 60+14), test_packet, 60+14);
-//skb_set_mac_header(skb,14);
-//skb_set_transport_header(skb,20);
-skb_set_network_header(skb,38);
-printk( "len=%u,", (unsigned int)skb->len);
-printk( "data_len=%u,", (unsigned int)skb->data_len);
-printk( "mac_header=%x,", (unsigned int)skb->mac_header);
-printk( "network_header=%x,", (unsigned int)skb->network_header);
-printk( "transport_header=%x,", (unsigned int)skb->transport_header);
-printk( "*head=%p,", skb->head);
-printk( "*data=%p,", skb->data);
-printk( "tail=%x,", (unsigned int)skb->tail);
-printk( "end=%x\n", (unsigned int)skb->end);
-//skb->pkt_type = 4; //PACKET_OUTGOING
-	skb->dev = device;
-	skb->protocol = eth_type_trans(skb, device);
-//	skb->ip_summed = CHECKSUM_UNNECESSARY; /* don't check it */
-	ret = dev_queue_xmit(skb);
-	if (ret) {
-		printk("fail to dev_queue_xmit=%d\n", ret);
+		skb_reset_mac_header(tx_skb);
+		skb_reset_transport_header(tx_skb);
+		skb_reset_network_header(tx_skb);
+		memcpy(skb_put(tx_skb, frame_len+14), test_packet, frame_len+14);
+//		skb_set_mac_header(tx_skb,14);
+//		skb_set_transport_header(tx_skb,20);
+		skb_set_network_header(tx_skb,38);
+INFO_SKB(tx_skb);
+		tx_skb->dev = device;
+		tx_skb->protocol = eth_type_trans(tx_skb, device);
+		ret = dev_queue_xmit(tx_skb);
+		if (ret) {
+			printk("fail to dev_queue_xmit=%d\n", ret);
+		}
 	}
-}
 
 goto genpipe_write_exit;
 
@@ -231,14 +222,6 @@ goto genpipe_write_exit;
 	if ( available_write_len < ( 16 + frame_len ) ) {
 		goto genpipe_write_exit;
 	}
-
-//	size = sock_sendmsg( kernel_soc, &msg, frame_len - 4);
-//#ifdef DEBUG
-//	printk(KERN_WARNING "frame_len=%d, sock_sendmsg=%d\n", frame_len, size);
-////#endif
-/**********************************/
-/* We should use dev_queue_xmit() */
-/**********************************/
 
 	pbuf0.tx_read_ptr += (frame_len + 16);
 
@@ -313,7 +296,7 @@ static int __init genpipe_init(void)
 
 	device = dev_get_by_name(&init_net, IF_NAME); 
 	if ( !device ) {
-		printk(KERN_WARNING "Could not find %s, err %d\n", IF_NAME, ret);
+		printk(KERN_WARNING "Could not find %s\n", IF_NAME);
 		ret = -1;
 		goto error;
 	}

@@ -1,14 +1,7 @@
-#!/bin/sh
-echo 'Measuring the /dev/ethpipe receive throughput.'
-dd if=/dev/ethpipe of=/dev/null bs=1M count=1024
-echo 'Measuring the /dev/ethpipe receive and transmitte throughput(forwarding).'
-dd if=/dev/ethpipe of=/dev/ethpipe bs=1M count=1024
-echo 'Measuring the GREP throughput.'
-echo grep '"001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt'
-grep "001111111111\|002222222222\|003333333333\|004444444444\|FFFFFFFFFFFF" < /dev/ethpipe > output.txt & sleep 5; kill %1
-sleep 1
-NLINE=`wc -l output.txt | cut -d' ' -f1`
-VALUE1=`echo "($NLINE / 5 * 2 * 169) / 1024 / 1024" | bc`;
-VALUE2=`echo "($NLINE / 5 * 2)" | bc`;
-echo $VALUE1 "MB/s"
-echo $VALUE2 "/Packet Per Second"
+PACKET='FFFFFFFFFFFF 001C7E6ABAD1 0800 45 00 00 4E 00 00 40 00 40 11 FB 32 0A 00 15 6E 0A 00 15 FF 04 04 00 89 00 3A 38 03 10 FD 01 10 00 01 00 00 00 00 00 00 20 46 45 45 4E 45 42 46 45 46 44 46 46 46 4A 45 42 43 4E 45 49 46 41 43 41 43 41 43 41 43 41 43 41 00 00 20 00 01\n'
+sudo rmmod genpipe0
+sudo insmod genpipe0.ko
+sudo chmod 777 /dev/genpipe0
+printf "`echo $PACKET$PACKET$PACKET$PACKET$PACKET`" >/dev/genpipe0
+#printf "`echo $PACKET`" >/dev/genpipe0
+dmesg|tail

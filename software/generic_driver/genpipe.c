@@ -23,6 +23,8 @@
 #include <linux/skbuff.h>
 #include <linux/init.h>
 
+#include <linux/if_packet.h>
+
 //#define	DEBUG
 
 #ifndef	DRV_NAME
@@ -82,6 +84,9 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 
 //	if ( strncmp( dev->name, IF_NAME, 5))
 //		return 0;
+
+	if (skb->pkt_type == PACKET_OUTGOING)	 // DROP loopback PACKET
+		return 0;
 
 	frame_len = (skb->len)*3+31;
 #ifdef DEBUG

@@ -73,7 +73,7 @@ struct _pbuf_dma {
 
 struct net_device* device = NULL; 
 
-int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
+int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt, struct net_device *dev2)
 {
 	int i, frame_len;
 	unsigned char *p;
@@ -160,6 +160,7 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 	int copy_len, available_write_len;
 	int i, ret, frame_len;
 	struct sk_buff *tx_skb;
+	unsigned char *p;
 static unsigned char test_packet[2000] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xff,0xff,0xff,0xff,0xff,0xff, 0x00,0x01,0x02,0x03,0x04,0x05, 0x08,0x00, 0x45,0x00,0x05,0x00,0x00,0x00,0x00,0x00,32,0x11,0,0,10,0,21,100,10,0,21,255,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60};
 
 	copy_len = 0;
@@ -189,6 +190,9 @@ static unsigned char test_packet[2000] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xff,0xff,
 	copy_len = count;
 
 genpipe_write_loop:
+	for ( p = pbuf0.tx_read_ptr; p < pbuf0.tx_write_ptr; ++p ) {
+	}
+
 	frame_len=1514;
 	tx_skb = netdev_alloc_skb_ip_align(device, frame_len+14);
 	skb_reserve(tx_skb, 2);	/* align IP on 16B boundary */
@@ -252,7 +256,7 @@ static unsigned int genpipe_poll(struct file *filp, poll_table *wait)
 }
 
 
-static int genpipe_ioctl(struct inode *inode, struct file *filp,
+static long genpipe_ioctl(struct file *filp,
 			unsigned int cmd, unsigned long arg)
 {
 	printk("%s\n", __func__);
@@ -277,12 +281,12 @@ static struct miscdevice genpipe_dev = {
 
 static struct packet_type genpipe_pack =
 {
-	__constant_htons(ETH_P_ALL),
-	NULL,
-	genpipe_pack_rcv,
+	.type		= __constant_htons(ETH_P_ALL),
+	.dev		= NULL,
+	.func		= genpipe_pack_rcv,
 
-	(void *) 1,
-	NULL
+	.id_match	= (void *) 1,
+	.af_packet_priv	= NULL,
 };
 
 static int __init genpipe_init(void)

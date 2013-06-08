@@ -23,6 +23,8 @@
 #include <linux/skbuff.h>
 #include <linux/init.h>
 
+//#define	DEBUG
+
 #ifndef	DRV_NAME
 #define	DRV_NAME	"genpipe"
 #endif
@@ -157,11 +159,10 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 			    size_t count, loff_t *ppos)
 
 {
-	int copy_len, available_write_len;
-	int i, ret, frame_len;
+	int i, copy_len, pos, ret, frame_len;
 	struct sk_buff *tx_skb;
-	unsigned char *p;
-static unsigned char test_packet[2000] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xff,0xff,0xff,0xff,0xff,0xff, 0x00,0x01,0x02,0x03,0x04,0x05, 0x08,0x00, 0x45,0x00,0x05,0x00,0x00,0x00,0x00,0x00,32,0x11,0,0,10,0,21,100,10,0,21,255,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60};
+	unsigned char *cr;
+	static unsigned char tmp_pkt[16000]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 	copy_len = 0;
 	tx_skb = NULL;
@@ -190,23 +191,70 @@ static unsigned char test_packet[2000] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xff,0xff,
 	copy_len = count;
 
 genpipe_write_loop:
-	for ( p = pbuf0.tx_read_ptr; p < pbuf0.tx_write_ptr; ++p ) {
+	for ( cr = pbuf0.tx_read_ptr; cr < pbuf0.tx_write_ptr && *cr != '\n'; ++cr );
+	if ( cr == pbuf0.tx_write_ptr )	/* not found CR */
+		goto genpipe_write_exit;
+
+#ifdef DEBUG
+	printk( "pbuf0.tx_read_ptr=%s\n", pbuf0.tx_read_ptr);
+#endif
+	frame_len = 0;
+	pos = 0;
+
+	for ( ; pbuf0.tx_read_ptr < cr ; ++pbuf0.tx_read_ptr ) {
+		// skip space
+		if (*pbuf0.tx_read_ptr == ' ')
+			continue;
+		// conver to upper char
+		if (*pbuf0.tx_read_ptr >= 'a' && *pbuf0.tx_read_ptr <= 'z')
+			*pbuf0.tx_read_ptr -= 0x20;
+		// is hexdigit?
+		if (*pbuf0.tx_read_ptr >= '0' && *pbuf0.tx_read_ptr <= '9') {
+			if ( pos == 0 ) {
+				tmp_pkt[frame_len+14] = (*pbuf0.tx_read_ptr - '0') << 4;
+				pos = 1;
+			} else {
+				tmp_pkt[frame_len+14] |= (*pbuf0.tx_read_ptr - '0');
+				++frame_len;
+				pos = 0;
+			}
+		} else if (*pbuf0.tx_read_ptr >= 'A' && *pbuf0.tx_read_ptr <= 'Z') {
+			if ( pos == 0 ) {
+				tmp_pkt[frame_len+14] = (*pbuf0.tx_read_ptr - 'A' + 10) << 4;
+				pos = 1;
+			} else {
+				tmp_pkt[frame_len+14] |= (*pbuf0.tx_read_ptr - 'A' + 10);
+				++frame_len;
+				pos = 0;
+			}
+		}
 	}
 
-	frame_len=1514;
+#ifdef DEBUG
+printk( "%02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x %02x%02x %02x %02x\n", 
+	tmp_pkt[14], tmp_pkt[15], tmp_pkt[16], tmp_pkt[17], tmp_pkt[18], tmp_pkt[19],
+	tmp_pkt[20], tmp_pkt[21], tmp_pkt[22], tmp_pkt[23], tmp_pkt[24], tmp_pkt[25],
+	tmp_pkt[26], tmp_pkt[27],
+	tmp_pkt[27], tmp_pkt[28]);
+#endif
+
 	tx_skb = netdev_alloc_skb_ip_align(device, frame_len+14);
 	skb_reserve(tx_skb, 2);	/* align IP on 16B boundary */
 	if (likely(tx_skb)) {
+#ifdef DEBUG
 INFO_SKB(tx_skb);
+#endif
 
 		skb_reset_mac_header(tx_skb);
 		skb_reset_transport_header(tx_skb);
 		skb_reset_network_header(tx_skb);
-		memcpy(skb_put(tx_skb, frame_len+14), test_packet, frame_len+14);
+		memcpy(skb_put(tx_skb, frame_len+14), tmp_pkt, frame_len+14);
 //		skb_set_mac_header(tx_skb,14);
 //		skb_set_transport_header(tx_skb,20);
 		skb_set_network_header(tx_skb,38);
+#ifdef DEBUG
 INFO_SKB(tx_skb);
+#endif
 		tx_skb->dev = device;
 		tx_skb->protocol = eth_type_trans(tx_skb, device);
 		ret = dev_queue_xmit(tx_skb);
@@ -215,19 +263,7 @@ INFO_SKB(tx_skb);
 		}
 	}
 
-goto genpipe_write_exit;
-
-	available_write_len = (pbuf0.tx_write_ptr - pbuf0.tx_read_ptr);
-	if ( available_write_len < 4 ) {
-		goto genpipe_write_exit;
-	}
-	frame_len = *(short *)(pbuf0.tx_read_ptr + 2);
-	/* data enough ? */
-	if ( available_write_len < ( 16 + frame_len ) ) {
-		goto genpipe_write_exit;
-	}
-
-	pbuf0.tx_read_ptr += (frame_len + 16);
+	pbuf0.tx_read_ptr = cr + 1;
 
 	i = (pbuf0.tx_read_ptr - pbuf0.tx_start_ptr );
 	if (i > 0) {
@@ -235,6 +271,7 @@ goto genpipe_write_exit;
 		pbuf0.tx_read_ptr -= i;
 		pbuf0.tx_write_ptr -= i;
 	}
+
 	goto genpipe_write_loop;
 
 genpipe_write_exit:
@@ -281,12 +318,12 @@ static struct miscdevice genpipe_dev = {
 
 static struct packet_type genpipe_pack =
 {
-	.type		= __constant_htons(ETH_P_ALL),
-	.dev		= NULL,
-	.func		= genpipe_pack_rcv,
+	__constant_htons(ETH_P_ALL),
+	NULL,
+	genpipe_pack_rcv,
 
-	.id_match	= (void *) 1,
-	.af_packet_priv	= NULL,
+	(void *) 1,
+	NULL
 };
 
 static int __init genpipe_init(void)

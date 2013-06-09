@@ -39,8 +39,9 @@
 #ifndef	PACKET_BUF_MAX
 #define	PACKET_BUF_MAX	(1024*1024)
 #endif
-
-#define	MAX_IFR		20	/* Max Ethernet Interfaces */
+#ifndef	MTU
+#define	MTU		(9014)
+#endif
 
 #define	INFO_SKB(X) \
 printk( "len=%u,", X->len); \
@@ -167,7 +168,7 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 	int i, copy_len, pos, ret, frame_len;
 	struct sk_buff *tx_skb;
 	unsigned char *cr;
-	static unsigned char tmp_pkt[16000]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	static unsigned char tmp_pkt[MTU]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 	copy_len = 0;
 	tx_skb = NULL;
@@ -206,7 +207,7 @@ genpipe_write_loop:
 	frame_len = 0;
 	pos = 0;
 
-	for ( ; pbuf0.tx_read_ptr < cr ; ++pbuf0.tx_read_ptr ) {
+	for ( ; pbuf0.tx_read_ptr < cr && frame_len < MTU ; ++pbuf0.tx_read_ptr ) {
 		// skip space
 		if (*pbuf0.tx_read_ptr == ' ')
 			continue;

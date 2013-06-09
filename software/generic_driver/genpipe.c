@@ -168,7 +168,7 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 	int i, copy_len, pos, ret, frame_len;
 	struct sk_buff *tx_skb;
 	unsigned char *cr;
-	static unsigned char tmp_pkt[MTU]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	static unsigned char tmp_pkt[MTU+14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 	copy_len = 0;
 	tx_skb = NULL;

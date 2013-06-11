@@ -298,10 +298,28 @@ static int genpipe_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-static unsigned int genpipe_poll(struct file *filp, poll_table *wait)
+static unsigned int genpipe_poll( struct file* filp, poll_table* wait )
 {
+	unsigned int retmask = 0;
+
+#ifdef DEBUG
 	printk("%s\n", __func__);
-	return 0;
+#endif
+
+	poll_wait( filp, &read_q,  wait );
+//	poll_wait( filp, &write_q, wait );
+
+	if ( pbuf0.rx_read_ptr != pbuf0.rx_write_ptr ) {
+		retmask |= ( POLLIN  | POLLRDNORM );
+//		log_format( "POLLIN  | POLLRDNORM" );
+	}
+/* 
+   読み込みデバイスが EOF の場合は retmask に POLLHUP を設定
+   デバイスがエラー状態である場合は POLLERR を設定
+   out-of-band データが読み出せる場合は POLLPRI を設定
+ */
+
+	return retmask;
 }
 
 

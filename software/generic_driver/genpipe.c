@@ -129,7 +129,9 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 static int genpipe_open(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
+	rtnl_lock();
 	dev_set_promiscuity(device, 1);
+	rtnl_unlock();
 
 	return 0;
 }
@@ -289,7 +291,9 @@ genpipe_write_exit:
 static int genpipe_release(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
+	rtnl_lock();
 	dev_set_promiscuity(device, -1);
+	rtnl_unlock();
 
 	return 0;
 }

@@ -83,11 +83,8 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 	int i, frame_len;
 	unsigned char *p;
 
-//	if ( strncmp( dev->name, IF_NAME, 5))
-//		return 0;
-
 	if (skb->pkt_type == PACKET_OUTGOING)	 // DROP loopback PACKET
-		return 0;
+		goto lend;
 
 	frame_len = (skb->len)*3+31;
 #ifdef DEBUG
@@ -123,6 +120,12 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 
 	up( &genpipe_sem );
 
+lend:
+	/* Don't mangle buffer if shared */
+	if (!(skb = skb_share_check(skb, GFP_ATOMIC)))
+		return 0;
+
+	kfree_skb(skb);
 	return skb->len;
 }
 

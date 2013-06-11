@@ -60,7 +60,7 @@ void packetout(const unsigned char *pkt, unsigned length)
 		pkt[0x0c], pkt[0x0d] );						// frame type
 	olen = strlen(obuf);
 	for ( i=14; i<(length); ++i) {
-		sprintf(obuf+olen+(i-14)*3, " %02X", pkt[i+0x10] );
+		sprintf(obuf+olen+(i-14)*3, " %02X", pkt[i] );
 	}
 	strcat(obuf, "\n" );
 	write (1, obuf, strlen(obuf));

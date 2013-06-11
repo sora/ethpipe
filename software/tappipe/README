@@ -1,0 +1,5 @@
+# ./tappipe pipe0 </dev/genpipe0 >/dev/genpipe0 &
+# ifconfig -a
+# tcpdump -i pipe0
+# dhclient -r pipe0
+# dhclient pipe0

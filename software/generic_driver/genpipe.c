@@ -100,11 +100,11 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 	}
 
 	if ( (pbuf0.rx_write_ptr +  frame_len) > pbuf0.rx_end_ptr ) {
-		memcpy( pbuf0.rx_start_ptr, pbuf0.rx_write_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr ));
-		pbuf0.rx_read_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr );
+		memcpy( pbuf0.rx_start_ptr, pbuf0.rx_read_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr ));
+		pbuf0.rx_write_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr );
+		pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
 		if ( pbuf0.rx_read_ptr < pbuf0.rx_start_ptr )
 			pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
-		pbuf0.rx_write_ptr = pbuf0.rx_start_ptr;
 	}
 
 	p = skb_mac_header(skb);
@@ -177,11 +177,11 @@ static ssize_t genpipe_write(struct file *filp, const char __user *buf,
 	tx_skb = NULL;
 
 	if ( (pbuf0.tx_write_ptr +  count) > pbuf0.tx_end_ptr ) {
-		memcpy( pbuf0.tx_start_ptr, pbuf0.tx_write_ptr, (pbuf0.tx_write_ptr - pbuf0.tx_start_ptr ));
-		pbuf0.tx_read_ptr -= (pbuf0.tx_write_ptr - pbuf0.tx_start_ptr );
+		memcpy( pbuf0.tx_start_ptr, pbuf0.tx_read_ptr, (pbuf0.tx_write_ptr - pbuf0.tx_start_ptr ));
+		pbuf0.tx_write_ptr -= (pbuf0.tx_write_ptr - pbuf0.tx_start_ptr );
+		pbuf0.tx_read_ptr = pbuf0.tx_start_ptr;
 		if ( pbuf0.tx_read_ptr < pbuf0.tx_start_ptr )
 			pbuf0.tx_read_ptr = pbuf0.tx_start_ptr;
-		pbuf0.tx_write_ptr = pbuf0.tx_start_ptr;
 	}
 
 	if ( count > (pbuf0.tx_end_ptr - pbuf0.tx_write_ptr))

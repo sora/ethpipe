@@ -43,6 +43,10 @@
 #define	MTU		(9014)
 #endif
 
+static char *interface = IF_NAME;
+module_param( interface , charp , S_IRUGO);
+MODULE_PARM_DESC( interface, "interface" );
+
 #define	INFO_SKB(X) \
 printk( "len=%u,", X->len); \
 printk( "data_len=%u,", X->data_len); \
@@ -368,9 +372,9 @@ static int __init genpipe_init(void)
 #endif
 	printk("%s\n", __func__);
 
-	device = dev_get_by_name(&init_net, IF_NAME); 
+	device = dev_get_by_name(&init_net, interface); 
 	if ( !device ) {
-		printk(KERN_WARNING "Could not find %s\n", IF_NAME);
+		printk(KERN_WARNING "Could not find %s\n", interface);
 		ret = -1;
 		goto error;
 	}

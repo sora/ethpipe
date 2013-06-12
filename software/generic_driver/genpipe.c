@@ -86,6 +86,14 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 {
 	int i, frame_len;
 	unsigned char *p;
+	static unsigned short hex[257], initialized = 0;
+
+	if ( unlikely(initialized == 0) ) {
+		for ( i = 0 ; i < 256 ; ++i ) {
+			sprintf( (unsigned char *)&hex[i], "%02X", i);
+		}
+		initialized = 1;
+	}
 
 	if (skb->pkt_type == PACKET_OUTGOING)	 // DROP loopback PACKET
 		goto lend;
@@ -109,16 +117,23 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 	}
 
 	p = skb_mac_header(skb);
-	sprintf(pbuf0.rx_write_ptr, "%02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X %02X%02X",
-		p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10], p[11], p[12], p[13]); 
-
+	for ( i = 0; i < 14; ++i ) {
+		*(unsigned short *)pbuf0.rx_write_ptr = hex[ p[i] ];
+		pbuf0.rx_write_ptr += 2;
+		if ( i == 5 || i== 11 || i == 13 ) {
+			*pbuf0.rx_write_ptr++ = ' ';
+		}
+	}
 	p = skb->data;
 	for ( i = 0; i < (skb->len) ; ++i) {
-		sprintf(pbuf0.rx_write_ptr+30+i*3, " %02X", p[i] );
+		*(unsigned short *)pbuf0.rx_write_ptr = hex[ p[i] ];
+		pbuf0.rx_write_ptr += 2;
+		if ( likely( i != ((skb->len) - 1 ) ) ) {
+			*pbuf0.rx_write_ptr++ = ' ';
+		} else {
+			*pbuf0.rx_write_ptr++ = '\n';
+		}
 	}
-	sprintf(pbuf0.rx_write_ptr+30+i*3, "\n");
-
-	pbuf0.rx_write_ptr += frame_len;
 
 	wake_up_interruptible( &read_q );
 

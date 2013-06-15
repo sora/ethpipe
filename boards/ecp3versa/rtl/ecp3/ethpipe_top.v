@@ -275,7 +275,7 @@ wire [63:0] global_counter;
 wire [63:0] rx_timestamp;
 wire [11:0] rx_frame_len;
 wire        rx_slot_ready;
-ethpipe ethpipe_port1 (
+ethpipe ethpipe_ins (
   // system
     .sys_rst(~core_rst_n)
 
@@ -401,78 +401,36 @@ always @(posedge clk_125 or negedge core_rst_n) begin
             // RX1
             3'b100: begin
                 wb_ack <= next_wb_ack;
-                case (pcie_adr[12:1])
-                    // rx timestamp [15:0]
-                    12'd0: begin
-                        if (rd)
-                            wb_dat <= rx_timestamp[15:0];
-                    end
-                    // rx timestamp [31:16]
-                    12'd1: begin
-                        if (rd)
-                            wb_dat <= rx_timestamp[31:16];
-                    end
-                    // rx timestamp [47:32]
-                    12'd2: begin
-                        if (rd)
-                            wb_dat <= rx_timestamp[47:32];
-                    end
-                    // rx timestamp [63:48]
-                    12'd3: begin
-                        if (rd)
-                            wb_dat <= rx_timestamp[63:48];
-                    end
-                    // rx hash
-                    12'd4: begin
-                        if (rd)
-                            wb_dat <= 16'h0;
-                    end
-                    12'd5: begin
-                        if (rd)
-                            wb_dat <= 16'h0;
-                    end
-                    // rx frame length
-                    12'd6: begin
-                        if (rd)
-                            wb_dat <= { 4'b0, rx_frame_len[11:0] };
-                    end
-                    12'd7: begin
-                        if (rd)
-                            wb_dat <= 16'h0;
-                    end
-                    default: begin
-                        if (rd) begin
-                            if (pcie_adr[1] == 1'b0) begin
-                                if (waiting == 2'h0 || waiting == 2'h1) begin
-                                    mem_addressA <= pcie_adr[12:2] + 12'h1;
-                                    wb_ack  <= 1'b0;
-                                end else if (waiting == 2'h2) begin
-                                    wb_dat  <= mem_qA[15:0];
-                                    waiting <= 2'h0;
-                                end
-                                waiting <= waiting + 2'h1;
-                            end else begin
-                                    wb_dat  <= mem_qA[31:16];
-                            end
-                        end else if (wr) begin
-                            mem_wr_enA   <= 1'b1;
+                if (rd) begin
+                    if (pcie_adr[1] == 1'b0) begin
+                        if (waiting == 2'h0 || waiting == 2'h1) begin
                             mem_addressA <= pcie_adr[12:2] + 12'h1;
-                            if (pcie_adr[1] == 1'b0) begin
-                                mem_byte_enA <= {2'b00, pcie_sel[0], pcie_sel[1]};
-                                if (pcie_sel[0])
-                                    mem_dataA[15:8] <= pcie_dat_o[15:8];
-                                if (pcie_sel[1])
-                                    mem_dataA[7:0]  <= pcie_dat_o[7:0];
-                            end else begin
-                                mem_byte_enA <= {pcie_sel[0], pcie_sel[1], 2'b00};
-                                if (pcie_sel[0])
-                                    mem_dataA[31:24] <= pcie_dat_o[15:8];
-                                if (pcie_sel[1])
-                                    mem_dataA[23:16] <= pcie_dat_o[7:0];
-                            end
+                            wb_ack  <= 1'b0;
+                        end else if (waiting == 2'h2) begin
+                            wb_dat  <= mem_qA[15:0];
+                            waiting <= 2'h0;
                         end
+                        waiting <= waiting + 2'h1;
+                    end else begin
+                        wb_dat  <= mem_qA[31:16];
                     end
-                endcase
+                end else if (wr) begin
+                    mem_wr_enA   <= 1'b1;
+                    mem_addressA <= pcie_adr[12:2] + 12'h1;
+                    if (pcie_adr[1] == 1'b0) begin
+                        mem_byte_enA <= {2'b00, pcie_sel[0], pcie_sel[1]};
+                        if (pcie_sel[0])
+                            mem_dataA[15:8] <= pcie_dat_o[15:8];
+                        if (pcie_sel[1])
+                            mem_dataA[7:0]  <= pcie_dat_o[7:0];
+                    end else begin
+                        mem_byte_enA <= {pcie_sel[0], pcie_sel[1], 2'b00};
+                        if (pcie_sel[0])
+                            mem_dataA[31:24] <= pcie_dat_o[15:8];
+                        if (pcie_sel[1])
+                            mem_dataA[23:16] <= pcie_dat_o[7:0];
+                    end
+                end
             end
             // TX1
             //3'b101: begin

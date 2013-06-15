@@ -236,7 +236,6 @@ always @(posedge clk_125)
 assign phy1_rst_n = coldsys_rst520 & reset_n;
 
 
-
 //-------------------------------------
 // ethpipe Port1
 //-------------------------------------
@@ -271,16 +270,20 @@ ram_dp_true mem0read (
   , .QB(mem_qB)
 );
 
+reg         global_counter_rst;
+wire [63:0] global_counter;
 wire [63:0] rx_timestamp;
 wire [11:0] rx_frame_len;
 wire        rx_slot_ready;
 ethpipe ethpipe_port1 (
   // system
     .sys_rst(~core_rst_n)
+
+  , .global_counter_rst(global_counter_rst)
   , .global_counter(global_counter)
 
   // GMII interfaces
-  , .gmii_tx_clk()
+  , .gmii_tx_clk(phy1_125M_clk)
   , .gmii_txd()
   , .gmii_tx_en()
   , .gmii_rxd(phy1_rx_data)
@@ -319,23 +322,24 @@ reg wb_ack;
 assign next_wb_ack = ~wb_ack && pcie_cyc && pcie_stb;
 reg [ 1:0] waiting;
 reg [15:0] prev_data = 16'h0;
-reg [63:0] global_counter;
 always @(posedge clk_125 or negedge core_rst_n) begin
     if (!core_rst_n) begin
-        wb_dat         <= 16'h0;
-        mem_dataA      <= 32'h0;
-        mem_wr_enA     <=  1'b0;
-        mem_byte_enA   <=  4'b0;
-        mem_addressA   <= 11'b0;
-        global_counter <= 64'b0;
-        slots_status[3:0] <= 4'b0000;
+        wb_dat             <= 16'h0;
+        mem_dataA          <= 32'h0;
+        mem_wr_enA         <= 1'b0;
+        mem_byte_enA       <= 4'b0;
+        mem_addressA       <= 11'b0;
+        global_counter_rst <= 1'b0;
+        slots_status[3:0]  <= 4'b0;
     end else begin
         waiting <= 2'h0;
         wb_ack  <= 1'b0;
-        global_counter <= global_counter + 64'b1;
 
-        if (rx_slot_ready)
+        global_counter_rst <= 1'b0;
+
+        if (rx_slot_ready) begin
             slots_status[1:0] <= 2'b01;
+        end
 
         mem_wr_enA <= 1'b0;
         case (pcie_adr[15:13])
@@ -357,53 +361,35 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                         3'b010: begin
                             if (rd) begin
                                 wb_dat <= global_counter[15:0];
-                            end else if (wr) begin
-                                if (pcie_sel[0])
-                                    global_counter[7:0] <= pcie_dat_o[15:8];
-                                if (pcie_sel[1])
-                                    global_counter[15:8] <= pcie_dat_o[7:0];
                             end
                         end
                         // global counter [31:16]
                         3'b011: begin
                             if (rd) begin
                                 wb_dat <= global_counter[31:16];
-                            end else if (wr) begin
-                                if (pcie_sel[0])
-                                    global_counter[23:16] <= pcie_dat_o[15:8];
-                                if (pcie_sel[1])
-                                    global_counter[31:24] <= pcie_dat_o[7:0];
                             end
                         end
                         // global counter [47:32]
                         3'b100: begin
                             if (rd) begin
                                 wb_dat <= global_counter[47:32];
-                            end else if (wr) begin
-                                if (pcie_sel[0])
-                                    global_counter[39:32] <= pcie_dat_o[15:8];
-                                if (pcie_sel[1])
-                                    global_counter[47:40] <= pcie_dat_o[7:0];
                             end
                         end
                         // global counter [63:48]
                         3'b101: begin
                             if (rd) begin
                                 wb_dat <= global_counter[63:48];
-                            end else if (wr) begin
-                                if (pcie_sel[0])
-                                    global_counter[55:48] <= pcie_dat_o[15:8];
-                                if (pcie_sel[1])
-                                    global_counter[63:56] <= pcie_dat_o[7:0];
                             end
                         end
                         default:
-                            if (rd)
+                            if (rd) begin
                                 wb_dat <= 16'h0;
+                            end
                     endcase
                 end else begin
-                    if (rd)
+                    if (rd) begin
                         wb_dat <= 16'h0;
+                    end
                 end
             end
             // RX0

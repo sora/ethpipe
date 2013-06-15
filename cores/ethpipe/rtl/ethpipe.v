@@ -8,7 +8,8 @@ module ethpipe (
   // system
     input  wire        sys_rst
 
-  , input  wire [63:0] global_counter
+  , input  wire        global_counter_rst
+  , output wire [63:0] global_counter
 
   // GMII interfaces
   , input  wire        gmii_tx_clk
@@ -34,6 +35,19 @@ module ethpipe (
   , output wire        rx_complete    // Received a ethernet frame
 );
 
+
+reg [63:0] global_counter;
+always @(posedge gmii_tx_clk) begin
+    if (sys_rst) begin
+        global_counter <= 64'b0;
+    end else begin
+        if (global_counter_rst) begin
+            global_counter <= 64'b0;
+        end else begin
+            global_counter <= global_counter + 64'b1;
+        end
+    end
+end
 
 //-------------------------------------
 // Ether frame receiver
@@ -76,7 +90,7 @@ always @(posedge gmii_rx_clk) begin
                     2'b00: begin
                         slot_rx_eth_byte_en <= 4'b0001;
                         slot_rx_eth_data    <= {24'h0, gmii_rxd};
-                        slot_rx_eth_address <= slot_rx_eth_address + 12'd1;
+                        slot_rx_eth_address <= slot_rx_eth_address + 11'd1;
                     end
                     2'b01: begin
                         slot_rx_eth_byte_en <= 4'b0010;
@@ -94,11 +108,11 @@ always @(posedge gmii_rx_clk) begin
             end else begin
                 // frame terminated
                 if (rx_counter != 12'h0) begin
-                    rx_frame_len <= rx_counter - 12'h8;
-                    rx_counter   <= 12'b0;
-                    slot_rx_eth_address <= 12'd2;
-                    rx_status <= RX_DONE;
-                    rx_active <= 1'b0;
+                    rx_frame_len        <= rx_counter - 12'h8;
+                    rx_counter          <= 12'b0;
+                    slot_rx_eth_address <= 11'd2;
+                    rx_status           <= RX_DONE;
+                    rx_active           <= 1'b0;
                 end
             end
         end

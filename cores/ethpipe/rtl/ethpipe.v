@@ -4,7 +4,7 @@
 
 //`define DEBUG
 
-module ethpipe_port (
+module ethpipe (
   // system
     input  wire        sys_rst
 
@@ -148,14 +148,16 @@ always @(posedge gmii_rx_clk) begin
                 endcase
             end else begin
                 // frame terminated
-                rx_status <= RX_DONE;
-                rx_active <= 1'b0;
-
-                // write frame length
-                slot_rx_eth_address <= 11'h3;
-                slot_rx_eth_wr_en   <= 1'b1;
-                slot_rx_eth_byte_en <= 4'b1111;
-                slot_rx_eth_data    <= {5'h0, rx_counter - 11'h8, 16'h0};
+                if (rx_counter != 12'h0) begin
+                    rx_status <= RX_DONE;
+                    rx_active <= 1'b0;
+    
+                    // write frame length
+                    slot_rx_eth_address <= 11'h3;
+                    slot_rx_eth_wr_en   <= 1'b1;
+                    slot_rx_eth_byte_en <= 4'b1111;
+                    slot_rx_eth_data    <= {5'h0, rx_counter - 11'h8, 16'h0};
+                end
             end
         end
     end

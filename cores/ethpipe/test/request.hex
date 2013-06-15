@@ -1,0 +1,263 @@
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+1_55  // Ether: Preamble
+1_55
+1_55
+1_55
+1_55
+1_55
+1_55
+1_D5
+1_d5  // Ether: SFD
+1_01  // Ether: Dest MAC
+1_12
+1_23
+1_34
+1_45
+1_56
+1_98  // Ether: Source MAC
+1_87
+1_76
+1_65
+1_54
+1_43
+1_08  // Ether: Type (IPv4=0x0800)
+1_00
+1_45  // IP: Version (4), Header Length (20)
+1_00
+1_00  // IP: Total Length (0x0000)
+1_00
+1_f8  // IP: Identification (0xf899)
+1_99
+1_00
+1_00
+1_40  // IP: TTL (0x40)
+1_11  // IP: Protocol (UDP=0x11)
+1_44  // IP: Header CheckSum
+1_9d
+1_ee  // IP: Source IP (10.0.21.105)
+1_ee
+1_ee
+1_ee
+1_cc  // IP: Dest IP (10.0.20.10)
+1_cc
+1_cc
+1_cc
+1_27  // UDP: src port (9999)
+1_0f
+1_2b  // UDP: dst port (11211)
+1_cb
+1_00  // UDP: length (0x00)
+1_00
+1_00  // UDP: checksum
+1_00
+1_80  // memcache: Magic (request: 0x80)
+1_01  // memcache: Opcode (set: 0x01)
+1_00  // memcache: Key length (8)
+1_08
+1_08  // memcache: extra length (8)
+1_00  // memcache: data type
+1_00  // memcache: reserved
+1_00
+1_00  // memcache: total body length (48)
+1_00
+1_00
+1_30
+1_00  // memcache: Opaque
+1_00
+1_00
+1_00
+1_00  // memcache: CAS
+1_00
+1_00
+1_00
+1_00
+1_00
+1_00
+1_00
+1_de  // memcache: Extras: flags (0xdeadbeaf)
+1_ad
+1_be
+1_ef
+1_00  // memcache: Extras: expiry (0)
+1_00
+1_00
+1_00
+1_48  // memcache: key "Hello"
+1_65
+1_6c
+1_6c
+1_6f
+1_00
+1_00
+1_00
+1_01  // memcache: value
+1_12
+1_23
+1_34
+1_45
+1_56
+1_67
+1_78
+1_89
+1_9a
+1_ab
+1_bc
+1_cd
+1_de
+1_ef
+1_01
+1_12
+1_23
+1_34
+1_45
+1_56
+1_67
+1_78
+1_89
+1_9a
+1_ab
+1_bc
+1_cd
+1_de
+1_ef
+1_01
+1_12
+1_23
+1_11  // ether: FCS
+1_22
+1_33
+1_44
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+1_55  // Ether: Preamble
+1_55
+1_55
+1_55
+1_55
+1_55
+1_55
+1_D5
+1_d5  // Ether: SFD
+1_01  // Ether: Dest MAC
+1_12
+1_23
+1_34
+1_45
+1_56
+1_98  // Ether: Source MAC
+1_87
+1_76
+1_65
+1_54
+1_43
+1_08  // Ether: Type (IPv4=0x0800)
+1_00
+1_45  // IP: Version (4), Header Length (20)
+1_00
+1_00  // IP: Total Length (0x0000)
+1_00
+1_f8  // IP: Identification (0xf899)
+1_99
+1_00
+1_00
+1_40  // IP: TTL (0x40)
+1_11  // IP: Protocol (UDP=0x11)
+1_44  // IP: Header CheckSum
+1_9d
+1_0a  // IP: Source IP (10.0.21.105)
+1_00
+1_15
+1_69
+1_0a  // IP: Dest IP (10.0.20.10)
+1_00
+1_14
+1_0a
+1_27  // UDP: src port (9999)
+1_0f
+1_2b  // UDP: dst port (11211)
+1_cb
+1_00  // UDP: length (0x00)
+1_00
+1_00  // UDP: checksum
+1_00
+1_80  // memcache: Magic (request:0x80)
+1_00  // memcache: Opcode (get:0x00)
+1_00  // memcache: Key length
+1_08
+1_00  // memcache: extra length
+1_00  // memcache: data type
+1_00  // memcache: reserved
+1_00
+1_00  // memcache: total body length
+1_00
+1_00
+1_00
+1_00  // memcache: Opaque
+1_00
+1_00
+1_00
+1_00  // memcache: CAS
+1_00
+1_00
+1_00
+1_00
+1_00
+1_00
+1_00
+1_48  // memcache: key "Hello"
+1_65
+1_6c
+1_6c
+1_6f
+1_00
+1_00
+1_00
+1_11  // ether: FCS
+1_22
+1_33
+1_44
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00
+0_00

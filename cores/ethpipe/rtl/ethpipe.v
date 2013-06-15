@@ -9,7 +9,7 @@ module ethpipe (
     input  wire        sys_rst
 
   , input  wire        global_counter_rst
-  , output wire [63:0] global_counter
+  , output reg  [63:0] global_counter
 
   // GMII interfaces
   , input  wire        gmii_tx_clk
@@ -35,8 +35,6 @@ module ethpipe (
   , output wire        rx_complete    // Received a ethernet frame
 );
 
-
-reg [63:0] global_counter;
 always @(posedge gmii_tx_clk) begin
     if (sys_rst) begin
         global_counter <= 64'b0;

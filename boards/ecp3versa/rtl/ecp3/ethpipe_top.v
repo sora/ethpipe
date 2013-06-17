@@ -300,8 +300,6 @@ ethpipe ethpipe_ins (
   , .slot_rx_eth_wr_en(mem_wr_enB)
   , .slot_rx_eth_q(mem_qB)
 
-  , .rx_timestamp(rx_timestamp)
-  , .rx_frame_len(rx_frame_len)
   , .rx_empty(slots_status[1])      // RX slot empty
   , .rx_complete(rx_slot_ready)     // RX slot read ready
 );

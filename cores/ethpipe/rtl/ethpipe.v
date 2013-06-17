@@ -111,16 +111,16 @@ always @(posedge gmii_rx_clk) begin
                         slot_rx_eth_data    <= 32'h0;
                     end
                     11'd4: begin // skip
-                        slot_rx_eth_address <= 11'h1;
+                        slot_rx_eth_address <= 11'h3;
                     end
                     11'd5: begin // skip
-                        slot_rx_eth_address <= 11'h1;
+                        slot_rx_eth_address <= 11'h3;
                     end
                     11'd6: begin // skip
-                        slot_rx_eth_address <= 11'h1;
+                        slot_rx_eth_address <= 11'h3;
                     end
                     11'd7: begin // skip
-                        slot_rx_eth_address <= 11'h1;
+                        slot_rx_eth_address <= 11'h3;
                     end
                     // Ethernet frame
                     default: begin

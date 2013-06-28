@@ -85,7 +85,8 @@ always @(posedge clk_125 or negedge rstn) begin
    end
 end
 
-reg [ 3:0] slots_status = 4'b0000;
+reg [3:0] rx_slots_status = 4'b0000;
+reg [3:0] tx_slots_status = 4'b0000;
 
 pcie_top pcie (
     .refclkp                    ( refclkp )
@@ -99,7 +100,7 @@ pcie_top pcie (
   , .hdoutp0                    ( hdoutp )
   , .hdoutn0                    ( hdoutn )
   , .msi                        (  8'd0 )
-  , .inta_n                     (  ~slots_status[0] )
+  , .inta_n                     ( ~(rx_slots_status[0] | rx_slots_status[2]) )
   // This PCIe interface uses dynamic IDs.
   , .vendor_id                  (16'h3776)
   , .device_id                  (16'h8001)
@@ -237,77 +238,128 @@ assign phy1_rst_n = coldsys_rst520 & reset_n;
 
 
 //-------------------------------------
-// ethpipe Port1
+// ethpipe Port0
 //-------------------------------------
 
-// RX slot (A: host, B: ethernet)
-reg  [31:0] mem_dataA;
-reg  [ 3:0] mem_byte_enA;
-reg  [10:0] mem_addressA;
-reg         mem_wr_enA;
-wire [31:0] mem_qA;
-wire [31:0] mem_dataB;
-wire [ 3:0] mem_byte_enB;
-wire [10:0] mem_addressB;
-wire        mem_wr_enB;
-wire [31:0] mem_qB;
+// Slot0 RX (A: host, B: ethernet)
+reg  [31:0] mem0_dataA;
+reg  [ 3:0] mem0_byte_enA;
+reg  [10:0] mem0_addressA;
+reg         mem0_wr_enA;
+wire [31:0] mem0_qA;
+wire [31:0] mem0_dataB;
+wire [ 3:0] mem0_byte_enB;
+wire [10:0] mem0_addressB;
+wire        mem0_wr_enB;
+wire [31:0] mem0_qB;
 ram_dp_true mem0read (
-    .DataInA(mem_dataA)
-  , .DataInB(mem_dataB)
-  , .ByteEnA(mem_byte_enA)
-  , .ByteEnB(mem_byte_enB)
-  , .AddressA(mem_addressA)
-  , .AddressB(mem_addressB)
+    .DataInA(mem0_dataA)
+  , .DataInB(mem0_dataB)
+  , .ByteEnA(mem0_byte_enA)
+  , .ByteEnB(mem0_byte_enB)
+  , .AddressA(mem0_addressA)
+  , .AddressB(mem0_addressB)
   , .ClockA(clk_125)
   , .ClockB(phy1_rx_clk)
   , .ClockEnA(core_rst_n)
   , .ClockEnB(core_rst_n)
-  , .WrA(mem_wr_enA)
-  , .WrB(mem_wr_enB)
+  , .WrA(mem0_wr_enA)
+  , .WrB(mem0_wr_enB)
   , .ResetA(~core_rst_n)
   , .ResetB(~core_rst_n)
-  , .QA(mem_qA)
-  , .QB(mem_qB)
+  , .QA(mem0_qA)
+  , .QB(mem0_qB)
 );
+
+// Slot1 RX (A: host, B: ethernet)
+reg  [31:0] mem1_dataA;
+reg  [ 3:0] mem1_byte_enA;
+reg  [10:0] mem1_addressA;
+reg         mem1_wr_enA;
+wire [31:0] mem1_qA;
+wire [31:0] mem1_dataB;
+wire [ 3:0] mem1_byte_enB;
+wire [10:0] mem1_addressB;
+wire        mem1_wr_enB;
+wire [31:0] mem1_qB;
+ram_dp_true mem1read (
+    .DataInA(mem1_dataA)
+  , .DataInB(mem1_dataB)
+  , .ByteEnA(mem1_byte_enA)
+  , .ByteEnB(mem1_byte_enB)
+  , .AddressA(mem1_addressA)
+  , .AddressB(mem1_addressB)
+  , .ClockA(clk_125)
+  , .ClockB(phy2_rx_clk)
+  , .ClockEnA(core_rst_n)
+  , .ClockEnB(core_rst_n)
+  , .WrA(mem1_wr_enA)
+  , .WrB(mem1_wr_enB)
+  , .ResetA(~core_rst_n)
+  , .ResetB(~core_rst_n)
+  , .QA(mem1_qA)
+  , .QB(mem1_qB)
+);
+
 
 reg         global_counter_rst;
 wire [63:0] global_counter;
-wire [63:0] rx_timestamp;
-wire [11:0] rx_frame_len;
-wire        rx_slot_ready;
+wire        slot0_rx_ready;
+wire        slot1_rx_ready;
 ethpipe ethpipe_ins (
   // system
     .sys_rst(~core_rst_n)
 
-  , .global_counter_rst(global_counter_rst)
-  , .global_counter(global_counter)
-
-  // GMII interfaces
-  , .gmii_tx_clk(phy1_125M_clk)
-  , .gmii_txd()
-  , .gmii_tx_en()
-  , .gmii_rxd(phy1_rx_data)
-  , .gmii_rx_dv(phy1_rx_dv)
-  , .gmii_rx_clk(phy1_rx_clk)
-
   // PCI user registers
   , .pci_clk(clk_125)
 
-  // RX frame slot
-  , .slot_rx_eth_data(mem_dataB)
-  , .slot_rx_eth_byte_en(mem_byte_enB)
-  , .slot_rx_eth_address(mem_addressB)
-  , .slot_rx_eth_wr_en(mem_wr_enB)
-  , .slot_rx_eth_q(mem_qB)
+  , .global_counter_rst(global_counter_rst)
+  , .global_counter(global_counter)
 
-  , .rx_empty(slots_status[1])      // RX slot empty
-  , .rx_complete(rx_slot_ready)     // RX slot read ready
+  // Port 0
+  , .gmii0_tx_clk(phy1_125M_clk)
+  , .gmii0_txd()
+  , .gmii0_tx_en()
+  , .gmii0_rxd(phy1_rx_data)
+  , .gmii0_rx_dv(phy1_rx_dv)
+  , .gmii0_rx_clk(phy1_rx_clk)
+
+  , .slot0_rx_eth_data(mem0_dataB)
+  , .slot0_rx_eth_byte_en(mem0_byte_enB)
+  , .slot0_rx_eth_address(mem0_addressB)
+  , .slot0_rx_eth_wr_en(mem0_wr_enB)
+//  , .slot0_rx_eth_q(mem0_qB)
+
+  , .slot0_rx_empty(rx_slots_status[1])      // RX slot empty
+  , .slot0_rx_complete(slot0_rx_ready)       // RX slot read ready
+
+  // Port 1
+  , .gmii1_tx_clk(phy2_125M_clk)
+  , .gmii1_txd()
+  , .gmii1_tx_en()
+  , .gmii1_rxd(phy2_rx_data)
+  , .gmii1_rx_dv(phy2_rx_dv)
+  , .gmii1_rx_clk(phy2_rx_clk)
+
+  , .slot1_rx_eth_data(mem1_dataB)
+  , .slot1_rx_eth_byte_en(mem1_byte_enB)
+  , .slot1_rx_eth_address(mem1_addressB)
+  , .slot1_rx_eth_wr_en(mem1_wr_enB)
+//  , .slot1_rx_eth_q(mem1_qB)
+
+  , .slot1_rx_empty(rx_slots_status[3])      // RX slot empty
+  , .slot1_rx_complete(slot1_rx_ready)       // RX slot read ready
 );
 assign phy1_mii_clk  = 1'b0;
 assign phy1_mii_data = 1'b0;
 assign phy1_tx_en    = 1'b0;
 assign phy1_tx_data  = 8'h0;
 assign phy1_gtx_clk  = phy1_125M_clk;
+assign phy2_mii_clk  = 1'b0;
+assign phy2_mii_data = 1'b0;
+assign phy2_tx_en    = 1'b0;
+assign phy2_tx_data  = 8'h0;
+assign phy2_gtx_clk  = phy2_125M_clk;
 
 
 //-------------------------------------
@@ -323,23 +375,32 @@ reg [15:0] prev_data = 16'h0;
 always @(posedge clk_125 or negedge core_rst_n) begin
     if (!core_rst_n) begin
         wb_dat             <= 16'h0;
-        mem_dataA          <= 32'h0;
-        mem_wr_enA         <= 1'b0;
-        mem_byte_enA       <= 4'b0;
-        mem_addressA       <= 11'b0;
         global_counter_rst <= 1'b0;
-        slots_status[3:0]  <= 4'b0;
+        rx_slots_status    <= 4'b0;
+
+        mem0_dataA         <= 32'h0;
+        mem0_wr_enA        <= 1'b0;
+        mem0_byte_enA      <= 4'b0;
+        mem0_addressA      <= 11'b0;
+        mem1_dataA         <= 32'h0;
+        mem1_wr_enA        <= 1'b0;
+        mem1_byte_enA      <= 4'b0;
+        mem1_addressA      <= 11'b0;
     end else begin
         waiting <= 2'h0;
         wb_ack  <= 1'b0;
 
         global_counter_rst <= 1'b0;
 
-        if (rx_slot_ready) begin
-            slots_status[1:0] <= 2'b01;
+        if (slot0_rx_ready) begin
+            rx_slots_status[1:0] <= 2'b01;
         end
 
-        mem_wr_enA <= 1'b0;
+        if (slot1_rx_ready) begin
+            rx_slots_status[3:2] <= 2'b01;
+        end
+
+        mem0_wr_enA <= 1'b0;
         case (pcie_adr[15:13])
             // global config
             3'b000: begin
@@ -349,10 +410,10 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                         // slots status
                         3'b000: begin
                             if (rd) begin
-                                wb_dat <= { 12'b0, slots_status };
+                                wb_dat <= { 12'b0, rx_slots_status };
                             end else if (wr) begin
                                 if (pcie_sel[1])
-                                    slots_status <= pcie_dat_o[3:0];
+                                    rx_slots_status <= pcie_dat_o[3:0];
                             end
                         end
                         // global counter [15:0]
@@ -391,48 +452,73 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                 end
             end
             // RX0
-            //3'b000: begin
-            //end
-            // TX0
-            //3'b000: begin
-            //end
-            // RX1
             3'b100: begin
                 wb_ack <= next_wb_ack;
                 if (rd) begin
                     if (pcie_adr[1] == 1'b0) begin
                         if (waiting == 2'h0 || waiting == 2'h1) begin
-                            mem_addressA <= pcie_adr[12:2] + 12'h1;
+                            mem0_addressA <= pcie_adr[12:2] + 12'h1;
                             wb_ack  <= 1'b0;
                         end else if (waiting == 2'h2) begin
-                            wb_dat  <= mem_qA[15:0];
+                            wb_dat  <= mem0_qA[15:0];
                             waiting <= 2'h0;
                         end
                         waiting <= waiting + 2'h1;
                     end else begin
-                        wb_dat  <= mem_qA[31:16];
+                        wb_dat  <= mem0_qA[31:16];
                     end
                 end else if (wr) begin
-                    mem_wr_enA   <= 1'b1;
-                    mem_addressA <= pcie_adr[12:2] + 12'h1;
+                    mem0_wr_enA   <= 1'b1;
+                    mem0_addressA <= pcie_adr[12:2] + 12'h1;
                     if (pcie_adr[1] == 1'b0) begin
-                        mem_byte_enA <= {2'b00, pcie_sel[0], pcie_sel[1]};
+                        mem0_byte_enA <= {2'b00, pcie_sel[0], pcie_sel[1]};
                         if (pcie_sel[0])
-                            mem_dataA[15:8] <= pcie_dat_o[15:8];
+                            mem0_dataA[15:8] <= pcie_dat_o[15:8];
                         if (pcie_sel[1])
-                            mem_dataA[7:0]  <= pcie_dat_o[7:0];
+                            mem0_dataA[7:0]  <= pcie_dat_o[7:0];
                     end else begin
-                        mem_byte_enA <= {pcie_sel[0], pcie_sel[1], 2'b00};
+                        mem0_byte_enA <= {pcie_sel[0], pcie_sel[1], 2'b00};
                         if (pcie_sel[0])
-                            mem_dataA[31:24] <= pcie_dat_o[15:8];
+                            mem0_dataA[31:24] <= pcie_dat_o[15:8];
                         if (pcie_sel[1])
-                            mem_dataA[23:16] <= pcie_dat_o[7:0];
+                            mem0_dataA[23:16] <= pcie_dat_o[7:0];
                     end
                 end
             end
-            // TX1
-            //3'b101: begin
-            //end
+            // RX1
+            3'b101: begin
+                wb_ack <= next_wb_ack;
+                if (rd) begin
+                    if (pcie_adr[1] == 1'b0) begin
+                        if (waiting == 2'h0 || waiting == 2'h1) begin
+                            mem1_addressA <= pcie_adr[12:2] + 12'h1;
+                            wb_ack  <= 1'b0;
+                        end else if (waiting == 2'h2) begin
+                            wb_dat  <= mem1_qA[15:0];
+                            waiting <= 2'h0;
+                        end
+                        waiting <= waiting + 2'h1;
+                    end else begin
+                        wb_dat  <= mem1_qA[31:16];
+                    end
+                end else if (wr) begin
+                    mem1_wr_enA   <= 1'b1;
+                    mem1_addressA <= pcie_adr[12:2] + 12'h1;
+                    if (pcie_adr[1] == 1'b0) begin
+                        mem1_byte_enA <= {2'b00, pcie_sel[0], pcie_sel[1]};
+                        if (pcie_sel[0])
+                            mem1_dataA[15:8] <= pcie_dat_o[15:8];
+                        if (pcie_sel[1])
+                            mem1_dataA[7:0]  <= pcie_dat_o[7:0];
+                    end else begin
+                        mem1_byte_enA <= {pcie_sel[0], pcie_sel[1], 2'b00};
+                        if (pcie_sel[0])
+                            mem1_dataA[31:24] <= pcie_dat_o[15:8];
+                        if (pcie_sel[1])
+                            mem1_dataA[23:16] <= pcie_dat_o[7:0];
+                    end
+                end
+            end
             default: begin
                 wb_ack <= next_wb_ack;
                 if (rd)

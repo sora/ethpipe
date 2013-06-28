@@ -1,4 +1,4 @@
-SIM_SRC=tb_ethpipe.v ../../crc/rtl/crc.v ../../clk_sync/rtl/clk_sync.v ../rtl/ethpipe.v
+SIM_SRC=tb_ethpipe.v ../../crc/rtl/crc.v ../../clk_sync/rtl/clk_sync.v ../rtl/ethpipe.v ../rtl/ethpipe_port.v
 
 test: request.hex isim
 

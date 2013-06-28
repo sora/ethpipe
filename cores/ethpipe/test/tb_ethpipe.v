@@ -58,23 +58,40 @@ ethpipe ethpipe_ins (
   , .global_counter_rst(global_counter_rst)
   , .global_counter(global_counter)
 
-  // GMII interfaces
-  , .gmii_tx_clk(phy_tx_clk)
-  , .gmii_txd()
-  , .gmii_tx_en()
-  , .gmii_rxd(rxd)
-  , .gmii_rx_dv(rx_dv)
-  , .gmii_rx_clk(phy_rx_clk)
+  /* Port 0 */
+  , .gmii0_tx_clk(phy_tx_clk)
+  , .gmii0_txd()
+  , .gmii0_tx_en()
+  , .gmii0_rxd(rxd)
+  , .gmii0_rx_dv(rx_dv)
+  , .gmii0_rx_clk(phy_rx_clk)
 
-  // RX frame slot
-  , .slot_rx_eth_data(slot_rx_eth_data)
-  , .slot_rx_eth_byte_en(slot_rx_eth_byte_en)
-  , .slot_rx_eth_address(slot_rx_eth_address)
-  , .slot_rx_eth_wr_en(slot_rx_eth_wr_en)
-  , .slot_rx_eth_q(slot_rx_eth_q)
+  , .slot0_rx_eth_data(slot_rx_eth_data)
+  , .slot0_rx_eth_byte_en(slot_rx_eth_byte_en)
+  , .slot0_rx_eth_address(slot_rx_eth_address)
+  , .slot0_rx_eth_wr_en(slot_rx_eth_wr_en)
+//  , .slot0_rx_eth_q(slot_rx_eth_q)
 
-  , .rx_empty(rx_empty)           // RX slot empty
-  , .rx_complete(rx_complete)     // RX slot read ready
+  , .slot0_rx_empty(rx_empty)           // RX slot empty
+  , .slot0_rx_complete(rx_complete)     // RX slot read ready
+
+  /* Port 1*/
+  , .gmii1_tx_clk()
+  , .gmii1_txd()
+  , .gmii1_tx_en()
+  , .gmii1_rxd()
+  , .gmii1_rx_dv()
+  , .gmii1_rx_clk()
+
+  , .slot1_rx_eth_data()
+  , .slot1_rx_eth_byte_en()
+  , .slot1_rx_eth_address()
+  , .slot1_rx_eth_wr_en()
+//  , .slot1_rx_eth_q()
+
+  , .slot1_rx_empty()           // RX slot empty
+  , .slot1_rx_complete()     // RX slot read ready
+
 );
 
 

@@ -4,6 +4,7 @@
     <Implementation title="impl1" dir="impl1" description="impl1" default_strategy="Strategy1">
         <Options>
             <Option name="HDL type" value="Verilog"/>
+            <Option name="def_top" value="pll"/>
             <Option name="top" value="top"/>
         </Options>
         <Source name="../rtl/wb_tlc/sync_logic.v" type="Verilog" type_short="Verilog">
@@ -46,7 +47,7 @@
             <Options/>
         </Source>
         <Source name="../rtl/ecp3/ethpipe_top.v" type="Verilog" type_short="Verilog">
-            <Options/>
+            <Options top_module="top"/>
         </Source>
         <Source name="../rtl/ipexpress/ecp3/pciex1/pcie_bb.v" type="Verilog" type_short="Verilog">
             <Options/>
@@ -69,7 +70,10 @@
         <Source name="../../../cores/ethpipe/rtl/ethpipe.v" type="Verilog" type_short="Verilog">
             <Options/>
         </Source>
-        <Source name="impl1.xcf" type="ispVM Download Project" type_short="ispVM" excluded="TRUE">
+        <Source name="../../../cores/ethpipe/rtl/ethpipe_port.v" type="Verilog" type_short="Verilog">
+            <Options/>
+        </Source>
+        <Source name="impl1/impl1.xcf" type="ispVM Download Project" type_short="ispVM">
             <Options/>
         </Source>
         <Source name="top.lpf" type="Logic Preference" type_short="LPF">

@@ -202,7 +202,7 @@ static struct file_operations ethpipe_fops = {
 
 static struct miscdevice ethpipe_dev = {
 	.minor = MISC_DYNAMIC_MINOR,
-	.name = "ethpipe",
+	.name = DRV_NAME,
 	.fops = &ethpipe_fops,
 };
 

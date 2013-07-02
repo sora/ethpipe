@@ -9,7 +9,16 @@
 #include <linux/interrupt.h>
 #include <linux/version.h>
 
-#define	DRV_NAME	"ethpipe"
+#ifndef DRV_NAME
+#define DRV_NAME        "ethpipe"
+#endif
+#ifndef RX_ADDR
+#define RX_ADDR         0x8000
+#endif
+#ifndef TX_ADDR
+#define TX_ADDR         0x9000
+#endif
+
 #define	DRV_VERSION	"0.0.2"
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
 #define	PACKET_BUF_MAX	(1024*1024)
@@ -48,7 +57,7 @@ static irqreturn_t ethpipe_interrupt(int irq, struct pci_dev *pdev)
 {
 	unsigned int frame_len;
 
-	frame_len = *(short *)(mmio_ptr + 0x800c);
+	frame_len = *(short *)(mmio_ptr + RX_ADDR + 0x0c);
 #ifdef DEBUG
 	printk("%s\n", __func__);
 	printk( "frame_len=%d\n", frame_len);
@@ -68,9 +77,9 @@ static irqreturn_t ethpipe_interrupt(int irq, struct pci_dev *pdev)
 		pbuf0.rx_write_ptr = pbuf0.rx_start_ptr;
 	}
 
-	memcpy(pbuf0.rx_write_ptr+0x04, mmio_ptr+0x8000, 0x0c);
-	memcpy(pbuf0.rx_write_ptr+0x10, mmio_ptr+0x8010, frame_len);
-
+	memcpy(pbuf0.rx_write_ptr+0x04, mmio_ptr+RX_ADDR, 0x0c);
+	memcpy(pbuf0.rx_write_ptr+0x10, mmio_ptr+RX_ADDR+0x10, frame_len);
+	
 	pbuf0.rx_write_ptr[0x00] = 0x55;			/* magic code 0x55d5 */
 	pbuf0.rx_write_ptr[0x01] = 0xd5;
 	*(short *)(pbuf0.rx_write_ptr + 2) = frame_len;

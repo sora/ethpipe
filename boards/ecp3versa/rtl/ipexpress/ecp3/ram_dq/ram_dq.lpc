@@ -1,0 +1,49 @@
+[Device]
+Family=latticeecp3
+PartType=LFE3-35EA
+PartName=LFE3-35EA-8FN484C
+SpeedGrade=8
+Package=FPBGA484
+OperatingCondition=COM
+Status=P
+
+[IP]
+VendorName=Lattice Semiconductor Corporation
+CoreType=LPM
+CoreStatus=Demo
+CoreName=RAM_DQ
+CoreRevision=7.2
+ModuleName=ram_dq
+SourceFormat=Verilog HDL
+ParameterFileVersion=1.0
+Date=06/28/2013
+Time=23:31:06
+
+[Parameters]
+Verilog=1
+VHDL=0
+EDIF=1
+Destination=Synplicity
+Expression=BusA(0 to 7)
+Order=Big Endian [MSB:LSB]
+IO=0
+Address=16384
+Data=16
+enByte=1
+ByteSize=8
+outPipeline=0
+GSR=Enabled
+Reset=Sync
+MemFile=
+MemFormat=bin
+EnECC=0
+Write=Normal
+adPipeline=0
+inPipeline=0
+MOR=0
+Pad=0
+Optimization=Area
+Pipeline=0
+
+[FilesGenerated]
+=mem

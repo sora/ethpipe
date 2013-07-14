@@ -158,7 +158,6 @@ assign phy_l0         = (phy_ltssm_state == 'd3) ;
 pcs_pipe_top u1_pcs_pipe (
         .refclkp                ( refclkp ), 
         .refclkn                ( refclkn ), 
-        .ffc_quad_rst           ( ~ext_reset_n ), 
         .RESET_n                ( ext_reset_n ),
 
         .hdinp0                 ( hdinp0 ), 

@@ -182,8 +182,8 @@ reg [15:0] tx_tlp_cnt;
 reg [15:0] rx_tlp_cnt;
 always @(posedge clk_125 or negedge core_rst_n)
    if (!core_rst_n) begin
-      tx_st_d <= 0;
-      rx_st_d <= 0;
+      tx_st_d    <= 0;
+      rx_st_d    <= 0;
       tx_tlp_cnt <= 0;
       rx_tlp_cnt <= 0;
    end else begin
@@ -235,7 +235,7 @@ wire coldsys_rst520 = (coldsys_rst==10'd520);
 always @(posedge clk_125)
     coldsys_rst <= !coldsys_rst520 ? coldsys_rst + 10'd1 : 10'd520;
 assign phy1_rst_n = coldsys_rst520 & reset_n;
-
+assign phy2_rst_n = coldsys_rst520 & reset_n;
 
 //-------------------------------------
 // ethpipe Port0
@@ -370,7 +370,7 @@ assign wr = pcie_we && pcie_cyc && pcie_stb;
 reg [15:0] wb_dat;
 reg wb_ack;
 assign next_wb_ack = ~wb_ack && pcie_cyc && pcie_stb;
-reg [ 1:0] waiting;
+reg [ 1:0] mem_rd_waiting;
 reg [15:0] prev_data = 16'h0;
 always @(posedge clk_125 or negedge core_rst_n) begin
     if (!core_rst_n) begin
@@ -387,8 +387,8 @@ always @(posedge clk_125 or negedge core_rst_n) begin
         mem1_byte_enA      <= 4'b0;
         mem1_addressA      <= 11'b0;
     end else begin
-        waiting <= 2'h0;
-        wb_ack  <= 1'b0;
+        mem_rd_waiting <= 2'h0;
+        wb_ack         <= 1'b0;
 
         global_counter_rst <= 1'b0;
 
@@ -456,16 +456,16 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                 wb_ack <= next_wb_ack;
                 if (rd) begin
                     if (pcie_adr[1] == 1'b0) begin
-                        if (waiting == 2'h0 || waiting == 2'h1) begin
+                        if (mem_rd_waiting == 2'h0 || mem_rd_waiting == 2'h1) begin
                             mem0_addressA <= pcie_adr[12:2] + 12'h1;
                             wb_ack  <= 1'b0;
-                        end else if (waiting == 2'h2) begin
-                            wb_dat  <= mem0_qA[15:0];
-                            waiting <= 2'h0;
+                        end else if (mem_rdwaiting == 2'h2) begin
+                            wb_dat         <= mem0_qA[15:0];
+                            mem_rd_waiting <= 2'h0;
                         end
-                        waiting <= waiting + 2'h1;
+                        mem_rd_waiting <= mem_rd_waiting + 2'h1;
                     end else begin
-                        wb_dat  <= mem0_qA[31:16];
+                        wb_dat <= mem0_qA[31:16];
                     end
                 end else if (wr) begin
                     mem0_wr_enA   <= 1'b1;
@@ -490,16 +490,16 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                 wb_ack <= next_wb_ack;
                 if (rd) begin
                     if (pcie_adr[1] == 1'b0) begin
-                        if (waiting == 2'h0 || waiting == 2'h1) begin
+                        if (mem_rd_waiting == 2'h0 || mem_rd_waiting == 2'h1) begin
                             mem1_addressA <= pcie_adr[12:2] + 12'h1;
                             wb_ack  <= 1'b0;
-                        end else if (waiting == 2'h2) begin
-                            wb_dat  <= mem1_qA[15:0];
-                            waiting <= 2'h0;
+                        end else if (mem_rd_waiting == 2'h2) begin
+                            wb_dat         <= mem1_qA[15:0];
+                            mem_rd_waiting <= 2'h0;
                         end
-                        waiting <= waiting + 2'h1;
+                        mem_rd_waiting <= mem_rd_waiting + 2'h1;
                     end else begin
-                        wb_dat  <= mem1_qA[31:16];
+                        wb_dat <= mem1_qA[31:16];
                     end
                 end else if (wr) begin
                     mem1_wr_enA   <= 1'b1;
@@ -509,7 +509,7 @@ always @(posedge clk_125 or negedge core_rst_n) begin
                         if (pcie_sel[0])
                             mem1_dataA[15:8] <= pcie_dat_o[15:8];
                         if (pcie_sel[1])
-                            mem1_dataA[7:0]  <= pcie_dat_o[7:0];
+                            mem1_dataA[7:0] <= pcie_dat_o[7:0];
                     end else begin
                         mem1_byte_enA <= {pcie_sel[0], pcie_sel[1], 2'b00};
                         if (pcie_sel[0])

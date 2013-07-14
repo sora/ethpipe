@@ -141,11 +141,6 @@ always @(posedge gmii_rx_clk) begin
         end
     end
 end
-
-
-//-------------------------------------
-// clock sync
-//-------------------------------------
 clk_sync pcie2gmii_sync (
     .clk1 (pci_clk)
   , .i    (slot_rx_empty)
@@ -158,6 +153,167 @@ clk_sync_ashot gmii2pcie_sync (
   , .clk2 (pci_clk)
   , .o    (slot_rx_complete)
 );
+
+
+//-------------------------------------
+// Ether frame sender
+//-------------------------------------
+reg         crc_rd;
+wire        crc_init = (tx_counter == 12'h08);
+wire [31:0] crc_out;
+wire        crc_data_en = ~crc_rd;
+crc_gen tx_fcs_gen (        // TX ethernet FCS generater
+    .Reset(~sys_rst)
+  , .Clk(gmii_tx_clk)
+  , .Init(crc_init)
+  , .Frame_data(gmii_txd)
+  , .Data_en(crc_data_en)
+  , .CRC_rd(crc_rd)
+  , .CRC_end()
+  , .CRC_out(crc_out)
+);
+
+parameter [1:0]    // TX status
+    TX_IDLE     = 2'b00
+  , TX_SENDING  = 2'b01
+  , TX_COMPLETE = 2'b10;
+
+// sender logic
+reg [11:0] tx_counter;
+reg [ 1:0] tx_status;
+wire       tx_ready_eth;
+
+reg [15:0] txd_mem_buf_init;
+reg [31:0] txd_mem_buf;
+
+reg [63:0] tx_timestamp;
+//reg [31:0] tx_hash;
+reg [15:0] tx_ethlen;
+
+always @(posedge gmii_tx_clk) begin
+    if (sys_rst) begin
+        tx_counter          <= 12'd0;
+        slot_tx_eth_address <= 11'b0;
+        txd_mem_buf         <= 32'b0;
+        txd_mem_buf_init    <= 16'b0;
+    end else begin
+        gmii_tx_en <= 1'b0;
+        case (tx_status)
+            TX_IDLE: begin
+                if (tx_ready_eth == 1'b1) begin
+                    tx_counter          <= 12'd0;
+                    tx_status           <= TX_SENDING;
+                    slot_tx_eth_address <= 11'h0;
+                end
+            end
+            TX_SENDING: begin
+
+                // tx_counter
+                tx_counter <= tx_counter + 12'd1;
+
+                // gmii_tx_en
+                gmii_tx_en <= 1'b1;
+
+                // gmii_txd
+                case (tx_counter)
+                    12'd0:
+                        gmii_txd <= 8'h55;                // preamble
+                    12'd1: begin
+                        gmii_txd <= 8'h55;
+
+                        slot_tx_eth_address <= 11'h1;
+                        tx_timestamp[31:0]  <= { slot_tx_eth_q[7:0], slot_tx_eth_q[15:8], slot_tx_eth_q[23:16], slot_tx_eth_q[31:24] };
+                    end
+                    12'd2:
+                        gmii_txd <= 8'h55;
+                    12'd3: begin
+                        gmii_txd <= 8'h55;
+
+                        slot_tx_eth_address <= 11'h3;
+                        tx_timestamp[63:32] <= { slot_tx_eth_q[7:0], slot_tx_eth_q[15:8], slot_tx_eth_q[23:16], slot_tx_eth_q[31:24] };
+                    end
+                    12'd4:
+                        gmii_txd <= 8'h55;
+                    12'd5: begin
+                        gmii_txd            <= 8'h55;
+
+                        slot_tx_eth_address <= 11'h4;
+                        tx_ethlen           <= { slot_tx_eth_q[23:16], slot_tx_eth_q[31:24] };
+                        txd_mem_buf_init    <= slot_tx_eth_q[15:0];
+                    end
+                    12'd6:
+                        gmii_txd <= 8'h55;
+                    12'd7:
+                        gmii_txd <= 8'hd5;                // preamble + SFD
+                    12'd8: begin
+                        gmii_txd <= txd_mem_buf_init[15:8];
+
+                        slot_tx_eth_address <= 11'h5;
+                    end
+                    12'd9:
+                        gmii_txd <= txd_mem_buf_init[7:0];
+                    default: begin
+                        if (tx_counter == tx_ethlen[10:0] + 11'd8) begin
+                            tx_status <= TX_COMPLETE;
+                            crc_rd    <= 1'b1;
+                            gmii_txd  <= crc_out[31:24];
+                        end else begin
+                            case (tx_counter[1:0])
+                                2'b00: begin
+                                    gmii_txd <= txd_mem_buf[15:8];
+
+                                    slot_tx_eth_address <= { 2'b00, tx_counter[11:2] } + 12'd3;
+                                end
+                                2'b01: begin
+                                    gmii_txd <= txd_mem_buf[7:0];
+                                end
+                                2'b10: begin
+                                    gmii_txd <= slot_tx_eth_q[31:24];
+
+                                    txd_mem_buf <= slot_tx_eth_q;
+                                end
+                                2'b11: begin
+                                    gmii_txd <= txd_mem_buf[23:16];
+                                end
+                            endcase
+                        end
+                    end
+                endcase
+            end
+            TX_COMPLETE: begin
+                tx_comp_counter <= tx_comp_counter + 2'd1;
+                
+                cace (tx_comp_counter)
+                  2'b00: begin
+                  end
+                  2'b01: begin
+                  end
+                  2'b10: begin
+                  end
+                  2'b11: begin
+                  end
+                tx_counter <= 12'b0;
+                tx_status <= TX_IDLE;
+            end
+            default:
+                tx_status <= TX_IDLE;
+        endcase
+    end
+end
+// clock sync
+clk_sync tx_pcie2gmii_sync (
+    .clk1 (pci_clk)
+  , .i    (tx_ready)            // input
+  , .clk2 (gmii_tx_clk)
+  , .o    (tx_ready_eth)
+);
+clk_sync_ashot tx_gmii2pcie_sync (
+    .clk1 (gmii_tx_clk)
+  , .i    (tx_status[1])
+  , .clk2 (pci_clk)
+  , .o    (tx_complete)         // output
+);
+
 
 endmodule
 

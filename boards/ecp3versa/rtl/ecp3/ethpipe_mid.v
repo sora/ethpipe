@@ -125,6 +125,12 @@ pcie_tlp inst_pcie_tlp (
   , .btn()
 );
 
+// DMA regs
+reg [31:2] dma_addr_start;
+reg [31:2] dma_addr_end;
+reg [31:2] dma_addr_cur;
+reg [7:0]  dma_status;
+
 reg [3:0] rx_slots_status = 4'b0000;
 reg [3:0] tx_slots_status = 4'b0000;
 
@@ -261,44 +267,111 @@ always @(posedge clk_125) begin
 	if (sys_rst == 1'b1) begin
 		slv_dat0_o <= 16'h0;
 		segledr[13:0] <= 14'h3fff;
+		dma_status     <= 8'h00;
+		dma_addr_cur   <= ( 32'hd000_0000 >> 2 );
+		dma_addr_start <= ( 32'hd000_0000 >> 2 );
+		dma_addr_end   <= ( 32'hd001_0000 >> 2 );
 	end else begin
 		if (slv_bar_i[0] & slv_ce_i) begin
 			if (slv_adr_i[15:5] == 11'h0) begin
-				case (slv_adr_i[4:1])
-                      	  	// slots status
-					4'b0000: begin
+				slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
+				case (slv_adr_i[6:1])
+					// slots status
+					6'h00: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[0])
-              	                      			rx_slots_status <= slv_dat_i[3:0];
+								rx_slots_status <= slv_dat_i[3:0];
 						end else
 							slv_dat0_o <= { 12'b0, rx_slots_status };
 					end
 					// global counter [15:0]
-					4'b0010: begin
+					6'h02: begin
 						if (~slv_we_i) begin
 							slv_dat0_o <= global_counter[15:0];
 						end
 					end
 					// global counter [31:16]
-					4'b0011: begin
+					6'h03: begin
 						if (~slv_we_i) begin
 							slv_dat0_o <= global_counter[31:16];
 						end
 					end
 					// global counter [47:32]
-					4'b0100: begin
+					6'h04: begin
 						if (~slv_we_i) begin
 							slv_dat0_o <= global_counter[47:32];
 						end
 					end
 					// global counter [63:48]
-					4'b0101: begin
+					6'h05: begin
 						if (~slv_we_i) begin
 							slv_dat0_o <= global_counter[63:48];
 						end
 					end
-					default: begin
-						slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
+					// dma status regs
+					6'h08: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[0])
+								dma_status[ 7: 0] <= slv_dat_i[15:8];
+						end else
+							slv_dat0_o <= {dma_status[7:0], 8'h00};
+					end
+					// dma current address
+					6'h0a: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[0])
+								dma_addr_cur[ 7: 2] <= slv_dat_i[15:10];
+							if (slv_sel_i[1])
+								dma_addr_cur[15: 8] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {dma_addr_cur[7:2], 2'b00, dma_addr_cur[15:8]};
+					end
+					6'h0b: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[0])
+								dma_addr_cur[23:16] <= slv_dat_i[15: 8];
+							if (slv_sel_i[1])
+								dma_addr_cur[31:24] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {dma_addr_cur[23:16], dma_addr_cur[31:24]};
+					end
+					// dma start address
+					6'h0c: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[0])
+								dma_addr_start[ 7: 2] <= slv_dat_i[15:10];
+							if (slv_sel_i[1])
+								dma_addr_start[15: 8] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {dma_addr_start[7:2], 2'b00, dma_addr_start[15:8]};
+					end
+					6'h0d: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[0])
+								dma_addr_start[23:16] <= slv_dat_i[15: 8];
+							if (slv_sel_i[1])
+								dma_addr_start[31:24] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {dma_addr_start[23:16], dma_addr_start[31:24]};
+					end
+					// dma end address
+					6'h0e: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[0])
+								dma_addr_end[ 7: 2] <= slv_dat_i[15:10];
+							if (slv_sel_i[1])
+								dma_addr_end[15: 8] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {dma_addr_end[7:2], 2'b00, dma_addr_end[15:8]};
+					end
+					6'h0f: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[0])
+								dma_addr_end[23:16] <= slv_dat_i[15: 8];
+							if (slv_sel_i[1])
+								dma_addr_end[31:24] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {dma_addr_end[23:16], dma_addr_end[31:24]};
 					end
 				endcase
 			end

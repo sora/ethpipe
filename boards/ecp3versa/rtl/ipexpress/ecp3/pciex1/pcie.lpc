@@ -16,8 +16,8 @@ CoreRevision=5.3
 ModuleName=pcie
 SourceFormat=Verilog HDL
 ParameterFileVersion=1.0
-Date=07/05/2013
-Time=10:43:08
+Date=07/15/2013
+Time=18:30:12
 
 [Parameters]
 LANE_WIDTH=X1 Native
@@ -45,11 +45,11 @@ CLASS_CODE=000000
 REV_ID=00
 BIST=00
 HEADER_TYPE=00
-BAR0=fffc0000
+BAR0=fffff000
 EN_BAR0=1
 BAR1=00000000
 EN_BAR1=1
-BAR2=fc00000c
+BAR2=ffff000c
 EN_BAR2=1
 BAR3=ffffffff
 EN_BAR3=1

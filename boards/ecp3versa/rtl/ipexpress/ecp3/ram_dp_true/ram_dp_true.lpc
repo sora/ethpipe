@@ -16,8 +16,8 @@ CoreRevision=7.2
 ModuleName=ram_dp_true
 SourceFormat=Verilog HDL
 ParameterFileVersion=1.0
-Date=07/14/2013
-Time=22:58:17
+Date=07/15/2013
+Time=18:14:32
 
 [Parameters]
 Verilog=1
@@ -32,7 +32,7 @@ BAddress=4096
 AData=16
 BData=16
 enByte=1
-ByteSize=9
+ByteSize=8
 AadPipeline=0
 BadPipeline=0
 AinPipeline=0

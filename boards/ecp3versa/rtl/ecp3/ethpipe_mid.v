@@ -263,43 +263,45 @@ always @(posedge clk_125) begin
 		segledr[13:0] <= 14'h3fff;
 	end else begin
 		if (slv_bar_i[0] & slv_ce_i) begin
-			case (slv_adr_i[4:1])
-                        	// slots status
-				4'b0000: begin
-					if (slv_we_i) begin
-						if (slv_sel_i[0])
-                                    			rx_slots_status <= slv_dat_i[3:0];
-					end else
-						slv_dat0_o <= { 12'b0, rx_slots_status };
-				end
-				// global counter [15:0]
-				4'b0010: begin
-					if (~slv_we_i) begin
-						slv_dat0_o <= global_counter[15:0];
+			if (slv_adr_i[15:5] == 11'h0) begin
+				case (slv_adr_i[4:1])
+                      	  	// slots status
+					4'b0000: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[0])
+              	                      			rx_slots_status <= slv_dat_i[3:0];
+						end else
+							slv_dat0_o <= { 12'b0, rx_slots_status };
 					end
-				end
-				// global counter [31:16]
-				4'b0011: begin
-					if (~slv_we_i) begin
-						slv_dat0_o <= global_counter[31:16];
+					// global counter [15:0]
+					4'b0010: begin
+						if (~slv_we_i) begin
+							slv_dat0_o <= global_counter[15:0];
+						end
 					end
-				end
-				// global counter [47:32]
-				4'b0100: begin
-					if (~slv_we_i) begin
-						slv_dat0_o <= global_counter[47:32];
+					// global counter [31:16]
+					4'b0011: begin
+						if (~slv_we_i) begin
+							slv_dat0_o <= global_counter[31:16];
+						end
 					end
-				end
-				// global counter [63:48]
-				4'b0101: begin
-					if (~slv_we_i) begin
-						slv_dat0_o <= global_counter[63:48];
+					// global counter [47:32]
+					4'b0100: begin
+						if (~slv_we_i) begin
+							slv_dat0_o <= global_counter[47:32];
+						end
 					end
-				end
-				default: begin
-					slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
-				end
-			endcase
+					// global counter [63:48]
+					4'b0101: begin
+						if (~slv_we_i) begin
+							slv_dat0_o <= global_counter[63:48];
+						end
+					end
+					default: begin
+						slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
+					end
+				endcase
+			end
 		end
 	end
 end

@@ -9,7 +9,7 @@ Starting process: '"C:/lscc/diamond/2.2/bin/nt/synpwrap" -rem -e pcs_pipe_top -t
 
 End process: completed successfully.
 
-Starting process: '"C:/lscc/diamond/2.2/ispfpga/bin/nt/edif2ngd" -ip "Z:/tmatsuya/Dropbox/fpga/pciedma/boards/ecp3versa/rtl/ipexpress/ecp3/pciex1/syn_results" -ic pci_express_endpoint_v5.3 -l ep5c00 -nopropwarn "pcie.edi" "pcie.ngo"'
+Starting process: '"C:/lscc/diamond/2.2/ispfpga/bin/nt/edif2ngd" -ip "Z:/tmatsuya/Dropbox/fpga/ethpipe/boards/ecp3versa/rtl/ipexpress/ecp3/pciex1/syn_results" -ic pci_express_endpoint_v5.3 -l ep5c00 -nopropwarn "pcie.edi" "pcie.ngo"'
 edif2ngd:  version Diamond Version 2.2.0.101
 
 Copyright (c) 1991-1994 by NeoCAD Inc. All rights reserved.
@@ -23,38 +23,38 @@ Writing the design to pcie.ngo...
 
 Generating edif netlist for IP cell pmi_ram_dpebnonessen168256168256p136064bf.edn
 
-Z:\tmatsuya\Dropbox\fpga\pciedma\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type bram -wp 10 -rp 0011 -data_width 16 -num_rows 256 -rdata_width 16  -gsr ENABLED -sync_reset  -memformat bin -cascade -1 -n pmi_ram_dpEbnonessen168256168256p136064bf -pmi 
+Z:\tmatsuya\Dropbox\fpga\ethpipe\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type bram -wp 10 -rp 0011 -data_width 16 -num_rows 256 -rdata_width 16  -gsr ENABLED -sync_reset  -memformat bin -cascade -1 -n pmi_ram_dpEbnonessen168256168256p136064bf -pmi 
 Writing the design to pmi_ram_dpEbnonessen168256168256p136064bf.ngo...
 
 Generating edif netlist for IP cell pmi_ram_dpebnonessen208146208146p13602a55.edn
 
-Z:\tmatsuya\Dropbox\fpga\pciedma\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type bram -wp 10 -rp 0011 -data_width 20 -num_rows 146 -rdata_width 20  -gsr ENABLED -sync_reset  -memformat bin -cascade -1 -n pmi_ram_dpEbnonessen208146208146p13602a55 -pmi 
+Z:\tmatsuya\Dropbox\fpga\ethpipe\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type bram -wp 10 -rp 0011 -data_width 20 -num_rows 146 -rdata_width 20  -gsr ENABLED -sync_reset  -memformat bin -cascade -1 -n pmi_ram_dpEbnonessen208146208146p13602a55 -pmi 
 Writing the design to pmi_ram_dpEbnonessen208146208146p13602a55.ngo...
 
 Generating edif netlist for IP cell pmi_ram_dpebnonessen1610102416101024p13a7cbaa.edn
 
-Z:\tmatsuya\Dropbox\fpga\pciedma\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type bram -wp 10 -rp 0011 -data_width 16 -num_rows 1024 -rdata_width 16  -gsr ENABLED -sync_reset  -memformat bin -cascade -1 -n pmi_ram_dpEbnonessen1610102416101024p13a7cbaa -pmi 
+Z:\tmatsuya\Dropbox\fpga\ethpipe\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type bram -wp 10 -rp 0011 -data_width 16 -num_rows 1024 -rdata_width 16  -gsr ENABLED -sync_reset  -memformat bin -cascade -1 -n pmi_ram_dpEbnonessen1610102416101024p13a7cbaa -pmi 
 Writing the design to pmi_ram_dpEbnonessen1610102416101024p13a7cbaa.ngo...
 
 Generating edif netlist for IP cell pmi_distributed_dpramebnonen1416pb3f774f.edn
 
-Z:\tmatsuya\Dropbox\fpga\pciedma\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type sdpram -num_rows 16 -data_width 1   -memformat bin -n pmi_distributed_dpramEbnonen1416pb3f774f -pmi 
+Z:\tmatsuya\Dropbox\fpga\ethpipe\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type sdpram -num_rows 16 -data_width 1   -memformat bin -n pmi_distributed_dpramEbnonen1416pb3f774f -pmi 
 Writing the design to pmi_distributed_dpramEbnonen1416pb3f774f.ngo...
 
 Generating edif netlist for IP cell pmi_distributed_dpramebnoner16781pb2baaed.edn
 
-Z:\tmatsuya\Dropbox\fpga\pciedma\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type sdpram -num_rows 81 -data_width 16 -pipe_final_output  -memformat bin -n pmi_distributed_dpramEbnoner16781pb2baaed -pmi 
+Z:\tmatsuya\Dropbox\fpga\ethpipe\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type sdpram -num_rows 81 -data_width 16 -pipe_final_output  -memformat bin -n pmi_distributed_dpramEbnoner16781pb2baaed -pmi 
 Writing the design to pmi_distributed_dpramEbnoner16781pb2baaed.ngo...
 
 Generating edif netlist for IP cell pmi_ram_dpebnonessen1810102418101024p13a7dcc5.edn
 
-Z:\tmatsuya\Dropbox\fpga\pciedma\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type bram -wp 10 -rp 0011 -data_width 18 -num_rows 1024 -rdata_width 18  -gsr ENABLED -sync_reset  -memformat bin -cascade -1 -n pmi_ram_dpEbnonessen1810102418101024p13a7dcc5 -pmi 
+Z:\tmatsuya\Dropbox\fpga\ethpipe\boards\ecp3versa\rtl\ipexpress\ecp3\pciex1\syn_results>"C:/lscc/diamond/2.2/ispfpga/bin/nt/scuba" -w -bus_exp 7 -bb -arch ep5c00 -type bram -wp 10 -rp 0011 -data_width 18 -num_rows 1024 -rdata_width 18  -gsr ENABLED -sync_reset  -memformat bin -cascade -1 -n pmi_ram_dpEbnonessen1810102418101024p13a7dcc5 -pmi 
 Writing the design to pmi_ram_dpEbnonessen1810102418101024p13a7dcc5.ngo...
 
 
 End process: completed successfully.
 
-Starting process: '"C:/lscc/diamond/2.2/ispfpga/bin/nt/edif2ngd" -ip "Z:/tmatsuya/Dropbox/fpga/pciedma/boards/ecp3versa/rtl/ipexpress/ecp3/pciex1/syn_results" -ic pci_express_endpoint_v5.3 -l ep5c00 -nopropwarn "pcs_pipe_top.edi" "pcs_pipe_top.ngo"'
+Starting process: '"C:/lscc/diamond/2.2/ispfpga/bin/nt/edif2ngd" -ip "Z:/tmatsuya/Dropbox/fpga/ethpipe/boards/ecp3versa/rtl/ipexpress/ecp3/pciex1/syn_results" -ic pci_express_endpoint_v5.3 -l ep5c00 -nopropwarn "pcs_pipe_top.edi" "pcs_pipe_top.ngo"'
 edif2ngd:  version Diamond Version 2.2.0.101
 
 Copyright (c) 1991-1994 by NeoCAD Inc. All rights reserved.
@@ -70,13 +70,13 @@ Writing the design to pcs_pipe_top.ngo...
 End process: completed successfully.
 
 =============================================================================
-Filelist generated by IPexpress    07/05/2013    10:45:09          
+Filelist generated by IPexpress    07/15/2013    18:32:05          
 Filename: pcie_filelist.log                                         
 Copyright(c) 2009 Lattice Semiconductor Corporation. All rights reserved.   
 =============================================================================
 -----------------------------------------------------------------------------
 Basic IP Core Files
-Output Directory: Z:/tmatsuya/Dropbox/fpga/pciedma/boards/ecp3versa/rtl/ipexpress/ecp3/pciex1 
+Output Directory: Z:/tmatsuya/Dropbox/fpga/ethpipe/boards/ecp3versa/rtl/ipexpress/ecp3/pciex1 
 -----------------------------------------------------------------------------
   pcie.lpc
       : IP ispLEVER LPC File

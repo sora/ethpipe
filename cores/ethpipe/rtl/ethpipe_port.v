@@ -16,8 +16,8 @@ module ethpipe_port (
 
   // GMII interfaces
   , input  wire        gmii_tx_clk
-  , output wire [ 7:0] gmii_txd
-  , output wire        gmii_tx_en
+  , output reg  [ 7:0] gmii_txd
+  , output reg         gmii_tx_en
   , input  wire [ 7:0] gmii_rxd
   , input  wire        gmii_rx_dv
   , input  wire        gmii_rx_clk
@@ -181,7 +181,11 @@ parameter [1:0]    // TX status
 // sender logic
 reg [11:0] tx_counter;
 reg [ 1:0] tx_status;
+wire       tx_ready;
 wire       tx_ready_eth;
+wire       tx_complete;
+
+wire [31:0] slot_tx_eth_q;
 
 reg [15:0] txd_mem_buf_init;
 reg [31:0] txd_mem_buf;
@@ -189,6 +193,8 @@ reg [31:0] txd_mem_buf;
 reg [63:0] tx_timestamp;
 //reg [31:0] tx_hash;
 reg [15:0] tx_ethlen;
+reg [10:0] slot_tx_eth_address;
+reg [1:0]  tx_comp_counter;
 
 always @(posedge gmii_tx_clk) begin
     if (sys_rst) begin
@@ -283,7 +289,7 @@ always @(posedge gmii_tx_clk) begin
             TX_COMPLETE: begin
                 tx_comp_counter <= tx_comp_counter + 2'd1;
                 
-                cace (tx_comp_counter)
+                case (tx_comp_counter)
                   2'b00: begin
                   end
                   2'b01: begin
@@ -292,6 +298,7 @@ always @(posedge gmii_tx_clk) begin
                   end
                   2'b11: begin
                   end
+                endcase
                 tx_counter <= 12'b0;
                 tx_status <= TX_IDLE;
             end

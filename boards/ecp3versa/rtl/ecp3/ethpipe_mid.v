@@ -80,6 +80,7 @@ fifo fifo_wr_mstq (
 wire [17:0] rx1_phyq_din, rx1_phyq_dout;
 wire rx1_phyq_full, rx1_phyq_wr_en;
 wire rx1_phyq_empty, rx1_phyq_rd_en;
+wire [7:0] rx1_phyq_count;
 
 afifo18 afifo18_rx1_phyq (
         .Data(rx1_phyq_din),
@@ -98,6 +99,7 @@ afifo18 afifo18_rx1_phyq (
 wire [17:0] rx2_phyq_din, rx2_phyq_dout;
 wire rx2_phyq_full, rx2_phyq_wr_en;
 wire rx2_phyq_empty, rx2_phyq_rd_en;
+wire [7:0] rx2_phyq_count;
 
 afifo18 afifo18_rx2_phyq (
         .Data(rx2_phyq_din),
@@ -123,6 +125,7 @@ gmii2fifo18 # (
 	.din(rx1_phyq_din),
 	.full(rx1_phyq_full),
 	.wr_en(rx1_phyq_wr_en),
+	.wr_count(rx1_phyq_count),
 	.wr_clk()
 );
 
@@ -137,6 +140,7 @@ gmii2fifo18 # (
 	.din(rx2_phyq_din),
 	.full(rx2_phyq_full),
 	.wr_en(rx2_phyq_wr_en),
+	.wr_count(rx2_phyq_count),
 	.wr_clk()
 );
 
@@ -219,10 +223,12 @@ receiver receiver_inst (
 	.phy1_dout(rx1_phyq_dout),
 	.phy1_empty(rx1_phyq_empty),
 	.phy1_rd_en(rx1_phyq_rd_en),
+	.phy1_rx_count(rx1_phyq_count),
 	// Phy2 FIFO
 	.phy2_dout(rx2_phyq_dout),
 	.phy2_empty(rx2_phyq_empty),
 	.phy2_rd_en(rx2_phyq_rd_en),
+	.phy2_rx_count(rx2_phyq_count),
 	// Master FIFO
 	.mst_din(wr_mstq_din),
 	.mst_full(wr_mstq_full),

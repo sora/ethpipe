@@ -7,9 +7,11 @@ module receiver (
 	input [17:0] phy1_dout,
 	input phy1_empty,
 	output reg phy1_rd_en,
+	input [7:0] phy1_rx_count,
 	input [17:0] phy2_dout,
 	input phy2_empty,
 	output reg phy2_rd_en,
+	input [7:0] phy2_rx_count,
 	// Master FIFO
 	output reg [17:0] mst_din,
 	input mst_full,

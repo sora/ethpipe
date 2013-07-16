@@ -3,6 +3,7 @@ module receiver (
 	// System
 	input sys_clk,
 	input sys_rst,
+	input [63:0] global_counter,
 	// Phy FIFO
 	input [17:0] phy1_dout,
 	input phy1_empty,

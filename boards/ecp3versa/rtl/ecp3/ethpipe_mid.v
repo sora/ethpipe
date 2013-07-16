@@ -219,6 +219,7 @@ pcie_tlp inst_pcie_tlp (
 receiver receiver_inst (
 	.sys_clk(clk_125),
 	.sys_rst(sys_rst),
+	.global_counter(global_counter),
 	// Phy1 FIFO
 	.phy1_dout(rx1_phyq_dout),
 	.phy1_empty(rx1_phyq_empty),

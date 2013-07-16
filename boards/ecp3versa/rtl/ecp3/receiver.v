@@ -4,10 +4,10 @@ module receiver (
 	input sys_clk,
 	input sys_rst,
 	// Phy FIFO
-	output [8:0]  phy_din,
+	output [17:0]  phy_din,
 	input phy_full,
 	output reg  phy_wr_en,
-	input [8:0] phy_dout,
+	input [17:0] phy_dout,
 	input phy_empty,
 	output reg phy_rd_en,
 	// Master FIFO

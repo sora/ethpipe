@@ -76,12 +76,12 @@ fifo fifo_wr_mstq (
 	.Full(wr_mstq_full)
 );
 
-// PHY#1 RX Receove AFIFO
-wire [8:0] rx1_phyq_din, rx1_phyq_dout;
+// PHY#1 RX Receive AFIFO
+wire [17:0] rx1_phyq_din, rx1_phyq_dout;
 wire rx1_phyq_full, rx1_phyq_wr_en;
 wire rx1_phyq_empty, rx1_phyq_rd_en;
 
-afifo9 afifo9_rx1_phyq (
+afifo18 afifo18_rx1_phyq (
         .Data(rx1_phyq_din),
 	.WrClock(phy1_rx_clk),
 	.RdClock(clk_125),
@@ -94,8 +94,26 @@ afifo9 afifo9_rx1_phyq (
 	.Full(rx1_phyq_full)
 );
 
-// PHY#1 RX GMII2FIFO9 module
-gmii2fifo9 # (
+// PHY#2 RX Receive AFIFO
+wire [17:0] rx2_phyq_din, rx2_phyq_dout;
+wire rx2_phyq_full, rx2_phyq_wr_en;
+wire rx2_phyq_empty, rx2_phyq_rd_en;
+
+afifo18 afifo18_rx2_phyq (
+        .Data(rx2_phyq_din),
+	.WrClock(phy2_rx_clk),
+	.RdClock(clk_125),
+	.WrEn(rx2_phyq_wr_en),
+	.RdEn(rx2_phyq_rd_en),
+	.Reset(sys_rst),
+	.RPReset(sys_rst),
+	.Q(rx2_phyq_dout),
+	.Empty(rx2_phyq_empty),
+	.Full(rx2_phyq_full)
+);
+
+// PHY#1 RX GMII2FIFO18 module
+gmii2fifo18 # (
 	.Gap(4'h8)
 ) rx1gmii2fifo (
 	.sys_rst(sys_rst),
@@ -105,6 +123,20 @@ gmii2fifo9 # (
 	.din(rx1_phyq_din),
 	.full(rx1_phyq_full),
 	.wr_en(rx1_phyq_wr_en),
+	.wr_clk()
+);
+
+// PHY#2 RX GMII2FIFO18 module
+gmii2fifo18 # (
+	.Gap(4'h8)
+) rx2gmii2fifo (
+	.sys_rst(sys_rst),
+	.gmii_rx_clk(phy2_rx_clk),
+	.gmii_rx_dv(phy2_rx_dv),
+	.gmii_rxd(phy2_rx_data),
+	.din(rx2_phyq_din),
+	.full(rx2_phyq_full),
+	.wr_en(rx2_phyq_wr_en),
 	.wr_clk()
 );
 

@@ -4,7 +4,7 @@
     <Implementation title="impl1" dir="impl1" description="impl1" default_strategy="Strategy1">
         <Options>
             <Option name="HDL type" value="Verilog"/>
-            <Option name="def_top" value="ethpipe"/>
+            <Option name="def_top" value="afifo18"/>
             <Option name="top" value="top"/>
         </Options>
         <Source name="../rtl/ecp3/ethpipe_top.v" type="Verilog" type_short="Verilog">
@@ -28,7 +28,7 @@
         <Source name="../../../cores/ethpipe/rtl/ethpipe_port.v" type="Verilog" type_short="Verilog">
             <Options/>
         </Source>
-        <Source name="../../../cores/gmii2fifo9/rtl/gmii2fifo9.v" type="Verilog" type_short="Verilog">
+        <Source name="../../../cores/gmii2fifo18/rtl/gmii2fifo18.v" type="Verilog" type_short="Verilog">
             <Options/>
         </Source>
         <Source name="../../../cores/clk_sync/rtl/clk_sync.v" type="Verilog" type_short="Verilog">
@@ -46,7 +46,7 @@
         <Source name="../rtl/ipexpress/ecp3/fifo/fifo.ipx" type="IPX_Module" type_short="IPX">
             <Options/>
         </Source>
-        <Source name="../rtl/ipexpress/ecp3/afifo9/afifo9.ipx" type="IPX_Module" type_short="IPX">
+        <Source name="../rtl/ipexpress/ecp3/afifo18/afifo18.ipx" type="IPX_Module" type_short="IPX">
             <Options/>
         </Source>
         <Source name="impl1/impl1.xcf" type="Programming Project File" type_short="Programming">

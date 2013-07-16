@@ -46,10 +46,9 @@ reg gmii_rx_clk;
 reg [7:0] dipsw;
 wire [7:0] led;
 wire [13:0] segled;
-reg btn;
 
-pciedma pciedma_inst (
-	.pcie_clk(sys_clk),
+ethpipe_mid ethpipe_mid_inst (
+	.clk_125(sys_clk),
 	.sys_rst(sys_rst),
 	// Management
 	.rx_bar_hit(rx_bar_hit),
@@ -73,17 +72,16 @@ pciedma pciedma_inst (
 	.nph_cr(),
 	.npd_cr(),
 	// Phy
-	.gmii_tx_clk(gmii_tx_clk),
-	.gmii_txd(gmii_txd),
-	.gmii_tx_en(gmii_tx_en),
-	.gmii_rxd(gmii_rxd),
-	.gmii_rx_dv(gmii_rx_dv),
-	.gmii_rx_clk(gmii_rx_clk),
+	.phy1_tx_clk(gmii_tx_clk),
+	.phy1_tx_data(gmii_txd),
+	.phy1_tx_en(gmii_tx_en),
+	.phy1_rx_data(gmii_rxd),
+	.phy1_rx_dv(gmii_rx_dv),
+	.phy1_rx_clk(gmii_rx_clk),
 	// LED and Switches
 	.dipsw(),
 	.led(),
-	.segled(),
-	.btn()
+	.segled()
 );
 
 task waitclock;

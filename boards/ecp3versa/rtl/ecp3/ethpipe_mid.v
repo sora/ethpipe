@@ -3,9 +3,9 @@
 module ethpipe_mid  (
     input  clk_125
   , input  sys_rst
-  , input  [7:0] dip_switch
-  , output [13:0] led_out
-  , output dp
+  , input  [7:0] dipsw
+  , output [7:0] led
+  , output [13:0] segled
   // PCIe
   , input [6:0] rx_bar_hit
   , input [7:0] bus_num
@@ -60,6 +60,53 @@ module ethpipe_mid  (
   , inout  phy2_mii_data
 );
 
+// BUS Master Command FIFO
+wire [17:0] wr_mstq_din, wr_mstq_dout;
+wire wr_mstq_full, wr_mstq_wr_en;
+wire wr_mstq_empty, wr_mstq_rd_en;
+
+fifo fifo_wr_mstq (
+	.Data(wr_mstq_din),
+	.Clock(clk_125),
+	.WrEn(wr_mstq_wr_en),
+	.RdEn(wr_mstq_rd_en),
+	.Reset(sys_rst),
+	.Q(wr_mstq_dout),
+	.Empty(wr_mstq_empty),
+	.Full(wr_mstq_full)
+);
+
+// PHY#1 RX Receove AFIFO
+wire [8:0] rx1_phyq_din, rx1_phyq_dout;
+wire rx1_phyq_full, rx1_phyq_wr_en;
+wire rx1_phyq_empty, rx1_phyq_rd_en;
+
+afifo9 afifo9_rx1_phyq (
+        .Data(rx1_phyq_din),
+	.WrClock(phy1_rx_clk),
+	.RdClock(clk_125),
+	.WrEn(rx1_phyq_wr_en),
+	.RdEn(rx1_phyq_rd_en),
+	.Reset(sys_rst),
+	.RPReset(sys_rst),
+	.Q(rx1_phyq_dout),
+	.Empty(rx1_phyq_empty),
+	.Full(rx1_phyq_full)
+);
+
+// PHY#1 RX GMII2FIFO9 module
+gmii2fifo9 # (
+	.Gap(4'h8)
+) rx1gmii2fifo (
+	.sys_rst(sys_rst),
+	.gmii_rx_clk(phy1_rx_clk),
+	.gmii_rx_dv(phy1_rx_dv),
+	.gmii_rxd(phy1_rx_data),
+	.din(rx1_phyq_din),
+	.full(rx1_phyq_full),
+	.wr_en(rx1_phyq_wr_en),
+	.wr_clk()
+);
 
 // Slave bus
 wire [6:0] slv_bar_i;
@@ -70,6 +117,13 @@ wire [15:0] slv_dat_i;
 wire [1:0] slv_sel_i;
 wire [15:0] slv_dat_o, slv_dat1_o, slv_dat2_o;
 reg [15:0] slv_dat0_o;
+
+// DMA wire & regs
+reg [7:0]  dma_status;
+reg [31:2] dma_addr_start;
+reg [31:2] dma_addr_end;
+wire [31:2] dma_addr_cur;
+
 
 pcie_tlp inst_pcie_tlp (
   // System
@@ -125,11 +179,35 @@ pcie_tlp inst_pcie_tlp (
   , .btn()
 );
 
-// DMA regs
-reg [31:2] dma_addr_start;
-reg [31:2] dma_addr_end;
-reg [31:2] dma_addr_cur;
-reg [7:0]  dma_status;
+// PHY#1 Receiver
+receiver receiver_inst (
+	.sys_clk(clk_125),
+	.sys_rst(sys_rst),
+	// Phy FIFO
+	.phy_din(),
+	.phy_full(),
+	.phy_wr_en(),
+	.phy_dout(rx1_phyq_dout),
+	.phy_empty(rx1_phyq_empty),
+	.phy_rd_en(rx1_phyq_rd_en),
+	// Master FIFO
+	.mst_din(wr_mstq_din),
+	.mst_full(wr_mstq_full),
+	.mst_wr_en(wr_mstq_wr_en),
+	.mst_dout(),
+	.mst_empty(),
+	.mst_rd_en(),
+	// DMA regs
+	.dma_addr_start(dma_addr_start),
+	.dma_addr_end(dma_addr_end),
+	.dma_addr_cur(dma_addr_cur),
+	.dma_status(dma_status),
+	// LED and Switches
+	.dipsw(),
+	.led(),
+	.segled(),
+	.btn(btn)
+);
 
 reg [3:0] rx_slots_status = 4'b0000;
 reg [3:0] tx_slots_status = 4'b0000;
@@ -200,9 +278,10 @@ ram_dp_true mem1read (
 
 
 reg         global_counter_rst;
-wire [63:0] global_counter;
+reg  [63:0] global_counter;
 wire        slot0_rx_ready;
 wire        slot1_rx_ready;
+`ifdef NO
 ethpipe ethpipe_ins (
   // system
     .sys_rst(sys_rst)
@@ -247,6 +326,7 @@ ethpipe ethpipe_ins (
   , .slot1_rx_empty(rx_slots_status[3])      // RX slot empty
   , .slot1_rx_complete(slot1_rx_ready)       // RX slot read ready
 );
+`endif
 assign phy1_mii_clk  = 1'b0;
 assign phy1_mii_data = 1'b0;
 assign phy1_tx_en    = 1'b0;
@@ -258,123 +338,117 @@ assign phy2_tx_en    = 1'b0;
 assign phy2_tx_data  = 8'h0;
 assign phy2_gtx_clk  = phy2_125M_clk;
 
+// Global counter
+always @(posedge clk_125) begin
+	if (sys_rst == 1'b1)
+		global_counter <= 64'h0;
+	else
+		global_counter <= global_counter + 64'h1;
+end
 
 //-------------------------------------
 // PCI I/O memory mapping
 //-------------------------------------
-reg [13:0] segledr;
 always @(posedge clk_125) begin
 	if (sys_rst == 1'b1) begin
 		slv_dat0_o <= 16'h0;
-		segledr[13:0] <= 14'h3fff;
 		dma_status     <= 8'h00;
-		dma_addr_cur   <= ( 32'hd000_0000 >> 2 );
-		dma_addr_start <= ( 32'hd000_0000 >> 2 );
-		dma_addr_end   <= ( 32'hd001_0000 >> 2 );
+		dma_addr_start <= ( 32'h1000_0000 >> 2 );
+		dma_addr_end   <= ( 32'h1001_0000 >> 2 );
 	end else begin
 		if (slv_bar_i[0] & slv_ce_i) begin
-			if (slv_adr_i[15:5] == 11'h0) begin
-				slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
+			if (slv_adr_i[11:7] == 5'h0) begin
 				case (slv_adr_i[6:1])
 					// slots status
 					6'h00: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[0])
-								rx_slots_status <= slv_dat_i[3:0];
+								rx_slots_status[3:0] <= slv_dat_i[11:8];
 						end else
-							slv_dat0_o <= { 12'b0, rx_slots_status };
+							slv_dat0_o <= { 4'h00, rx_slots_status, 8'h00 };
 					end
 					// global counter [15:0]
 					6'h02: begin
 						if (~slv_we_i) begin
-							slv_dat0_o <= global_counter[15:0];
+							slv_dat0_o <= {global_counter[7:0], global_counter[15:8]};
 						end
 					end
 					// global counter [31:16]
 					6'h03: begin
 						if (~slv_we_i) begin
-							slv_dat0_o <= global_counter[31:16];
+							slv_dat0_o <= {global_counter[23:16], global_counter[31:24]};
 						end
 					end
 					// global counter [47:32]
 					6'h04: begin
 						if (~slv_we_i) begin
-							slv_dat0_o <= global_counter[47:32];
+							slv_dat0_o <= {global_counter[39:32], global_counter[47:40]};
 						end
 					end
 					// global counter [63:48]
 					6'h05: begin
 						if (~slv_we_i) begin
-							slv_dat0_o <= global_counter[63:48];
+							slv_dat0_o <= {global_counter[55:48], global_counter[63:56]};
 						end
 					end
 					// dma status regs
 					6'h08: begin
 						if (slv_we_i) begin
-							if (slv_sel_i[0])
+							if (slv_sel_i[1])
 								dma_status[ 7: 0] <= slv_dat_i[15:8];
 						end else
 							slv_dat0_o <= {dma_status[7:0], 8'h00};
 					end
-					// dma current address
+					// dma start address
 					6'h0a: begin
 						if (slv_we_i) begin
-							if (slv_sel_i[0])
-								dma_addr_cur[ 7: 2] <= slv_dat_i[15:10];
 							if (slv_sel_i[1])
-								dma_addr_cur[15: 8] <= slv_dat_i[ 7: 0];
-						end else
-							slv_dat0_o <= {dma_addr_cur[7:2], 2'b00, dma_addr_cur[15:8]};
-					end
-					6'h0b: begin
-						if (slv_we_i) begin
-							if (slv_sel_i[0])
-								dma_addr_cur[23:16] <= slv_dat_i[15: 8];
-							if (slv_sel_i[1])
-								dma_addr_cur[31:24] <= slv_dat_i[ 7: 0];
-						end else
-							slv_dat0_o <= {dma_addr_cur[23:16], dma_addr_cur[31:24]};
-					end
-					// dma start address
-					6'h0c: begin
-						if (slv_we_i) begin
-							if (slv_sel_i[0])
 								dma_addr_start[ 7: 2] <= slv_dat_i[15:10];
-							if (slv_sel_i[1])
+							if (slv_sel_i[0])
 								dma_addr_start[15: 8] <= slv_dat_i[ 7: 0];
 						end else
 							slv_dat0_o <= {dma_addr_start[7:2], 2'b00, dma_addr_start[15:8]};
 					end
-					6'h0d: begin
+					6'h0b: begin
 						if (slv_we_i) begin
-							if (slv_sel_i[0])
-								dma_addr_start[23:16] <= slv_dat_i[15: 8];
 							if (slv_sel_i[1])
+								dma_addr_start[23:16] <= slv_dat_i[15: 8];
+							if (slv_sel_i[0])
 								dma_addr_start[31:24] <= slv_dat_i[ 7: 0];
 						end else
 							slv_dat0_o <= {dma_addr_start[23:16], dma_addr_start[31:24]};
 					end
 					// dma end address
-					6'h0e: begin
+					6'h0c: begin
 						if (slv_we_i) begin
-							if (slv_sel_i[0])
-								dma_addr_end[ 7: 2] <= slv_dat_i[15:10];
 							if (slv_sel_i[1])
+								dma_addr_end[ 7: 2] <= slv_dat_i[15:10];
+							if (slv_sel_i[0])
 								dma_addr_end[15: 8] <= slv_dat_i[ 7: 0];
 						end else
 							slv_dat0_o <= {dma_addr_end[7:2], 2'b00, dma_addr_end[15:8]};
 					end
-					6'h0f: begin
+					6'h0d: begin
 						if (slv_we_i) begin
-							if (slv_sel_i[0])
-								dma_addr_end[23:16] <= slv_dat_i[15: 8];
 							if (slv_sel_i[1])
+								dma_addr_end[23:16] <= slv_dat_i[15: 8];
+							if (slv_sel_i[0])
 								dma_addr_end[31:24] <= slv_dat_i[ 7: 0];
 						end else
 							slv_dat0_o <= {dma_addr_end[23:16], dma_addr_end[31:24]};
 					end
+					// dma current address
+					6'h0e: begin
+						slv_dat0_o <= {dma_addr_cur[7:2], 2'b00, dma_addr_cur[15:8]};
+					end
+					6'h0f: begin
+						slv_dat0_o <= {dma_addr_cur[23:16], dma_addr_cur[31:24]};
+					end
+					default:
+						slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
 				endcase
-			end
+			end else
+				slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
 		end
 	end
 end

@@ -1,6 +1,10 @@
 SOURCES=$(wildcard *.v) \
 	$(wildcard ../../../cores/ethpipe/rtl/*.v) \
+	$(wildcard ../../../cores/clk_sync/rtl/*.v) \
+	$(wildcard ../../../cores/crc/rtl/*.v) \
+	$(wildcard ../../../cores/gmii2fifo9/rtl/*.v) \
 	$(wildcard ../rtl/ecp3/ethpipe_mid.v) \
+	$(wildcard ../rtl/ecp3/receiver.v) \
 	$(wildcard ../rtl/ecp3/pcie_tlp.v)
 
 #all: cversim

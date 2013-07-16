@@ -173,9 +173,9 @@ ethpipe_mid ethpipe_mid_inst (
     .clk_125(clk_125)
   , .sys_rst(sys_rst)
 
-  , .dip_switch(dip_switch)
-  , .led_out(led_out)
-  , .dp(dp)
+  , .dipsw(dip_switch)
+  , .segled(led_out)
+  , .led()
   // PCIe
   , .rx_bar_hit(rx_bar_hit)
   , .bus_num(bus_num)

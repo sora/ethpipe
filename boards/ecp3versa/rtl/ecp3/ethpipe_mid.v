@@ -211,17 +211,18 @@ pcie_tlp inst_pcie_tlp (
   , .btn()
 );
 
-// PHY#1 Receiver
+// PHY Receiver
 receiver receiver_inst (
 	.sys_clk(clk_125),
 	.sys_rst(sys_rst),
-	// Phy FIFO
-	.phy_din(),
-	.phy_full(),
-	.phy_wr_en(),
-	.phy_dout(rx1_phyq_dout),
-	.phy_empty(rx1_phyq_empty),
-	.phy_rd_en(rx1_phyq_rd_en),
+	// Phy1 FIFO
+	.phy1_dout(rx1_phyq_dout),
+	.phy1_empty(rx1_phyq_empty),
+	.phy1_rd_en(rx1_phyq_rd_en),
+	// Phy2 FIFO
+	.phy2_dout(rx2_phyq_dout),
+	.phy2_empty(rx2_phyq_empty),
+	.phy2_rd_en(rx2_phyq_rd_en),
 	// Master FIFO
 	.mst_din(wr_mstq_din),
 	.mst_full(wr_mstq_full),
@@ -251,12 +252,12 @@ reg [3:0] tx_slots_status = 4'b0000;
 // Slot0 RX (A: host, B: ethernet)
 reg  [15:0] mem0_dataA;
 reg  [ 1:0] mem0_byte_enA;
-reg  [11:0] mem0_addressA;
+reg  [13:0] mem0_addressA;
 reg         mem0_wr_enA;
 wire [15:0] mem0_qA;
 wire [15:0] mem0_dataB;
 wire [ 1:0] mem0_byte_enB;
-wire [11:0] mem0_addressB;
+wire [13:0] mem0_addressB;
 wire        mem0_wr_enB;
 wire [15:0] mem0_qB;
 ram_dp_true mem0read (
@@ -281,12 +282,12 @@ ram_dp_true mem0read (
 // Slot1 RX (A: host, B: ethernet)
 reg  [15:0] mem1_dataA;
 reg  [ 1:0] mem1_byte_enA;
-reg  [11:0] mem1_addressA;
+reg  [13:0] mem1_addressA;
 reg         mem1_wr_enA;
 wire [15:0] mem1_qA;
 wire [15:0] mem1_dataB;
 wire [ 1:0] mem1_byte_enB;
-wire [11:0] mem1_addressB;
+wire [13:0] mem1_addressB;
 wire        mem1_wr_enB;
 wire [15:0] mem1_qB;
 ram_dp_true mem1read (
@@ -393,11 +394,6 @@ always @(posedge clk_125) begin
 				case (slv_adr_i[6:1])
 					// slots status
 					6'h00: begin
-						if (slv_we_i) begin
-							if (slv_sel_i[0])
-								rx_slots_status[3:0] <= slv_dat_i[11:8];
-						end else
-							slv_dat0_o <= { 4'h00, rx_slots_status, 8'h00 };
 					end
 					// global counter [15:0]
 					6'h02: begin

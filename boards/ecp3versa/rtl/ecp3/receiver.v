@@ -22,7 +22,7 @@ module receiver (
 	output reg mst_rd_en,
 	// DMA regs
 	input [7:0]  dma_status,
-	input [23:2] dma_length,
+	input [21:2] dma_length,
 	input [31:2] dma1_addr_start,
 	output reg [31:2] dma1_addr_cur,
 	input [31:2] dma2_addr_start,
@@ -34,11 +34,11 @@ module receiver (
 	input btn
 );
 
-parameter [1:0]
+parameter [2:0]
 	REC_IDLE     = 3'h0,
 	REC_DATA     = 3'h1,
 	REC_FIN      = 3'h3;
-reg [1:0] rec_status = REC_IDLE;
+reg [2:0] rec_status = REC_IDLE;
 	
 reg [11:0] counter;
 reg [7:0] remain_word;
@@ -46,9 +46,10 @@ always @(posedge sys_clk) begin
 	if (sys_rst) begin
 		counter <= 12'h0;
 		phy1_rd_en <= 1'b0;
+		phy2_rd_en <= 1'b0;
 		rec_status <= REC_IDLE;
 		mst_wr_en <= 1'b0;
-		 dma1_addr_cur <= 30'h0;
+		dma1_addr_cur <= 30'h0;
 	end else begin
               	phy1_rd_en  <= ~phy1_empty;
 		mst_wr_en <= 1'b0;

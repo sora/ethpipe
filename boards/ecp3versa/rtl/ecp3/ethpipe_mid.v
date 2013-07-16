@@ -156,7 +156,7 @@ reg [15:0] slv_dat0_o;
 
 // DMA wire & regs
 reg [7:0]  dma_status;
-reg [23:2] dma_length;
+reg [21:2] dma_length;
 reg [31:2] dma1_addr_start, dma2_addr_start;
 wire [31:2] dma1_addr_cur, dma2_addr_cur;
 
@@ -395,7 +395,7 @@ always @(posedge clk_125) begin
 	if (sys_rst == 1'b1) begin
 		slv_dat0_o <= 16'h0;
 		dma_status     <= 8'h00;
-		dma_length   <= ( 24'h1_0000 >> 2 );
+		dma_length   <= ( 22'h1_0000 >> 2 );
 		dma1_addr_start <= ( 32'h1000_0000 >> 2 );
 		dma2_addr_start <= ( 32'h1010_0000 >> 2 );
 	end else begin
@@ -450,9 +450,9 @@ always @(posedge clk_125) begin
 					6'h0b: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
-								dma_length[23:16] <= slv_dat_i[15: 8];
+								dma_length[21:16] <= slv_dat_i[13: 8];
 						end else
-							slv_dat0_o <= {dma_length[23:16], 8'h00};
+							slv_dat0_o <= {2'b00, dma_length[21:16], 8'h00};
 					end
 					// dma1 start address
 					6'h10: begin

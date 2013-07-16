@@ -21,9 +21,11 @@ module receiver (
 	output reg mst_rd_en,
 	// DMA regs
 	input [7:0]  dma_status,
-	input [31:2] dma_addr_start,
-	input [31:2] dma_addr_end,
-	output reg [31:2] dma_addr_cur,
+	input [23:2] dma_length,
+	input [31:2] dma1_addr_start,
+	output reg [31:2] dma1_addr_cur,
+	input [31:2] dma2_addr_start,
+	output reg [31:2] dma2_addr_cur,
 	// LED and Switches
 	input [7:0] dipsw,
 	output [7:0] led,
@@ -45,7 +47,7 @@ always @(posedge sys_clk) begin
 		phy1_rd_en <= 1'b0;
 		rec_status <= REC_IDLE;
 		mst_wr_en <= 1'b0;
-		 dma_addr_cur <= 30'h0;
+		 dma1_addr_cur <= 30'h0;
 	end else begin
               	phy1_rd_en  <= ~phy1_empty;
 		mst_wr_en <= 1'b0;
@@ -60,17 +62,17 @@ always @(posedge sys_clk) begin
 					REC_IDLE:
 						case (counter)
 							12'h00: begin
-								if ( dma_addr_cur == 30'h0 )
-									dma_addr_cur <= dma_addr_start;
+								if ( dma1_addr_cur == 30'h0 )
+									dma1_addr_cur <= dma1_addr_start;
 								mst_din[17:0] <= {2'b10, 16'h90ff};
 								mst_wr_en <= 1'b1;
 							end
 							12'h01: begin
-								mst_din[17:0] <= {2'b00, dma_addr_cur[31:16]};
+								mst_din[17:0] <= {2'b00, dma1_addr_cur[31:16]};
 								mst_wr_en <= 1'b1;
 							end
 							12'h02: begin
-								mst_din[17:0] <= {2'b00, dma_addr_cur[15:2], 2'b00};
+								mst_din[17:0] <= {2'b00, dma1_addr_cur[15:2], 2'b00};
 								mst_wr_en <= 1'b1;
 								remain_word <= 8'd32;
 								rec_status <= REC_DATA;
@@ -82,9 +84,9 @@ always @(posedge sys_clk) begin
 							mst_din[15:8] <= phy1_dout[7:0];
 						end else begin
 							mst_din[7:0] <= phy1_dout[7:0];
-							dma_addr_cur <= dma_addr_cur + 30'd4;
-							if ( dma_addr_cur == dma_addr_end )
-								dma_addr_cur <= dma_addr_start;
+							dma1_addr_cur <= dma1_addr_cur + 30'd4;
+							if ( dma1_addr_cur == dma_length )
+								dma1_addr_cur <= dma1_addr_start;
 							mst_wr_en <= 1'b1;
 						end
 						if ( remain_word == 8'h1 ) begin

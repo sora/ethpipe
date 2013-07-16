@@ -156,9 +156,9 @@ reg [15:0] slv_dat0_o;
 
 // DMA wire & regs
 reg [7:0]  dma_status;
-reg [31:2] dma_addr_start;
-reg [31:2] dma_addr_end;
-wire [31:2] dma_addr_cur;
+reg [23:2] dma_length;
+reg [31:2] dma1_addr_start, dma2_addr_start;
+wire [31:2] dma1_addr_cur, dma2_addr_cur;
 
 
 pcie_tlp inst_pcie_tlp (
@@ -237,10 +237,12 @@ receiver receiver_inst (
 	.mst_empty(),
 	.mst_rd_en(),
 	// DMA regs
-	.dma_addr_start(dma_addr_start),
-	.dma_addr_end(dma_addr_end),
-	.dma_addr_cur(dma_addr_cur),
 	.dma_status(dma_status),
+	.dma_length(dma_length),
+	.dma1_addr_start(dma1_addr_start),
+	.dma1_addr_cur(dma1_addr_cur),
+	.dma2_addr_start(dma2_addr_start),
+	.dma2_addr_cur(dma2_addr_cur),
 	// LED and Switches
 	.dipsw(),
 	.led(),
@@ -392,8 +394,9 @@ always @(posedge clk_125) begin
 	if (sys_rst == 1'b1) begin
 		slv_dat0_o <= 16'h0;
 		dma_status     <= 8'h00;
-		dma_addr_start <= ( 32'h1000_0000 >> 2 );
-		dma_addr_end   <= ( 32'h1001_0000 >> 2 );
+		dma_length   <= ( 24'h1_0000 >> 2 );
+		dma1_addr_start <= ( 32'h1000_0000 >> 2 );
+		dma2_addr_start <= ( 32'h1010_0000 >> 2 );
 	end else begin
 		if (slv_bar_i[0] & slv_ce_i) begin
 			if (slv_adr_i[11:7] == 5'h0) begin
@@ -433,50 +436,74 @@ always @(posedge clk_125) begin
 						end else
 							slv_dat0_o <= {dma_status[7:0], 8'h00};
 					end
-					// dma start address
+					// dma length
 					6'h0a: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
-								dma_addr_start[ 7: 2] <= slv_dat_i[15:10];
+								dma_length[ 7: 2] <= slv_dat_i[15:10];
 							if (slv_sel_i[0])
-								dma_addr_start[15: 8] <= slv_dat_i[ 7: 0];
+								dma_length[15: 8] <= slv_dat_i[ 7: 0];
 						end else
-							slv_dat0_o <= {dma_addr_start[7:2], 2'b00, dma_addr_start[15:8]};
+							slv_dat0_o <= {dma_length[7:2], 2'b00, dma_length[15:8]};
 					end
 					6'h0b: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
-								dma_addr_start[23:16] <= slv_dat_i[15: 8];
-							if (slv_sel_i[0])
-								dma_addr_start[31:24] <= slv_dat_i[ 7: 0];
+								dma_length[23:16] <= slv_dat_i[15: 8];
 						end else
-							slv_dat0_o <= {dma_addr_start[23:16], dma_addr_start[31:24]};
+							slv_dat0_o <= {dma_length[23:16], 8'h00};
 					end
-					// dma end address
-					6'h0c: begin
+					// dma1 start address
+					6'h10: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
-								dma_addr_end[ 7: 2] <= slv_dat_i[15:10];
+								dma1_addr_start[ 7: 2] <= slv_dat_i[15:10];
 							if (slv_sel_i[0])
-								dma_addr_end[15: 8] <= slv_dat_i[ 7: 0];
+								dma1_addr_start[15: 8] <= slv_dat_i[ 7: 0];
 						end else
-							slv_dat0_o <= {dma_addr_end[7:2], 2'b00, dma_addr_end[15:8]};
+							slv_dat0_o <= {dma1_addr_start[7:2], 2'b00, dma1_addr_start[15:8]};
 					end
-					6'h0d: begin
+					6'h11: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
-								dma_addr_end[23:16] <= slv_dat_i[15: 8];
+								dma1_addr_start[23:16] <= slv_dat_i[15: 8];
 							if (slv_sel_i[0])
-								dma_addr_end[31:24] <= slv_dat_i[ 7: 0];
+								dma1_addr_start[31:24] <= slv_dat_i[ 7: 0];
 						end else
-							slv_dat0_o <= {dma_addr_end[23:16], dma_addr_end[31:24]};
+							slv_dat0_o <= {dma1_addr_start[23:16], dma1_addr_start[31:24]};
 					end
-					// dma current address
-					6'h0e: begin
-						slv_dat0_o <= {dma_addr_cur[7:2], 2'b00, dma_addr_cur[15:8]};
+					// dma1 current address
+					6'h12: begin
+						slv_dat0_o <= {dma1_addr_cur[7:2], 2'b00, dma1_addr_cur[15:8]};
 					end
-					6'h0f: begin
-						slv_dat0_o <= {dma_addr_cur[23:16], dma_addr_cur[31:24]};
+					6'h13: begin
+						slv_dat0_o <= {dma1_addr_cur[23:16], dma1_addr_cur[31:24]};
+					end
+					// dma2 start address
+					6'h14: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[1])
+								dma2_addr_start[ 7: 2] <= slv_dat_i[15:10];
+							if (slv_sel_i[0])
+								dma2_addr_start[15: 8] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {dma2_addr_start[7:2], 2'b00, dma2_addr_start[15:8]};
+					end
+					6'h15: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[1])
+								dma2_addr_start[23:16] <= slv_dat_i[15: 8];
+							if (slv_sel_i[0])
+								dma2_addr_start[31:24] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {dma2_addr_start[23:16], dma2_addr_start[31:24]};
+					end
+					// dma2 current address
+					6'h16: begin
+						slv_dat0_o <= {dma2_addr_cur[7:2], 2'b00, dma2_addr_cur[15:8]};
+					end
+					6'h17: begin
+						slv_dat0_o <= {dma2_addr_cur[23:16], dma2_addr_cur[31:24]};
 					end
 					default:
 						slv_dat0_o <= 16'h0; // slv_adr_i[16:1];

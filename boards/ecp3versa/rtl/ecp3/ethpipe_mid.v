@@ -1,3 +1,5 @@
+`default_nettype none
+
 `include "setup.v"
 
 module ethpipe_mid  (
@@ -59,6 +61,8 @@ module ethpipe_mid  (
   , output phy2_mii_clk
   , inout  phy2_mii_data
 );
+
+reg  [63:0] global_counter;
 
 // BUS Master Command FIFO
 wire [17:0] wr_mstq_din, wr_mstq_dout;
@@ -218,6 +222,7 @@ pcie_tlp inst_pcie_tlp (
 );
 
 // PHY Receiver
+wire btn;
 receiver receiver_inst (
 	.sys_clk(clk_125),
 	.sys_rst(sys_rst),
@@ -310,7 +315,6 @@ ram_dp_true mem1read (
 );
 
 
-reg  [63:0] global_counter;
 wire        slot0_rx_ready;
 wire        slot1_rx_ready;
 `ifdef NO
@@ -508,3 +512,5 @@ end
 assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[15]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[15]}} & slv_dat2_o );
 
 endmodule
+
+`default_nettype wire

@@ -33,11 +33,13 @@ wire [17:0] din;
 reg full;
 wire wr_en;
 wire wr_clk;
+reg [63:0] global_counter;
 
 gmii2fifo18 # (
         .Gap(4'h4)
 ) gmii2fifo18_tb (
         .sys_rst(sys_rst),
+	.global_counter(global_counter),
 
         .gmii_rx_clk(phy_rx_clk),
         .gmii_rx_dv(phy_rx_dv),
@@ -67,6 +69,7 @@ reg [11:0] counter;
 always @(posedge phy_rx_clk) begin
 	{phy_rx_dv,phy_rxd} <= rom[ counter ];
 	counter <= counter + 1;
+	global_counter <= global_counter + 64'h1;
 end
 
 initial begin
@@ -76,6 +79,7 @@ initial begin
 	/* Reset / Initialize our logic */
 	sys_rst = 1'b1;
 	full = 1'b0;
+	global_counter <= 64'h0;
 	counter = 0;
 
 	waitclock;

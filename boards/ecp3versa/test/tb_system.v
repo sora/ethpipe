@@ -78,6 +78,13 @@ ethpipe_mid ethpipe_mid_inst (
 	.phy1_rx_data(gmii_rxd),
 	.phy1_rx_dv(gmii_rx_dv),
 	.phy1_rx_clk(gmii_rx_clk),
+	// Phy
+	.phy2_tx_clk(gmii_tx_clk),
+	.phy2_tx_data(gmii_txd),
+	.phy2_tx_en(gmii_tx_en),
+	.phy2_rx_data(8'h00),
+	.phy2_rx_dv(1'b0),
+	.phy2_rx_clk(gmii_rx_clk),
 	// LED and Switches
 	.dipsw(),
 	.led(),

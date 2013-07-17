@@ -94,14 +94,22 @@ always @(posedge sys_clk) begin
 					remain_word <= (8'd64 >> 1);
 					rec_status <= REC_HEAD10;
 				end else begin
+`ifdef SIMULATION
 					if ( phy1_rx_count != dma1_rx_count ) begin
+`else
+					if ( phy1_rx_count != dma1_rx_count & dma_status[0] ) begin
+`endif
 						sel_phy <= 1'b0;
 						dma1_frame_len <= 12'h0;
 						dma1_frame_start <= dma1_frame_ptr;
 						dma1_frame_ptr   <= dma1_frame_ptr + 30'd2; 	// GCounter = Start + 0x8
 						remain_word <= ((8'd64-8'd8) >> 1);
 						rec_status <= REC_HEAD10;
+`ifdef SIMULATION
 					end else if ( phy2_rx_count != dma2_rx_count ) begin
+`else
+					end else if ( phy2_rx_count != dma2_rx_count & dma_status[1] ) begin
+`endif
 						sel_phy <= 1'b1;
 						dma2_frame_len <= 12'h0;
 						dma2_frame_start <= dma2_frame_ptr;
@@ -167,33 +175,35 @@ always @(posedge sys_clk) begin
 					if (remain_word[0])
 						dma1_frame_ptr <= dma1_frame_ptr + 30'h1;
 					if (phy1_rd_en) begin
-						mst_din[15:0] <= phy1_dout[15:0];
+						mst_din[15:0] <= {phy1_dout[7:0], phy1_dout[15:8]};
 						dma1_frame_len <= dma1_frame_len + {10'h0, phy1_dout[16], phy1_dout[17] & (~phy1_dout[16])} ;
 						if (phy1_dout[17:16] != 2'b11) begin
 							dma1_frame_in <= 1'b0;
-							dma1_rx_count <= dma1_rx_count + 8'h1;
+							if (dma1_frame_in)
+								dma1_rx_count <= dma1_rx_count + 8'h1;
 						end
 					end else begin
 						mst_din[15:0] <= 16'h00;
 					end
 					if (dma1_frame_in)
-						phy1_rd_en <= ~phy1_empty & (remain_word != 8'h00);
+						phy1_rd_en <= ~phy1_empty & (remain_word[7:1] != 7'h00);
 				end else begin
 					if (remain_word[0])
 						dma2_frame_ptr <= dma2_frame_ptr + 30'h1;
 					mst_din[15:0] <= phy2_dout[15:0];
 					if (phy2_rd_en) begin
-						mst_din[15:0] <= phy2_dout[15:0];
+						mst_din[15:0] <= {phy2_dout[7:0], phy2_dout[15:8]};
 						dma2_frame_len <= dma2_frame_len + {10'h0, phy2_dout[16], phy2_dout[17] & (~phy2_dout[16])} ;
 						if (phy2_dout[17:16] != 2'b11) begin
 							dma2_frame_in <= 1'b0;
-							dma2_rx_count <= dma2_rx_count + 8'h1;
+							if (dma2_frame_in)
+								dma2_rx_count <= dma2_rx_count + 8'h1;
 						end
 					end else begin
 						mst_din[15:0] <= 16'h00;
 					end
 					if (dma2_frame_in)
-						phy2_rd_en <= ~phy2_empty & (remain_word != 8'h00);
+						phy2_rd_en <= ~phy2_empty & (remain_word[7:1] != 7'h00);
 				end
 				mst_wr_en <= 1'b1;
 				mst_din[17] <= 1'b0;
@@ -230,17 +240,18 @@ always @(posedge sys_clk) begin
 			end
 			REC_LENGTH: begin
 				if (~sel_phy) begin
-					mst_din[17:0] <= {2'b00, 16'h00};
+					mst_din[17:0] <= {2'b00, dma1_frame_len[7:0], 4'b0000, dma1_frame_len[11:8]};
 				end else begin
-					mst_din[17:0] <= {2'b00, 16'h00};
+					mst_din[17:0] <= {2'b00, dma2_frame_len[7:0], 4'b0000, dma2_frame_len[11:8]};
 				end
+				mst_wr_en <= 1'b1;
 				rec_status <= REC_TUPLE;
 			end
 			REC_TUPLE: begin
 				if (~sel_phy) begin
-					mst_din[17:0] <= {6'b00_0000, dma1_frame_len[11:0]};
+					mst_din[17:0] <= {2'b00, 16'h00};
 				end else begin
-					mst_din[17:0] <= {6'b00_0000, dma2_frame_len[11:0]};
+					mst_din[17:0] <= {2'b00, 16'h00};
 				end
 				mst_wr_en <= 1'b1;
 				rec_status <= REC_FIN;

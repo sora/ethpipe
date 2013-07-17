@@ -34,6 +34,8 @@ ByteEnA[1]  i
 ByteEnA[0]  i
 ByteEnB[1]  i
 ByteEnB[0]  i
+AddressA[13]  i
+AddressA[12]  i
 AddressA[11]  i
 AddressA[10]  i
 AddressA[9]  i
@@ -46,6 +48,8 @@ AddressA[3]  i
 AddressA[2]  i
 AddressA[1]  i
 AddressA[0]  i
+AddressB[13]  i
+AddressB[12]  i
 AddressB[11]  i
 AddressB[10]  i
 AddressB[9]  i

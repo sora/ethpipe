@@ -119,6 +119,7 @@ gmii2fifo18 # (
 	.Gap(4'h8)
 ) rx1gmii2fifo (
 	.sys_rst(sys_rst),
+	.global_counter(global_counter),
 	.gmii_rx_clk(phy1_rx_clk),
 	.gmii_rx_dv(phy1_rx_dv),
 	.gmii_rxd(phy1_rx_data),
@@ -134,6 +135,7 @@ gmii2fifo18 # (
 	.Gap(4'h8)
 ) rx2gmii2fifo (
 	.sys_rst(sys_rst),
+	.global_counter(global_counter),
 	.gmii_rx_clk(phy2_rx_clk),
 	.gmii_rx_dv(phy2_rx_dv),
 	.gmii_rxd(phy2_rx_data),
@@ -219,7 +221,6 @@ pcie_tlp inst_pcie_tlp (
 receiver receiver_inst (
 	.sys_clk(clk_125),
 	.sys_rst(sys_rst),
-	.global_counter(global_counter),
 	// Phy1 FIFO
 	.phy1_dout(rx1_phyq_dout),
 	.phy1_empty(rx1_phyq_empty),
@@ -259,11 +260,6 @@ reg [3:0] tx_slots_status = 4'b0000;
 //-------------------------------------
 
 // Slot0 RX (A: host, B: ethernet)
-reg  [15:0] mem0_dataA;
-reg  [ 1:0] mem0_byte_enA;
-reg  [13:0] mem0_addressA;
-reg         mem0_wr_enA;
-wire [15:0] mem0_qA;
 wire [15:0] mem0_dataB;
 wire [ 1:0] mem0_byte_enB;
 wire [13:0] mem0_addressB;
@@ -278,7 +274,7 @@ ram_dp_true mem0read (
   , .AddressB(mem0_addressB)
   , .ClockA(clk_125)
   , .ClockB(phy1_rx_clk)
-  , .ClockEnA(slv_ce_i & slv_bar_i[2] & ~slv_adr_i[13])
+  , .ClockEnA(slv_ce_i & slv_bar_i[2] & ~slv_adr_i[15])
   , .ClockEnB(1'b1)
   , .WrA(slv_we_i)
   , .WrB(mem0_wr_enB)
@@ -289,11 +285,6 @@ ram_dp_true mem0read (
 );
 
 // Slot1 RX (A: host, B: ethernet)
-reg  [15:0] mem1_dataA;
-reg  [ 1:0] mem1_byte_enA;
-reg  [13:0] mem1_addressA;
-reg         mem1_wr_enA;
-wire [15:0] mem1_qA;
 wire [15:0] mem1_dataB;
 wire [ 1:0] mem1_byte_enB;
 wire [13:0] mem1_addressB;
@@ -308,7 +299,7 @@ ram_dp_true mem1read (
   , .AddressB(mem1_addressB)
   , .ClockA(clk_125)
   , .ClockB(phy2_rx_clk)
-  , .ClockEnA(slv_ce_i & slv_bar_i[2] & slv_adr_i[13])
+  , .ClockEnA(slv_ce_i & slv_bar_i[2] & slv_adr_i[15])
   , .ClockEnB(1'b1)
   , .WrA(slv_we_i)
   , .WrB(mem1_wr_enB)
@@ -319,7 +310,6 @@ ram_dp_true mem1read (
 );
 
 
-reg         global_counter_rst;
 reg  [63:0] global_counter;
 wire        slot0_rx_ready;
 wire        slot1_rx_ready;
@@ -515,6 +505,6 @@ always @(posedge clk_125) begin
 	end
 end
 
-assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[13]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[13]}} & slv_dat2_o );
+assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[15]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[15]}} & slv_dat2_o );
 
 endmodule

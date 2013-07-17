@@ -223,6 +223,7 @@ pcie_tlp inst_pcie_tlp (
 
 // PHY Receiver
 wire btn;
+`ifdef ENABLE_RECEIVER
 receiver receiver_inst (
 	.sys_clk(clk_125),
 	.sys_rst(sys_rst),
@@ -256,6 +257,10 @@ receiver receiver_inst (
 	.segled(),
 	.btn(btn)
 );
+`endif
+
+`ifdef ENABLE_TRANSMITTER
+`endif
 
 reg [3:0] rx_slots_status = 4'b0000;
 reg [3:0] tx_slots_status = 4'b0000;

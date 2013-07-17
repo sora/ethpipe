@@ -1,3 +1,2 @@
-//`define ENABLE_SERVER
-//`define ENABLE_REQUESTOR
-//`define	USE_PHY2
+//`define ENABLE_RECEIVER
+`define ENABLE_TRANSMITTER

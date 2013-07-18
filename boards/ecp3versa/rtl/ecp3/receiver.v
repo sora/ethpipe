@@ -193,7 +193,7 @@ always @(posedge sys_clk) begin
 							dma1_frame_in <= 1'b0;
 							if (dma1_frame_in) begin
 								dma1_rx_count <= dma1_rx_count + 8'h1;
-								sys_intr <= 1'b1;
+								sys_intr <= dma_status[0];
 							end
 						end
 					end
@@ -209,7 +209,7 @@ always @(posedge sys_clk) begin
 							dma2_frame_in <= 1'b0;
 							if (dma2_frame_in) begin
 								dma2_rx_count <= dma2_rx_count + 8'h1;
-								sys_intr <= 1'b1;
+								sys_intr <= dma_status[1];
 							end
 						end
 					end

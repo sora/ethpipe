@@ -42,7 +42,7 @@ parameter [1:0]    // RX status
   , RX_LOAD = 2'b01
   , RX_DONE = 2'b10;
 reg [ 1:0] rx_status;
-reg [10:0] rx_counter;
+reg [13:0] rx_counter;
 reg [63:0] rx_timestamp;
 reg        rx_active;
 wire       rx_ready;
@@ -51,13 +51,13 @@ always @(posedge gmii_rx_clk) begin
         slot_rx_eth_wr_en   <= 1'b0;
         slot_rx_eth_address <= 11'h0;
         slot_rx_eth_data    <= 32'b0;
-        rx_counter          <= 11'b0;
+        rx_counter          <= 14'b0;
         rx_timestamp        <= 64'b0;
         rx_status           <= RX_IDLE;
         rx_active           <= 1'b0;
     end else begin
         if (rx_active == 1'b0) begin
-            rx_counter <= 11'b0;
+            rx_counter <= 14'b0;
 
             if (rx_ready == 1'b1 && gmii_rx_dv == 1'b0) begin
                 rx_active <= 1'b1;
@@ -65,40 +65,40 @@ always @(posedge gmii_rx_clk) begin
         end else begin
             rx_status <= RX_IDLE;
 
-            rx_counter        <= 11'b0;
+            rx_counter        <= 14'b0;
             slot_rx_eth_wr_en <= 1'b0;
             if (gmii_rx_dv) begin
-                rx_counter <= rx_counter + 11'b1;
+                rx_counter <= rx_counter + 14'b1;
                 rx_status  <= RX_LOAD;
 
                 case (rx_counter)
                     // Ethernet preamble
-                    11'd0: begin
+                    14'd0: begin
                         // receive timestamp when first data is received
                         rx_timestamp <= global_counter;
                     end
-                    11'd1: begin
+                    14'd1: begin
                         slot_rx_eth_address <= 11'h1;
                         slot_rx_eth_wr_en   <= 1'b1;
                         slot_rx_eth_byte_en <= 4'b1111;
                         slot_rx_eth_data    <= rx_timestamp[31:0];
                     end
-                    11'd2: begin
+                    14'd2: begin
                         slot_rx_eth_address <= 11'h2;
                         slot_rx_eth_wr_en   <= 1'b1;
                         slot_rx_eth_byte_en <= 4'b1111;
                         slot_rx_eth_data    <= rx_timestamp[63:32];
                     end
-                    11'd3: begin // reserved: five-tuple hash
+                    14'd3: begin // reserved: five-tuple hash
                         slot_rx_eth_address <= 11'h3;
                         slot_rx_eth_wr_en   <= 1'b1;
                         slot_rx_eth_byte_en <= 4'b1111;
                         slot_rx_eth_data    <= 32'h0;
                     end
-                    11'd4, // skip
-                    11'd5,
-                    11'd6,
-                    11'd7: begin // Ethernet SFD
+                    14'd4, // skip
+                    14'd5,
+                    14'd6,
+                    14'd7: begin // Ethernet SFD
                         slot_rx_eth_address <= 11'h4;
                     end
                     // Ethernet frame
@@ -127,7 +127,7 @@ always @(posedge gmii_rx_clk) begin
                 endcase
             end else begin
                 // frame terminated
-                if (rx_counter != 11'h0) begin
+                if (rx_counter != 14'h0) begin
                     rx_status <= RX_DONE;
                     rx_active <= 1'b0;
 
@@ -135,7 +135,7 @@ always @(posedge gmii_rx_clk) begin
                     slot_rx_eth_address <= 11'h4;
                     slot_rx_eth_wr_en   <= 1'b1;
                     slot_rx_eth_byte_en <= 4'b1111;
-                    slot_rx_eth_data    <= { 21'h0, rx_counter - 11'd8 };
+                    slot_rx_eth_data    <= { 18'h0, rx_counter - 14'd8 };
                 end
             end
         end
@@ -288,7 +288,7 @@ always @(posedge gmii_tx_clk) begin
             end
             TX_COMPLETE: begin
                 tx_comp_counter <= tx_comp_counter + 2'd1;
-                
+
                 case (tx_comp_counter)
                   2'b00: begin
                   end

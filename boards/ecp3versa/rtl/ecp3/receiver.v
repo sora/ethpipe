@@ -3,6 +3,7 @@ module receiver (
 	// System
 	input sys_clk,
 	input sys_rst,
+	output reg sys_intr,
 	// Phy FIFO
 	input [17:0] phy1_dout,
 	input phy1_empty,
@@ -61,6 +62,7 @@ reg dma1_enable, dma2_enable;
 reg [7:0] remain_word;
 always @(posedge sys_clk) begin
 	if (sys_rst) begin
+		sys_intr <= 1'b0;
 		dma1_frame_start <= 30'h0;
 		dma2_frame_start <= 30'h0;
 		dma1_frame_ptr <= 30'h0;
@@ -79,6 +81,7 @@ always @(posedge sys_clk) begin
 		mst_wr_en <= 1'b0;
 		rec_status <= REC_IDLE;
 	end else begin
+		sys_intr <= 1'b0;
 		phy1_rd_en <= 1'b0;
 		phy2_rd_en <= 1'b0;
 		mst_wr_en <= 1'b0;
@@ -188,8 +191,10 @@ always @(posedge sys_clk) begin
 						dma1_frame_len <= dma1_frame_len + {10'h0, phy1_dout[16], phy1_dout[17] & (~phy1_dout[16])} ;
 						if (phy1_dout[17:16] != 2'b11) begin
 							dma1_frame_in <= 1'b0;
-							if (dma1_frame_in)
+							if (dma1_frame_in) begin
 								dma1_rx_count <= dma1_rx_count + 8'h1;
+								sys_intr <= 1'b1;
+							end
 						end
 					end
 					if (dma1_frame_in)
@@ -202,8 +207,10 @@ always @(posedge sys_clk) begin
 						dma2_frame_len <= dma2_frame_len + {10'h0, phy2_dout[16], phy2_dout[17] & (~phy2_dout[16])} ;
 						if (phy2_dout[17:16] != 2'b11) begin
 							dma2_frame_in <= 1'b0;
-							if (dma2_frame_in)
+							if (dma2_frame_in) begin
 								dma2_rx_count <= dma2_rx_count + 8'h1;
+								sys_intr <= 1'b1;
+							end
 						end
 					end
 					if (dma2_frame_in)

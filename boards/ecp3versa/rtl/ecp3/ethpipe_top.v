@@ -78,6 +78,7 @@ end
 
 reg [3:0] rx_slots_status = 4'b0000;
 reg [3:0] tx_slots_status = 4'b0000;
+wire sys_intr;
 
 pcie_top pcie (
     .refclkp                    ( refclkp )
@@ -91,7 +92,7 @@ pcie_top pcie (
   , .hdoutp0                    ( hdoutp )
   , .hdoutn0                    ( hdoutn )
   , .msi                        (  8'd0 )
-  , .inta_n                     ( ~(rx_slots_status[0] | rx_slots_status[2]) )
+  , .inta_n                     ( ~sys_intr )
   // This PCIe interface uses dynamic IDs.
   , .vendor_id                  (16'h3776)
   , .device_id                  (16'h8001)
@@ -172,6 +173,7 @@ ethpipe_mid ethpipe_mid_inst (
   // System
     .clk_125(clk_125)
   , .sys_rst(sys_rst)
+  , .sys_intr(sys_intr)
 
   , .dipsw(dip_switch)
   , .segled(led_out)

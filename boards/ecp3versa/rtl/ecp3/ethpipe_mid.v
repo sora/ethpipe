@@ -5,6 +5,7 @@
 module ethpipe_mid  (
     input  clk_125
   , input  sys_rst
+  , output sys_intr
   , input  [7:0] dipsw
   , output [7:0] led
   , output [13:0] segled
@@ -223,10 +224,12 @@ pcie_tlp inst_pcie_tlp (
 
 // PHY Receiver
 wire btn;
+wire rec_intr;
 `ifdef ENABLE_RECEIVER
 receiver receiver_inst (
 	.sys_clk(clk_125),
 	.sys_rst(sys_rst),
+	.sys_intr(rec_intr),
 	// Phy1 FIFO
 	.phy1_dout(rx1_phyq_dout),
 	.phy1_empty(rx1_phyq_empty),
@@ -515,6 +518,8 @@ always @(posedge clk_125) begin
 end
 
 assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[15]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[15]}} & slv_dat2_o );
+
+assign sys_intr = rec_intr;
 
 endmodule
 

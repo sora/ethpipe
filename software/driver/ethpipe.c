@@ -54,7 +54,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 
 	status = *(mmio0_ptr + 0x10);
 	// not ethpipe interrupt
-	if ((status & 4) == 0 ) {
+	if ((status & 8) == 0 ) {
 		return IRQ_NONE;
 	}
 
@@ -71,7 +71,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 	wake_up_interruptible( &read_q );
 #endif
 	// clear interrupt flag
-	*(mmio0_ptr + 0x10) = status & 0xfb; 
+	*(mmio0_ptr + 0x10) = status & 0xf7; 
 
 	return IRQ_HANDLED;
 }

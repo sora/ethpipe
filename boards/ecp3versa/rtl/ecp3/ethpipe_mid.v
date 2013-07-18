@@ -401,6 +401,8 @@ always @(posedge clk_125) begin
 		dma1_addr_start <= ( 32'h1000_0000 >> 2 );
 		dma2_addr_start <= ( 32'h1010_0000 >> 2 );
 	end else begin
+		if (rec_intr)
+			dma_status[3] <= 1'b1;
 		if (slv_bar_i[0] & slv_ce_i) begin
 			if (slv_adr_i[11:7] == 5'h0) begin
 				case (slv_adr_i[6:1])

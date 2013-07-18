@@ -10,16 +10,16 @@
 #include <linux/version.h>
 
 #ifndef DRV_NAME
-#define DRV_NAME        "ethpipe"
+#define DRV_NAME	"ethpipe"
 #endif
 #ifndef RX_ADDR
-#define RX_ADDR         0x8000
+#define RX_ADDR	 0x8000
 #endif
 #ifndef TX_ADDR
-#define TX_ADDR         0x9000
+#define TX_ADDR	 0x9000
 #endif
 
-#define	DRV_VERSION	"0.0.2"
+#define	DRV_VERSION	"0.1.0"
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
 #define	PACKET_BUF_MAX	(1024*1024)
 #define	TEMP_BUF_MAX	2000
@@ -38,71 +38,40 @@ static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 };
 MODULE_DEVICE_TABLE(pci, ethpipe_pci_tbl);
 
-static unsigned char *mmio_ptr = 0L;
-static unsigned long mmio_start, mmio_end, mmio_flags, mmio_len;
+static unsigned char *mmio0_ptr = 0L, *mmio1_ptr = 0L, *dma1_virt_ptr = 0L, *dma2_virt_ptr = 0L;
+static dma_addr_t dma1_phys_ptr = 0L, dma2_phys_ptr;
+static unsigned long mmio0_start, mmio0_end, mmio0_flags, mmio0_len;
+static unsigned long mmio1_start, mmio1_end, mmio1_flags, mmio1_len;
 static struct pci_dev *pcidev = NULL;
 static wait_queue_head_t write_q;
 static wait_queue_head_t read_q;
 
-/* receive and transmitte buffer */
-struct _pbuf_dma {
-	unsigned char	*rx_start_ptr;		/* buf start */
-	unsigned char 	*rx_end_ptr;		/* buf end */
-	unsigned char	*rx_write_ptr;		/* write ptr */
-	unsigned char	*rx_read_ptr;		/* read ptr */
-} static pbuf0={0,0,0,0,0}, pbuf1={0,0,0,0,0};
 
-
-static irqreturn_t ethpipe_interrupt(int irq, struct pci_dev *pdev)
+static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 {
-	unsigned int frame_len;
+	int status;
+	long dma1_addr_cur, dma2_addr_cur;
 
-	frame_len = *(short *)(mmio_ptr + RX_ADDR + 0x0c);
-#ifdef DEBUG
-	printk("%s\n", __func__);
-	printk( "frame_len=%d\n", frame_len);
-#endif
-
-	if (frame_len < 64)
-		frame_len = 64;
-
-	if (frame_len > 1518)
-		frame_len = 1518;
-
-	if ( (pbuf0.rx_write_ptr +  frame_len + 0x10) > pbuf0.rx_end_ptr ) {
-		memcpy( pbuf0.rx_start_ptr, pbuf0.rx_write_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr ));
-		pbuf0.rx_read_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr );
-		if ( pbuf0.rx_read_ptr < pbuf0.rx_start_ptr )
-			pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
-		pbuf0.rx_write_ptr = pbuf0.rx_start_ptr;
+	status = *(mmio0_ptr + 0x10);
+	// not ethpipe interrupt
+	if ((status & 4) == 0 ) {
+		return IRQ_NONE;
 	}
 
-	memcpy(pbuf0.rx_write_ptr+0x04, mmio_ptr+RX_ADDR, 0x0c);
-	memcpy(pbuf0.rx_write_ptr+0x10, mmio_ptr+RX_ADDR+0x10, frame_len);
-	
-	pbuf0.rx_write_ptr[0x00] = 0x55;			/* magic code 0x55d5 */
-	pbuf0.rx_write_ptr[0x01] = 0xd5;
-	*(short *)(pbuf0.rx_write_ptr + 2) = frame_len;
-//	pbuf0.rx_write_ptr[0x02] = *(mmio_ptr + 0x800c);	/* frame_len[00:07] */
-//	pbuf0.rx_write_ptr[0x03] = *(mmio_ptr + 0x800d);	/* frame_len[15:08] */
-//	pbuf0.rx_write_ptr[0x04] = *(mmio_ptr + 0x8000);	/* counter[00:07] */
-//	pbuf0.rx_write_ptr[0x05] = *(mmio_ptr + 0x8001);	/* counter[15:08] */
-//	pbuf0.rx_write_ptr[0x06] = *(mmio_ptr + 0x8002);	/* counter[23:16] */
-//	pbuf0.rx_write_ptr[0x07] = *(mmio_ptr + 0x8003);	/* counter[31:24] */
-//	pbuf0.rx_write_ptr[0x08] = *(mmio_ptr + 0x8004);	/* counter[39:32] */
-//	pbuf0.rx_write_ptr[0x09] = *(mmio_ptr + 0x8005);	/* counter[47:40] */
-//	pbuf0.rx_write_ptr[0x0a] = *(mmio_ptr + 0x8006);	/* counter[55:48] */
-//	pbuf0.rx_write_ptr[0x0b] = *(mmio_ptr + 0x8007);	/* counter[63:56] */
-//	pbuf0.rx_write_ptr[0x0c] = *(mmio_ptr + 0x8008);	/* hash   [00:07] */
-//	pbuf0.rx_write_ptr[0x0d] = *(mmio_ptr + 0x8009);	/* hash   [00:07] */
-//	pbuf0.rx_write_ptr[0x0e] = *(mmio_ptr + 0x800a);	/* hash   [00:07] */
-//	pbuf0.rx_write_ptr[0x0f] = *(mmio_ptr + 0x800b);	/* hash   [00:07] */
+	dma1_addr_cur = *(long *)(mmio0_ptr + 0x24);
+	dma2_addr_cur = *(long *)(mmio0_ptr + 0x2c);
 
-	pbuf0.rx_write_ptr += (frame_len + 0x10);
+//#ifdef DEBUG
+	printk("%s\n", __func__);
+	printk( "dma1_addr_cur=%x\n", dma1_addr_cur );
+	printk( "dma2_addr_cur=%x\n", dma1_addr_cur );
+//#endif
 
-	*mmio_ptr = 0x02;		/* IRQ clear and Request receiving PHY#0 */
-
+#ifdef NO
 	wake_up_interruptible( &read_q );
+#endif
+	// clear interrupt flag
+	*(mmio0_ptr + 0x10) = status & 0xfb; 
 
 	return IRQ_HANDLED;
 }
@@ -111,7 +80,8 @@ static int ethpipe_open(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
 
-	*mmio_ptr = 0x02;		/* IRQ clear and Request receiving PHY#0 */
+	/* enanble DMA1 and DMA2 */
+	*(mmio0_ptr + 0x10)  = 0x3;
 
 	return 0;
 }
@@ -119,29 +89,24 @@ static int ethpipe_open(struct inode *inode, struct file *filp)
 static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 			   size_t count, loff_t *ppos)
 {
-	int copy_len, available_read_len;
+	int copy_len;
 
 #ifdef DEBUG
 	printk("%s\n", __func__);
 #endif
 
+#ifdef	NO
 	if ( wait_event_interruptible( read_q, ( pbuf0.rx_read_ptr != pbuf0.rx_write_ptr ) ) )
 		return -ERESTARTSYS;
-
-	available_read_len = (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr);
-
-	if ( count > available_read_len )
-		copy_len = available_read_len;
-	else
-		copy_len = count;
 
 
 	if ( copy_to_user( buf, pbuf0.rx_read_ptr, copy_len ) ) {
 		printk( KERN_INFO "copy_to_user failed\n" );
 		return -EFAULT;
 	}
+#endif
 
-	pbuf0.rx_read_ptr += copy_len;
+	copy_len = count;
 
 	return copy_len;
 }
@@ -159,7 +124,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 	printk("%s\n", __func__);
 #endif
 
-	if ( copy_from_user( mmio_ptr, buf, copy_len ) ) {
+	if ( copy_from_user( mmio1_ptr, buf, copy_len ) ) {
 		printk( KERN_INFO "copy_from_user failed\n" );
 		return -EFAULT;
 	}
@@ -171,7 +136,8 @@ static int ethpipe_release(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
 
-	*mmio_ptr = 0x00;		/* IRQ clear and not Request receiving PHY#0 */
+	/* disable DMA1 and DMA2 */
+	*(mmio0_ptr + 0x10)  = 0x0;
 
 	return 0;
 }
@@ -212,7 +178,12 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 {
 	int rc;
 
-	mmio_ptr = 0L;
+	mmio0_ptr = 0L;
+	mmio1_ptr = 0L;
+	dma1_virt_ptr = 0L;
+	dma1_phys_ptr = 0L;
+	dma2_virt_ptr = 0L;
+	dma2_phys_ptr = 0L;
 
 	rc = pci_enable_device (pdev);
 	if (rc)
@@ -222,33 +193,70 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	if (rc)
 		goto err_out;
 
-#if 0
 	pci_set_master (pdev);		/* set BUS Master Mode */
-#endif
 
-	mmio_start = pci_resource_start (pdev, 0);
-	mmio_end   = pci_resource_end   (pdev, 0);
-	mmio_flags = pci_resource_flags (pdev, 0);
-	mmio_len   = pci_resource_len   (pdev, 0);
+	mmio0_start = pci_resource_start (pdev, 0);
+	mmio0_end   = pci_resource_end   (pdev, 0);
+	mmio0_flags = pci_resource_flags (pdev, 0);
+	mmio0_len   = pci_resource_len   (pdev, 0);
 
-	printk( KERN_INFO "mmio_start: %X\n", mmio_start );
-	printk( KERN_INFO "mmio_end  : %X\n", mmio_end   );
-	printk( KERN_INFO "mmio_flags: %X\n", mmio_flags );
-	printk( KERN_INFO "mmio_len  : %X\n", mmio_len   );
+	printk( KERN_INFO "mmio0_start: %X\n", mmio0_start );
+	printk( KERN_INFO "mmio0_end  : %X\n", mmio0_end   );
+	printk( KERN_INFO "mmio0_flags: %X\n", mmio0_flags );
+	printk( KERN_INFO "mmio0_len  : %X\n", mmio0_len   );
 
-	mmio_ptr = ioremap(mmio_start, mmio_len);
-	if (!mmio_ptr) {
-		printk(KERN_ERR "cannot ioremap MMIO base\n");
+	mmio0_ptr = ioremap(mmio0_start, mmio0_len);
+	if (!mmio0_ptr) {
+		printk(KERN_ERR "cannot ioremap MMIO0 base\n");
 		goto err_out;
 	}
+
+	mmio1_start = pci_resource_start (pdev, 2);
+	mmio1_end   = pci_resource_end   (pdev, 2);
+	mmio1_flags = pci_resource_flags (pdev, 2);
+	mmio1_len   = pci_resource_len   (pdev, 2);
+
+	printk( KERN_INFO "mmio1_start: %X\n", mmio1_start );
+	printk( KERN_INFO "mmio1_end  : %X\n", mmio1_end   );
+	printk( KERN_INFO "mmio1_flags: %X\n", mmio1_flags );
+	printk( KERN_INFO "mmio1_len  : %X\n", mmio1_len   );
+
+	mmio1_ptr = ioremap_wc(mmio1_start, mmio1_len);
+	if (!mmio1_ptr) {
+		printk(KERN_ERR "cannot ioremap MMIO1 base\n");
+		goto err_out;
+	}
+
+	dma1_virt_ptr = dma_alloc_coherent( &pdev->dev, PACKET_BUF_MAX, &dma1_phys_ptr, GFP_KERNEL);
+	if (!dma1_virt_ptr) {
+		printk(KERN_ERR "cannot dma1_alloc_coherent\n");
+		goto err_out;
+	}
+	printk( KERN_INFO "dma1_virt_ptr  : %X\n", dma1_virt_ptr );
+	printk( KERN_INFO "dma1_phys_ptr  : %X\n", dma1_phys_ptr );
+
+	dma2_virt_ptr = dma_alloc_coherent( &pdev->dev, PACKET_BUF_MAX, &dma2_phys_ptr, GFP_KERNEL);
+	if (!dma2_virt_ptr) {
+		printk(KERN_ERR "cannot dma2_alloc_coherent\n");
+		goto err_out;
+	}
+	printk( KERN_INFO "dma2_virt_ptr  : %X\n", dma2_virt_ptr );
+	printk( KERN_INFO "dma2_phys_ptr  : %X\n", dma2_phys_ptr );
 
 	if (request_irq(pdev->irq, ethpipe_interrupt, IRQF_SHARED, DRV_NAME, pdev)) {
 		printk(KERN_ERR "cannot request_irq\n");
 	}
 	
-	/* reset board */
 	pcidev = pdev;
-	*mmio_ptr = 0x02;	/* Request receiving PHY#1 */
+
+	/* set DMA Buffer length */
+	*(long *)(mmio0_ptr + 0x14)  = PACKET_BUF_MAX;
+
+	/* set DMA1 start address */
+	*(long *)(mmio0_ptr + 0x20)  = dma1_phys_ptr;
+
+	/* set DMA2 start address */
+	*(long *)(mmio0_ptr + 0x28)  = dma2_phys_ptr;
 
 	return 0;
 
@@ -264,9 +272,13 @@ static void __devexit ethpipe_remove_one (struct pci_dev *pdev)
 	disable_irq(pdev->irq);
 	free_irq(pdev->irq, pdev);
 
-	if (mmio_ptr) {
-		iounmap(mmio_ptr);
-		mmio_ptr = 0L;
+	if (mmio0_ptr) {
+		iounmap(mmio0_ptr);
+		mmio0_ptr = 0L;
+	}
+	if (mmio1_ptr) {
+		iounmap(mmio1_ptr);
+		mmio1_ptr = 0L;
 	}
 	pci_release_regions (pdev);
 	pci_disable_device (pdev);
@@ -300,14 +312,6 @@ static int __init ethpipe_init(void)
 		return ret;
 	}
 
-	if ( ( pbuf0.rx_start_ptr = kmalloc( PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
-		printk("fail to kmalloc\n");
-		return -1;
-	}
-	pbuf0.rx_end_ptr = (pbuf0.rx_start_ptr + PACKET_BUF_MAX - 1);
-	pbuf0.rx_write_ptr = pbuf0.rx_start_ptr;
-	pbuf0.rx_read_ptr  = pbuf0.rx_start_ptr;
-
 	init_waitqueue_head( &write_q );
 	init_waitqueue_head( &read_q );
 	
@@ -320,8 +324,12 @@ static void __exit ethpipe_cleanup(void)
 	printk("%s\n", __func__);
 	misc_deregister(&ethpipe_dev);
 	pci_unregister_driver(&ethpipe_pci_driver);
-	if ( pbuf0.rx_start_ptr )
-		kfree( pbuf0.rx_start_ptr );
+
+	if ( dma1_virt_ptr )
+		dma_free_coherent(&pcidev->dev, PACKET_BUF_MAX, dma1_virt_ptr, dma1_phys_ptr);
+
+	if ( dma2_virt_ptr )
+		dma_free_coherent(&pcidev->dev, PACKET_BUF_MAX, dma2_virt_ptr, dma2_phys_ptr);
 }
 
 MODULE_LICENSE("GPL");

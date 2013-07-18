@@ -64,7 +64,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 //#ifdef DEBUG
 	printk("%s\n", __func__);
 	printk( "dma1_addr_cur=%x\n", dma1_addr_cur );
-	printk( "dma2_addr_cur=%x\n", dma1_addr_cur );
+	printk( "dma2_addr_cur=%x\n", dma2_addr_cur );
 //#endif
 
 #ifdef NO

@@ -87,9 +87,9 @@ always @(posedge sys_clk) begin
 		mst_wr_en <= 1'b0;
 		case ( rec_status )
 			REC_IDLE: begin
-				if ( dma1_frame_ptr == 30'h0 )
+				if ( dma1_frame_ptr < dma1_addr_start || ( dma1_addr_start + dma_length ) < dma1_frame_ptr )
 					dma1_frame_ptr <= dma1_addr_start;
-				if ( dma2_frame_ptr == 30'h0 )
+				if ( dma2_frame_ptr < dma2_addr_start || ( dma2_addr_start + dma_length ) < dma2_frame_ptr )
 					dma2_frame_ptr <= dma2_addr_start;
 				if ( dma1_frame_in  & ~phy1_empty ) begin
 					sel_phy <= 1'b0;

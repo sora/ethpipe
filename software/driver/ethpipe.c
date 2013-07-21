@@ -264,7 +264,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	/* set DMA2 start address */
 	*(long *)(mmio0_ptr + 0x28)  = dma2_phys_ptr;
 
-	sprintf( name, "%s%d", DRV_NAME, board_idx );
+	sprintf( name, "%s/%d", DRV_NAME, board_idx );
 	ethpipe_dev.name = name,
 	rc = misc_register(&ethpipe_dev);
 	if (rc) {

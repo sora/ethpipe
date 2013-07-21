@@ -63,8 +63,8 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 
 //#ifdef DEBUG
 	printk("%s\n", __func__);
-	printk( "dma1_addr_cur=%x\n", dma1_addr_cur );
-	printk( "dma2_addr_cur=%x\n", dma2_addr_cur );
+	printk( "dma1_addr_cur=%x\n", (unsigned int)dma1_addr_cur );
+	printk( "dma2_addr_cur=%x\n", (unsigned int)dma2_addr_cur );
 //#endif
 
 #ifdef NO
@@ -177,6 +177,8 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 				       const struct pci_device_id *ent)
 {
 	int rc;
+	static char name[16];
+	static int board_idx = -1;
 
 	mmio0_ptr = 0L;
 	mmio1_ptr = 0L;
@@ -193,6 +195,10 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	if (rc)
 		goto err_out;
 
+	++board_idx;
+
+	printk( KERN_INFO "board_idx: %d\n", board_idx );
+
 	pci_set_master (pdev);		/* set BUS Master Mode */
 
 	mmio0_start = pci_resource_start (pdev, 0);
@@ -200,10 +206,10 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	mmio0_flags = pci_resource_flags (pdev, 0);
 	mmio0_len   = pci_resource_len   (pdev, 0);
 
-	printk( KERN_INFO "mmio0_start: %X\n", mmio0_start );
-	printk( KERN_INFO "mmio0_end  : %X\n", mmio0_end   );
-	printk( KERN_INFO "mmio0_flags: %X\n", mmio0_flags );
-	printk( KERN_INFO "mmio0_len  : %X\n", mmio0_len   );
+	printk( KERN_INFO "mmio0_start: %X\n", (unsigned int)mmio0_start );
+	printk( KERN_INFO "mmio0_end  : %X\n", (unsigned int)mmio0_end   );
+	printk( KERN_INFO "mmio0_flags: %X\n", (unsigned int)mmio0_flags );
+	printk( KERN_INFO "mmio0_len  : %X\n", (unsigned int)mmio0_len   );
 
 	mmio0_ptr = ioremap(mmio0_start, mmio0_len);
 	if (!mmio0_ptr) {
@@ -216,10 +222,10 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	mmio1_flags = pci_resource_flags (pdev, 2);
 	mmio1_len   = pci_resource_len   (pdev, 2);
 
-	printk( KERN_INFO "mmio1_start: %X\n", mmio1_start );
-	printk( KERN_INFO "mmio1_end  : %X\n", mmio1_end   );
-	printk( KERN_INFO "mmio1_flags: %X\n", mmio1_flags );
-	printk( KERN_INFO "mmio1_len  : %X\n", mmio1_len   );
+	printk( KERN_INFO "mmio1_start: %X\n", (unsigned int)mmio1_start );
+	printk( KERN_INFO "mmio1_end  : %X\n", (unsigned int)mmio1_end   );
+	printk( KERN_INFO "mmio1_flags: %X\n", (unsigned int)mmio1_flags );
+	printk( KERN_INFO "mmio1_len  : %X\n", (unsigned int)mmio1_len   );
 
 	mmio1_ptr = ioremap_wc(mmio1_start, mmio1_len);
 	if (!mmio1_ptr) {
@@ -232,16 +238,16 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 		printk(KERN_ERR "cannot dma1_alloc_coherent\n");
 		goto err_out;
 	}
-	printk( KERN_INFO "dma1_virt_ptr  : %X\n", dma1_virt_ptr );
-	printk( KERN_INFO "dma1_phys_ptr  : %X\n", dma1_phys_ptr );
+	printk( KERN_INFO "dma1_virt_ptr  : %X\n", (unsigned int)dma1_virt_ptr );
+	printk( KERN_INFO "dma1_phys_ptr  : %X\n", (unsigned int)dma1_phys_ptr );
 
 	dma2_virt_ptr = dma_alloc_coherent( &pdev->dev, PACKET_BUF_MAX, &dma2_phys_ptr, GFP_KERNEL);
 	if (!dma2_virt_ptr) {
 		printk(KERN_ERR "cannot dma2_alloc_coherent\n");
 		goto err_out;
 	}
-	printk( KERN_INFO "dma2_virt_ptr  : %X\n", dma2_virt_ptr );
-	printk( KERN_INFO "dma2_phys_ptr  : %X\n", dma2_phys_ptr );
+	printk( KERN_INFO "dma2_virt_ptr  : %X\n", (unsigned int)dma2_virt_ptr );
+	printk( KERN_INFO "dma2_phys_ptr  : %X\n", (unsigned int)dma2_phys_ptr );
 
 	if (request_irq(pdev->irq, ethpipe_interrupt, IRQF_SHARED, DRV_NAME, pdev)) {
 		printk(KERN_ERR "cannot request_irq\n");
@@ -257,6 +263,14 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 
 	/* set DMA2 start address */
 	*(long *)(mmio0_ptr + 0x28)  = dma2_phys_ptr;
+
+	sprintf( name, "%s%d", DRV_NAME, board_idx );
+	ethpipe_dev.name = name,
+	rc = misc_register(&ethpipe_dev);
+	if (rc) {
+		printk("fail to misc_register (MISC_DYNAMIC_MINOR)\n");
+		return rc;
+	}
 
 	return 0;
 
@@ -300,17 +314,9 @@ static struct pci_driver ethpipe_pci_driver = {
 
 static int __init ethpipe_init(void)
 {
-	int ret;
-
 #ifdef MODULE
 	pr_info(ethpipe_DRIVER_NAME "\n");
 #endif
-
-	ret = misc_register(&ethpipe_dev);
-	if (ret) {
-		printk("fail to misc_register (MISC_DYNAMIC_MINOR)\n");
-		return ret;
-	}
 
 	init_waitqueue_head( &write_q );
 	init_waitqueue_head( &read_q );

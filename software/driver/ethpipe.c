@@ -53,10 +53,13 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 	long dma1_addr_cur, dma2_addr_cur;
 
 	status = *(mmio0_ptr + 0x10);
-	// not ethpipe interrupt
+	// is ethpipe interrupt?
 	if ((status & 8) == 0 ) {
 		return IRQ_NONE;
 	}
+
+	// clear interrupt flag
+	*(mmio0_ptr + 0x10) = status & 0xf7; 
 
 	dma1_addr_cur = *(long *)(mmio0_ptr + 0x24);
 	dma2_addr_cur = *(long *)(mmio0_ptr + 0x2c);
@@ -70,8 +73,6 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 #ifdef NO
 	wake_up_interruptible( &read_q );
 #endif
-	// clear interrupt flag
-	*(mmio0_ptr + 0x10) = status & 0xf7; 
 
 	return IRQ_HANDLED;
 }

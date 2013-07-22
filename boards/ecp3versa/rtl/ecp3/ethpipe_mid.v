@@ -521,7 +521,7 @@ end
 
 assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[15]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[15]}} & slv_dat2_o );
 
-assign sys_intr = rec_intr;
+assign sys_intr = dma_status[3];
 
 endmodule
 

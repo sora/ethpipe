@@ -323,13 +323,6 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 		printk(KERN_ERR "cannot dma1_alloc_coherent\n");
 		goto error;
 	}
-{
-int i;
-static unsigned char *p;
-p = dma1_virt_ptr;
-for (i=0; i<(PACKET_BUF_MAX/4); ++i)
-	*p++ = i;
-}
 	printk( KERN_INFO "dma1_virt_ptr  : %llX\n", (long long)dma1_virt_ptr );
 	printk( KERN_INFO "dma1_phys_ptr  : %llX\n", (long long)dma1_phys_ptr );
 

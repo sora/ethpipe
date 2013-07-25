@@ -100,12 +100,10 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 
 		printk( "frame_len=%4d\n", frame_len );
 
-		if ( (pbuf0.rx_write_ptr +  frame_len) > pbuf0.rx_end_ptr ) {
-			memcpy( pbuf0.rx_start_ptr, pbuf0.rx_read_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr ));
-			pbuf0.rx_write_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr );
+		if ( (pbuf0.rx_write_ptr + frame_len + 0x10) > pbuf0.rx_end_ptr ) {
+			memcpy( pbuf0.rx_start_ptr, pbuf0.rx_read_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr ));
+			pbuf0.rx_write_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr );
 			pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
-			if ( pbuf0.rx_read_ptr < pbuf0.rx_start_ptr )
-				pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
 		}
 
 		// L2 header
@@ -114,6 +112,8 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		for ( i = 0; i < 14; ++i ) {
 			*(unsigned short *)pbuf0.rx_write_ptr = hex[ p[i] ];
 			pbuf0.rx_write_ptr += 2;
+			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
 			if ( i == 5 || i== 11 || i == 13 ) {
 				*pbuf0.rx_write_ptr++ = ' ';
 			}
@@ -124,11 +124,15 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		for ( i = 0; i < (frame_len-14) ; ++i) {
 			*(unsigned short *)pbuf0.rx_write_ptr = hex[ p[i] ];
 			pbuf0.rx_write_ptr += 2;
+			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
 			if ( likely( i != (frame_len-14-1) ) ) {
 				*pbuf0.rx_write_ptr++ = ' ';
 			} else {
 				*pbuf0.rx_write_ptr++ = '\n';
 			}
+			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
 		}
 
 

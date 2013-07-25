@@ -108,18 +108,19 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 		return -ERESTARTSYS;
 	}
 
-	if ( (pbuf0.rx_write_ptr +  frame_len) > pbuf0.rx_end_ptr ) {
-		memcpy( pbuf0.rx_start_ptr, pbuf0.rx_read_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr ));
-		pbuf0.rx_write_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_start_ptr );
+	if ( (pbuf0.rx_write_ptr + frame_len + 0x10) > pbuf0.rx_end_ptr ) {
+		memcpy( pbuf0.rx_start_ptr, pbuf0.rx_read_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr ));
+		pbuf0.rx_write_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr );
 		pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
-		if ( pbuf0.rx_read_ptr < pbuf0.rx_start_ptr )
-			pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
 	}
+
 
 	p = skb_mac_header(skb);
 	for ( i = 0; i < 14; ++i ) {
 		*(unsigned short *)pbuf0.rx_write_ptr = hex[ p[i] ];
 		pbuf0.rx_write_ptr += 2;
+		if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+			pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
 		if ( i == 5 || i== 11 || i == 13 ) {
 			*pbuf0.rx_write_ptr++ = ' ';
 		}
@@ -128,11 +129,15 @@ int genpipe_pack_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_
 	for ( i = 0; i < (skb->len) ; ++i) {
 		*(unsigned short *)pbuf0.rx_write_ptr = hex[ p[i] ];
 		pbuf0.rx_write_ptr += 2;
+		if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+			pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
 		if ( likely( i != ((skb->len) - 1 ) ) ) {
 			*pbuf0.rx_write_ptr++ = ' ';
 		} else {
 			*pbuf0.rx_write_ptr++ = '\n';
 		}
+		if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+			pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
 	}
 
 	wake_up_interruptible( &read_q );

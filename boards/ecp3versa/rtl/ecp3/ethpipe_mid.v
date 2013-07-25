@@ -252,8 +252,6 @@ receiver receiver_inst (
 	.dma_length(dma_length),
 	.dma1_addr_start(dma1_addr_start),
 	.dma1_addr_cur(dma1_addr_cur),
-	.dma2_addr_start(dma2_addr_start),
-	.dma2_addr_cur(dma2_addr_cur),
 	// LED and Switches
 	.dipsw(),
 	.led(),

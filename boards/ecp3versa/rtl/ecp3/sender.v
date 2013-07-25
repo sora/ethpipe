@@ -177,7 +177,7 @@ always @(posedge gmii_tx_clk) begin
 				gmii_txd   <= crc_out[15:8];
 			end
 			TX_FCS_3: begin
-				tx_status  <= TX_IDLE;
+				tx_status  <= TX_IFG;
 				gmii_tx_en <= 1'b1;
 				gmii_txd   <= crc_out[7:0];
 				crc_rd     <= 1'b0;
@@ -185,13 +185,14 @@ always @(posedge gmii_tx_clk) begin
 			TX_IFG: begin
 				ifg_count <= ifg_count + 3'd1;
 				if (ifg_count == 3'd5) begin
-					tx_status  <= TX_COMPLETE;
+					tx_status <= TX_COMPLETE;
 
-					// '14'd8' means etherpipe header size (magic + frame_len + ts + hash)
+					// '14'd8': etherpipe header size (magic + frame_len + ts + hash)
 					mem_rd_ptr <= mem_rd_ptr + tx_frame_len[13:0] + 14'd8;
 				end
 			end
 			TX_COMPLETE: begin
+				tx_status        <= TX_IDLE;
 				slot_tx_eth_addr <= mem_rd_ptr;
 			end
 			default:

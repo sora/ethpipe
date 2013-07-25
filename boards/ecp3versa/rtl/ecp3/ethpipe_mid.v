@@ -106,6 +106,7 @@ wire rx2_phyq_full, rx2_phyq_wr_en;
 wire rx2_phyq_empty, rx2_phyq_rd_en;
 wire [7:0] rx2_phyq_count;
 
+`ifdef ENABLE_PHY2
 afifo18 afifo18_rx2_phyq (
         .Data(rx2_phyq_din),
 	.WrClock(phy2_rx_clk),
@@ -118,6 +119,7 @@ afifo18 afifo18_rx2_phyq (
 	.Empty(rx2_phyq_empty),
 	.Full(rx2_phyq_full)
 );
+`endif
 
 // PHY#1 RX GMII2FIFO18 module
 gmii2fifo18 # (
@@ -136,6 +138,7 @@ gmii2fifo18 # (
 );
 
 // PHY#2 RX GMII2FIFO18 module
+`ifdef ENABLE_PHY2
 gmii2fifo18 # (
 	.Gap(4'h8)
 ) rx2gmii2fifo (
@@ -150,6 +153,7 @@ gmii2fifo18 # (
 	.wr_count(rx2_phyq_count),
 	.wr_clk()
 );
+`endif
 
 // Slave bus
 wire [6:0] slv_bar_i;
@@ -226,20 +230,15 @@ pcie_tlp inst_pcie_tlp (
 wire btn;
 wire rec_intr;
 `ifdef ENABLE_RECEIVER
-receiver receiver_inst (
+receiver receiver_phy1 (
 	.sys_clk(clk_125),
 	.sys_rst(sys_rst),
 	.sys_intr(rec_intr),
-	// Phy1 FIFO
-	.phy1_dout(rx1_phyq_dout),
-	.phy1_empty(rx1_phyq_empty),
-	.phy1_rd_en(rx1_phyq_rd_en),
-	.phy1_rx_count(rx1_phyq_count),
-	// Phy2 FIFO
-	.phy2_dout(rx2_phyq_dout),
-	.phy2_empty(rx2_phyq_empty),
-	.phy2_rd_en(rx2_phyq_rd_en),
-	.phy2_rx_count(rx2_phyq_count),
+	// Phy FIFO
+	.phy_dout(rx1_phyq_dout),
+	.phy_empty(rx1_phyq_empty),
+	.phy_rd_en(rx1_phyq_rd_en),
+	.phy_rx_count(rx1_phyq_count),
 	// Master FIFO
 	.mst_din(wr_mstq_din),
 	.mst_full(wr_mstq_full),
@@ -250,8 +249,8 @@ receiver receiver_inst (
 	// DMA regs
 	.dma_status(dma_status),
 	.dma_length(dma_length),
-	.dma1_addr_start(dma1_addr_start),
-	.dma1_addr_cur(dma1_addr_cur),
+	.dma_addr_start(dma1_addr_start),
+	.dma_addr_cur(dma1_addr_cur),
 	// LED and Switches
 	.dipsw(),
 	.led(),
@@ -300,6 +299,7 @@ wire [ 1:0] mem1_byte_enB;
 wire [13:0] mem1_addressB;
 wire        mem1_wr_enB;
 wire [15:0] mem1_qB;
+`ifdef ENABLE_PHY2
 ram_dp_true rx1_mem (
     .DataInA(slv_dat_i)
   , .DataInB(mem1_dataB)
@@ -318,6 +318,7 @@ ram_dp_true rx1_mem (
   , .QA(slv_dat2_o)
   , .QB(mem1_qB)
 );
+`endif
 
 // Slot0 TX (A: host, B: ethernet)
 wire [15:0] tx0mem_dataB;
@@ -395,6 +396,7 @@ sender sender_ins_phy1 (
 
 wire [13:0] tx1mem_rd_ptr;
 wire [13:0] tx1mem_wr_ptr;
+`ifdef ENABLE_PHY2
 sender sender_ins_phy2 (
     .sys_rst(sys_rst)
   , .pci_clk(clk_125)
@@ -413,6 +415,7 @@ sender sender_ins_phy2 (
   , .mem_wr_ptr(tx1mem_wr_ptr)
   , .mem_rd_ptr(tx1mem_rd_ptr)
 );
+`endif
 `endif
 
 assign phy1_mii_clk  = 1'b0;

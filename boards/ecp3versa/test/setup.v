@@ -1,2 +1,3 @@
 `define ENABLE_RECEIVER
 `define ENABLE_TRANSMITTER
+//`define	ENABLE_PHY2

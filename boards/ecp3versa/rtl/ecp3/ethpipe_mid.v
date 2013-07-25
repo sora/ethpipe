@@ -263,7 +263,6 @@ receiver receiver_inst (
 `ifdef ENABLE_TRANSMITTER
 `endif
 
-reg [3:0] rx_slots_status = 4'b0000;
 reg [3:0] tx_slots_status = 4'b0000;
 
 //-------------------------------------
@@ -276,7 +275,7 @@ wire [ 1:0] mem0_byte_enB;
 wire [13:0] mem0_addressB;
 wire        mem0_wr_enB;
 wire [15:0] mem0_qB;
-ram_dp_true mem0read (
+ram_dp_true rx0_mem (
     .DataInA(slv_dat_i)
   , .DataInB(mem0_dataB)
   , .ByteEnA(slv_sel_i)
@@ -301,7 +300,7 @@ wire [ 1:0] mem1_byte_enB;
 wire [13:0] mem1_addressB;
 wire        mem1_wr_enB;
 wire [15:0] mem1_qB;
-ram_dp_true mem1read (
+ram_dp_true rx1_mem (
     .DataInA(slv_dat_i)
   , .DataInB(mem1_dataB)
   , .ByteEnA(slv_sel_i)
@@ -320,64 +319,107 @@ ram_dp_true mem1read (
   , .QB(mem1_qB)
 );
 
+// Slot0 TX (A: host, B: ethernet)
+wire [15:0] tx0mem_dataB;
+wire [ 1:0] tx0mem_byte_enB;
+wire [13:0] tx0mem_addressB;
+wire        tx0mem_wr_enB;
+wire [15:0] tx0mem_qB;
+ram_dp_true tx0_mem (
+    .DataInA()
+  , .DataInB(tx0mem_dataB)
+  , .ByteEnA()
+  , .ByteEnB(tx0mem_byte_enB)
+  , .AddressA()
+  , .AddressB(tx0mem_addressB)
+  , .ClockA(clk_125)
+  , .ClockB(phy1_rx_clk)
+  , .ClockEnA()
+  , .ClockEnB(1'b1)
+  , .WrA()
+  , .WrB(tx0mem_wr_enB)
+  , .ResetA(sys_rst)
+  , .ResetB(sys_rst)
+  , .QA()
+  , .QB(tx0mem_qB)
+);
+wire slot0_tx_complete;
 
-wire        slot0_rx_ready;
-wire        slot1_rx_ready;
+// Slot1 TX (A: host, B: ethernet)
+wire [15:0] tx1mem_dataB;
+wire [ 1:0] tx1mem_byte_enB;
+wire [13:0] tx1mem_addressB;
+wire        tx1mem_wr_enB;
+wire [15:0] tx1mem_qB;
+ram_dp_true tx1_mem (
+    .DataInA()
+  , .DataInB(tx1mem_dataB)
+  , .ByteEnA()
+  , .ByteEnB(tx1mem_byte_enB)
+  , .AddressA()
+  , .AddressB(tx1mem_addressB)
+  , .ClockA(clk_125)
+  , .ClockB(phy1_rx_clk)
+  , .ClockEnA()
+  , .ClockEnB(1'b1)
+  , .WrA()
+  , .WrB(tx1mem_wr_enB)
+  , .ResetA(sys_rst)
+  , .ResetB(sys_rst)
+  , .QA()
+  , .QB(tx1mem_qB)
+);
+wire slot1_tx_complete;
 `ifdef NO
-ethpipe ethpipe_ins (
-  // system
-    .sys_rst(sys_rst)
 
-  // PCI user registers
+wire [13:0] tx0mem_rd_ptr;
+wire [13:0] tx0mem_wr_ptr;
+sender sender_ins_phy1 (
+    .sys_rst(sys_rst)
   , .pci_clk(clk_125)
 
-  , .global_counter_rst(global_counter_rst)
   , .global_counter(global_counter)
 
-  // Port 0
   , .gmii0_tx_clk(phy1_125M_clk)
-  , .gmii0_txd()
-  , .gmii0_tx_en()
-  , .gmii0_rxd(phy1_rx_data)
-  , .gmii0_rx_dv(phy1_rx_dv)
-  , .gmii0_rx_clk(phy1_rx_clk)
+  , .gmii0_txd(phy1_tx_data)
+  , .gmii0_tx_en(phy1_tx_en)
+  , .slot0_tx_eth_data(tx0mem_dataB)
+  , .slot0_tx_eth_byte_en(tx0mem_byte_enB)
+  , .slot0_tx_eth_addr(tx0mem_addressB)
+  , .slot0_tx_eth_wr_en(tx0mem_wr_enB)
+  , .slot0_tx_eth_q(tx0mem_qB)
 
-  , .slot0_rx_eth_data(mem0_dataB)
-  , .slot0_rx_eth_byte_en(mem0_byte_enB)
-  , .slot0_rx_eth_address(mem0_addressB)
-  , .slot0_rx_eth_wr_en(mem0_wr_enB)
-//  , .slot0_rx_eth_q(mem0_qB)
+  , .mem_wr_ptr(tx0mem_wr_ptr)
+  , .mem_rd_ptr(tx0mem_rd_ptr)
+);
 
-  , .slot0_rx_empty(rx_slots_status[1])      // RX slot empty
-  , .slot0_rx_complete(slot0_rx_ready)       // RX slot read ready
+wire [13:0] tx1mem_rd_ptr;
+wire [13:0] tx1mem_wr_ptr;
+sender sender_ins_phy2 (
+    .sys_rst(sys_rst)
+  , .pci_clk(clk_125)
 
-  // Port 1
+  , .global_counter(global_counter)
+
   , .gmii1_tx_clk(phy2_125M_clk)
-  , .gmii1_txd()
-  , .gmii1_tx_en()
-  , .gmii1_rxd(phy2_rx_data)
-  , .gmii1_rx_dv(phy2_rx_dv)
-  , .gmii1_rx_clk(phy2_rx_clk)
+  , .gmii1_txd(phy2_tx_data)
+  , .gmii1_tx_en(phy2_tx_en)
+  , .slot1_tx_eth_data(tx1mem_dataB)
+  , .slot1_tx_eth_byte_en(tx1mem_byte_enB)
+  , .slot1_tx_eth_addr(tx1mem_addressB)
+  , .slot1_tx_eth_wr_en(tx1mem_wr_enB)
+  , .slot1_tx_eth_q(tx1mem_qB)
 
-  , .slot1_rx_eth_data(mem1_dataB)
-  , .slot1_rx_eth_byte_en(mem1_byte_enB)
-  , .slot1_rx_eth_address(mem1_addressB)
-  , .slot1_rx_eth_wr_en(mem1_wr_enB)
-//  , .slot1_rx_eth_q(mem1_qB)
-
-  , .slot1_rx_empty(rx_slots_status[3])      // RX slot empty
-  , .slot1_rx_complete(slot1_rx_ready)       // RX slot read ready
+  , .mem_wr_ptr(tx1mem_wr_ptr)
+  , .mem_rd_ptr(tx1mem_rd_ptr)
 );
 `endif
+
 assign phy1_mii_clk  = 1'b0;
 assign phy1_mii_data = 1'b0;
-assign phy1_tx_en    = 1'b0;
-assign phy1_tx_data  = 8'h0;
 assign phy1_gtx_clk  = phy1_125M_clk;
 assign phy2_mii_clk  = 1'b0;
 assign phy2_mii_data = 1'b0;
-assign phy2_tx_en    = 1'b0;
-assign phy2_tx_data  = 8'h0;
 assign phy2_gtx_clk  = phy2_125M_clk;
 
 // Global counter

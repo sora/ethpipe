@@ -20,7 +20,7 @@ module receiver (
 	input [7:0]  dma_status,
 	input [21:2] dma_length,
 	input [31:2] dma_addr_start,
-	output [31:2] dma_addr_cur,
+	output reg [31:2] dma_addr_cur,
 	// LED and Switches
 	input [7:0] dipsw,
 	output [7:0] led,
@@ -62,6 +62,7 @@ always @(posedge sys_clk) begin
 		dma_frame_in <= 1'b0;
 		dma_rx_count <= 8'h0;
 		dma_enable <= 1'b0;
+		dma_addr_cur <= 30'h0;
 		phy_rd_en <= 1'b0;
 		mst_wr_en <= 1'b0;
 		rec_status <= REC_IDLE;
@@ -71,8 +72,10 @@ always @(posedge sys_clk) begin
 		mst_wr_en <= 1'b0;
 		case ( rec_status )
 			REC_IDLE: begin
-				if ( dma_frame_ptr < dma_addr_start || ( dma_addr_start + dma_length ) < dma_frame_ptr )
+				if ( dma_frame_ptr < dma_addr_start || ( dma_addr_start + dma_length ) < dma_frame_ptr ) begin
 					dma_frame_ptr <= dma_addr_start;
+					dma_addr_cur <= dma_addr_start;
+				end
 				if ( dma_frame_in  & ~phy_empty ) begin
 					remain_word <= (8'd64 >> 1);
 					rec_status <= REC_HEAD10;
@@ -186,6 +189,7 @@ always @(posedge sys_clk) begin
 				rec_status <= REC_FIN;
 			end
 			REC_FIN: begin
+				dma_addr_cur <= dma_frame_ptr;
 				rec_status <= REC_IDLE;
 			end
 		endcase
@@ -193,8 +197,6 @@ always @(posedge sys_clk) begin
 end
 
 //assign led[7:0] = ~eth_dest[7:0];
-
-assign	dma_addr_cur = dma_frame_ptr;
 
 endmodule
 `default_nettype wire

@@ -67,21 +67,24 @@ struct _pbuf_dma {
 static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 {
 	int i, status;
-	unsigned int frame_len;
+	unsigned short frame_len;
 	static unsigned short hex[257], initialized = 0;
+	int handled = 0;
 
 	status = *(mmio0_ptr + 0x10);
 	// is ethpipe interrupt?
 	if ((status & 8) == 0 ) {
-		return IRQ_NONE;
+		goto lend;
 	}
 
 	// clear interrupt flag
 	*(mmio0_ptr + 0x10) = status & 0xf7; 
 
-//#ifdef DEBUG
+	handled = 1;
+
+#ifdef DEBUG
 	printk("%s\n", __func__);
-//#endif
+#endif
 
 	if ( unlikely(initialized == 0) ) {
 		for ( i = 0 ; i < 256 ; ++i ) {
@@ -96,13 +99,19 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		read_ptr = dma1_virt_ptr;
 		read_ptr += (int)(dma1_addr_read - dma1_phys_ptr);
 		
-		frame_len = *(short *)(read_ptr + 0);
+		frame_len = *(unsigned short *)(read_ptr + 0);
 
+#ifdef DEBUG
 		printk( "frame_len=%4d\n", frame_len );
+#endif
+		if (frame_len>1518)
+			frame_len = 1518;
 
 		if ( (pbuf0.rx_write_ptr + frame_len + 0x10) > pbuf0.rx_end_ptr ) {
+			if (pbuf0.rx_read_ptr == pbuf0.rx_start_ptr)
+				pbuf0.rx_read_ptr = pbuf0.rx_write_ptr;
 			memcpy( pbuf0.rx_start_ptr, pbuf0.rx_read_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr ));
-			pbuf0.rx_write_ptr -= (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr );
+			pbuf0.rx_write_ptr = pbuf0.rx_start_ptr + (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr );
 			pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
 		}
 
@@ -142,7 +151,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 	}
 
 lend:
-	return IRQ_HANDLED;
+	return IRQ_RETVAL(handled);
 }
 
 static int ethpipe_open(struct inode *inode, struct file *filp)
@@ -168,6 +177,9 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 
 	available_read_len = (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr);
 
+	if ( (pbuf0.rx_read_ptr + available_read_len ) > pbuf0.rx_end_ptr )
+		available_read_len = (pbuf0.rx_end_ptr - pbuf0.rx_read_ptr + 1);
+
 	if ( count > available_read_len )
 		copy_len = available_read_len;
 	else
@@ -179,6 +191,8 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 	}
 
 	pbuf0.rx_read_ptr += copy_len;
+	if (pbuf0.rx_read_ptr > pbuf0.rx_end_ptr)
+		pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
 
 	return copy_len;
 }

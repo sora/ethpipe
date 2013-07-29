@@ -1,0 +1,1 @@
+KERNEL=="genpipe*"		MODE="0666"

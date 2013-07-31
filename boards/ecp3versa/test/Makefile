@@ -5,6 +5,7 @@ SOURCES=$(wildcard *.v) \
 	$(wildcard ../../../cores/gmii2fifo18/rtl/*.v) \
 	$(wildcard ../rtl/ecp3/ethpipe_mid.v) \
 	$(wildcard ../rtl/ecp3/receiver.v) \
+	$(wildcard ../rtl/ecp3/sender.v) \
 	$(wildcard ../rtl/ecp3/pcie_tlp.v)
 
 #all: cversim

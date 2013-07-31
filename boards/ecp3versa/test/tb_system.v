@@ -106,11 +106,14 @@ end
 */
 
 reg [23:0] tlp_rom [0:4095];
+reg [19:0] mem_rom [0:4095];
 reg [11:0] phy_rom [0:4095];
-reg [11:0] tlp_counter, phy_counter;
-wire [11:0] tlp_cur;
+reg [11:0] tlp_counter, mem_counter, phy_counter;
+wire [23:0] tlp_cur;
+wire [19:0] mem_cur;
 wire [11:0] phy_cur;
 assign tlp_cur = tlp_rom[ tlp_counter ];
+assign mem_cur = mem_rom[ mem_counter ];
 assign phy_cur = phy_rom[ phy_counter ];
 
 always @(posedge sys_clk) begin
@@ -122,18 +125,34 @@ end
 
 always @(posedge sys_clk) begin
 	gmii_rx_dv  <= phy_cur[8];
-	gmii_rxd <= phy_cur[7:0];
+	gmii_rxd    <= phy_cur[7:0];
 	phy_counter <= phy_counter + 1;
 end
 
+always @(posedge sys_clk) begin
+	if (sys_rst) begin
+	end else begin
+		mem_counter <= mem_counter + 12'd1;
+
+		ethpipe_mid_inst.tx0mem_wr_ptr   <= { 2'b00, mem_counter };
+
+		ethpipe_mid_inst.tx0mem_addressA <= { 2'b00, mem_counter };
+		ethpipe_mid_inst.tx0mem_dataA    <= mem_cur[15:0];
+		ethpipe_mid_inst.tx0mem_byte_enA <= 2'b11;
+		ethpipe_mid_inst.tx0mem_wr_enA   <= mem_cur[16];
+	end
+end
+
 initial begin
-        $dumpfile("./test.vcd");
+	$dumpfile("./test.vcd");
 	$dumpvars(0, tb_system); 
 	$readmemh("./tlp_data.hex", tlp_rom);
+	$readmemh("./phy_data2.hex", mem_rom);
 	$readmemh("./phy_data.hex", phy_rom);
 	/* Reset / Initialize our logic */
 	sys_rst = 1'b1;
 	tlp_counter = 0;
+	mem_counter = 0;
 	phy_counter = 0;
 
 	waitclock;
@@ -153,3 +172,4 @@ initial begin
 end
 
 endmodule
+

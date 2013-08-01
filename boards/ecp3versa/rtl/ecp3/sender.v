@@ -165,7 +165,7 @@ always @(posedge gmii_tx_clk) begin
 			end
 			TX_IFG: begin
 				ifg_count <= ifg_count + 3'd1;
-				if (ifg_count == 3'd5) begin
+				if (ifg_count == 3'd6) begin
 					tx_status <= TX_IDLE;
 				end
 			end

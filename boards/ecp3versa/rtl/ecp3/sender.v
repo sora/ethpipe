@@ -128,7 +128,7 @@ always @(posedge gmii_tx_clk) begin
 						tx_hash[15:0]       <= slot_tx_eth_q;
 					end
 					default: begin
-						if (tx_counter == tx_frame_len[13:0] + 14'd7) begin
+						if (tx_counter == tx_frame_len[13:0] + 14'd8) begin
 							tx_status <= TX_FCS_1;
 							crc_rd    <= 1'b1;
 							gmii_txd  <= crc_out[31:24];

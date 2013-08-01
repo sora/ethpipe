@@ -31,7 +31,7 @@ wire crc_init = (tx_counter == 14'h08);
 wire [31:0] crc_out;
 wire crc_data_en = ~crc_rd;
 crc_gen tx_fcs_gen (
-    .Reset(~sys_rst)
+    .Reset(sys_rst)
   , .Clk(gmii_tx_clk)
   , .Init(crc_init)
   , .Frame_data(gmii_txd)
@@ -67,11 +67,13 @@ always @(posedge gmii_tx_clk) begin
 		tx_hash             <= 32'b0;
 		tx_data_tmp         <= 16'b0;
 		mem_rd_ptr          <= 14'b0;
+		crc_rd              <= 1'b0;
 	end else begin
 		gmii_tx_en <= 1'b0;
 		case (tx_status)
 			TX_IDLE: begin
 				tx_counter <= 14'd0;
+				crc_rd     <= 1'b0;
 				ifg_count  <= 3'b0;
 				if (mem_rd_ptr != mem_wr_ptr) begin
 					tx_status  <= TX_SENDING;

@@ -51,7 +51,6 @@ parameter [2:0]            // TX status
   , TX_IFG      = 3'b101;
 reg [ 2:0] tx_status;
 reg [ 2:0] ifg_count;
-reg [15:0] tx_magic;
 reg [15:0] tx_frame_len;
 reg [63:0] tx_timestamp;
 reg [31:0] tx_hash;
@@ -63,7 +62,6 @@ always @(posedge gmii_tx_clk) begin
 		tx_status           <= 3'b0;
 		ifg_count           <= 3'b0;
 		tx_counter          <= 14'd0;
-		tx_magic            <= 16'b0;
 		tx_frame_len        <= 16'b0;
 		tx_timestamp        <= 64'b0;
 		tx_hash             <= 32'b0;
@@ -77,8 +75,6 @@ always @(posedge gmii_tx_clk) begin
 				ifg_count  <= 3'b0;
 				if (mem_rd_ptr != mem_wr_ptr) begin
 					tx_status  <= TX_SENDING;
-					tx_magic   <= slot_tx_eth_q;    // must check the magic code :todo
-					mem_rd_ptr <= mem_rd_ptr + 14'h1;
 				end
 			end
 			TX_SENDING: begin
@@ -130,7 +126,7 @@ always @(posedge gmii_tx_clk) begin
 						tx_hash[15:0]       <= slot_tx_eth_q;
 					end
 					default: begin
-						if (tx_counter == tx_frame_len[13:0] + 14'd8) begin
+						if (tx_counter == tx_frame_len[13:0] + 14'd7) begin
 							tx_status <= TX_FCS_1;
 							crc_rd    <= 1'b1;
 							gmii_txd  <= crc_out[31:24];

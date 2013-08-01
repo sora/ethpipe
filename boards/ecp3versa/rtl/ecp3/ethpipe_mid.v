@@ -260,63 +260,53 @@ receiver receiver_phy1 (
 `endif
 
 // sender slot (A: PCIe, B: Ethernet PHY)
-reg  [15:0] tx0mem_dataA;
-reg  [ 1:0] tx0mem_byte_enA;
-reg  [13:0] tx0mem_addressA;
-reg         tx0mem_wr_enA;
-wire [15:0] tx0mem_qA;
 wire [15:0] tx0mem_dataB;
 wire [ 1:0] tx0mem_byte_enB;
 wire [13:0] tx0mem_addressB;
 wire        tx0mem_wr_enB;
 wire [15:0] tx0mem_qB;
-reg  [15:0] tx1mem_dataA;
-reg  [ 1:0] tx1mem_byte_enA;
-reg  [13:0] tx1mem_addressA;
-reg         tx1mem_wr_enA;
-wire [15:0] tx1mem_qA;
 wire [15:0] tx1mem_dataB;
 wire [ 1:0] tx1mem_byte_enB;
 wire [13:0] tx1mem_addressB;
 wire        tx1mem_wr_enB;
 wire [15:0] tx1mem_qB;
 `ifdef ENABLE_TRANSMITTER
-ram_dp_true rx0_mem (
-    .DataInA(tx0mem_dataA)
+ram_dp_true tx0_mem (
+    .DataInA(slv_dat_i)
   , .DataInB(tx0mem_dataB)
-  , .ByteEnA(tx0mem_byte_enA)
+  , .ByteEnA(slv_sel_i)
   , .ByteEnB(tx0mem_byte_enB)
-  , .AddressA(tx0mem_addressA)
+  , .AddressA(slv_adr_i[14:1])
   , .AddressB(tx0mem_addressB)
   , .ClockA(clk_125)
-  , .ClockB(phy1_125M_clk)
-  , .ClockEnA(~sys_rst)
-  , .ClockEnB(~sys_rst)
-  , .WrA(tx0mem_wr_enA)
+  , .ClockB(phy1_rx_clk)
+  , .ClockEnA(slv_ce_i & slv_bar_i[2] & ~slv_adr_i[15])
+  , .ClockEnB(1'b1)
+  , .WrA(slv_we_i)
   , .WrB(tx0mem_wr_enB)
   , .ResetA(sys_rst)
   , .ResetB(sys_rst)
-  , .QA(tx0mem_qA)
+  , .QA(slv_dat1_o)
   , .QB(tx0mem_qB)
 );
 
 `ifdef ENABLE_PHY2
-ram_dp_true rx1_mem (
-    .DataInA(tx1mem_dataA)
+ram_dp_true tx1_mem (
+    .DataInA(slv_dat_i)
   , .DataInB(tx1mem_dataB)
-  , .ByteEnA(tx1mem_byte_enA)
+  , .ByteEnA(slv_sel_i)
   , .ByteEnB(tx1mem_byte_enB)
-  , .AddressA(tx1mem_addressA)
+  , .AddressA(slv_adr_i[14:1])
   , .AddressB(tx1mem_addressB)
   , .ClockA(clk_125)
-  , .ClockB(phy2_125M_clk)
-  , .ClockEnA(~sys_rst)
-  , .ClockEnB(~sys_rst)
-  , .WrA(tx1mem_wr_enA)
+  , .ClockB(phy1_rx_clk)
+  , .ClockEnA(slv_ce_i & slv_bar_i[2] & ~slv_adr_i[15])
+  , .ClockEnB(1'b1)
+  , .WrA(slv_we_i)
   , .WrB(tx1mem_wr_enB)
   , .ResetA(sys_rst)
   , .ResetB(sys_rst)
-  , .QA(tx1mem_qA)
+  , .QA(slv_dat1_o)
   , .QB(tx1mem_qB)
 );
 `endif
@@ -384,7 +374,6 @@ end
 //-------------------------------------
 // PCI I/O memory mapping
 //-------------------------------------
-reg [1:0] mem_read_count;
 always @(posedge clk_125) begin
 	if (sys_rst == 1'b1) begin
 		slv_dat0_o      <= 16'h0;
@@ -392,24 +381,7 @@ always @(posedge clk_125) begin
 		dma_length      <= ( 22'h1_0000 >> 2 );
 		dma1_addr_start <= ( 32'h1000_0000 >> 2 );
 		dma2_addr_start <= ( 32'h1010_0000 >> 2 );
-
-		tx0mem_dataA    <= 16'h0;
-		tx0mem_byte_enA <= 2'b0;
-		tx0mem_addressA <= 14'h0;
-		tx0mem_wr_enA   <= 1'b0;
-		tx1mem_dataA    <= 16'h0;
-		tx1mem_byte_enA <= 2'b0;
-		tx1mem_addressA <= 14'h0;
-		tx1mem_wr_enA   <= 1'b0;
-
-		mem_read_count  <= 2'h0;
 	end else begin
-		mem_read_count  <= 2'h0;
-`ifndef SIMULATION
-		tx0mem_wr_enA   <= 1'b0;
-		tx1mem_wr_enA   <= 1'b0;
-`endif
-
 		if (rec_intr)
 			dma_status[3] <= 1'b1;
 		if (slv_bar_i[0] & slv_ce_i) begin
@@ -554,55 +526,6 @@ always @(posedge clk_125) begin
 				endcase
 			end else
 				slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
-`ifndef SIMULATION
-		end else if (slv_bar_i[1] & slv_ce_i) begin
-			case (slv_adr_i[19:15])
-				// TX0 frame data
-				5'b00000: begin
-					if (slv_we_i) begin // wr
-						tx0mem_wr_enA   <= 1'b1;
-						tx0mem_byte_enA <= { slv_sel_i[0], slv_sel_i[1] };
-						tx0mem_addressA <= slv_adr_i[14:1] + 14'h1;
-						if (slv_sel_i[1])
-							tx0mem_dataA[ 7:0] <= slv_dat_i[15: 8];
-						if (slv_sel_i[0])
-							tx0mem_dataA[15:8] <= slv_dat_i[ 7: 0];
-					end else begin // rd
-						mem_read_count <= mem_read_count + 2'h1;
-						if (mem_read_count == 2'h0 || mem_read_count == 2'h1) begin
-							tx0mem_addressA <= slv_adr_i[16:2] + 14'h1;
-						end else if (mem_read_count == 2'h2) begin
-							slv_dat0_o     <= tx0mem_dataA;
-							mem_read_count <= 2'h0;
-						end
-					end
-				end
-`ifdef ENABLE_PHY2
-				// TX2 frame data
-				5'b00001: begin
-					if (slv_we_i) begin
-						tx1mem_wr_enA   <= 1'b1;
-						tx1mem_byte_enA <= { slv_sel_i[0], slv_sel_i[1] };
-						tx1mem_addressA <= slv_adr_i[14:1] + 14'h1;
-						if (slv_sel_i[1])
-							tx1mem_dataA[ 7:0] <= slv_dat_i[15: 8];
-						if (slv_sel_i[0])
-							tx1mem_dataA[15:8] <= slv_dat_i[ 7: 0];
-					end else begin
-						mem_read_count <= mem_read_count + 2'h1;
-						if (mem_read_count == 2'h0 || mem_read_count == 2'h1) begin
-							tx1mem_addressA <= slv_adr_i[16:2] + 14'h1;
-						end else if (mem_read_count == 2'h2) begin
-							slv_dat0_o     <= tx1mem_dataA;
-							mem_read_count <= 2'h0;
-						end
-					end
-				end
-`endif
-				default:
-					slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
-			endcase
-`endif
 		end
 	end
 end

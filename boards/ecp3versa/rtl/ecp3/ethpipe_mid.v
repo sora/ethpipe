@@ -300,13 +300,13 @@ ram_dp_true tx1_mem (
   , .AddressB(tx1mem_addressB)
   , .ClockA(clk_125)
   , .ClockB(phy1_rx_clk)
-  , .ClockEnA(slv_ce_i & slv_bar_i[2] & ~slv_adr_i[15])
+  , .ClockEnA(slv_ce_i & slv_bar_i[2] & slv_adr_i[15])
   , .ClockEnB(1'b1)
   , .WrA(slv_we_i)
   , .WrB(tx1mem_wr_enB)
   , .ResetA(sys_rst)
   , .ResetB(sys_rst)
-  , .QA(slv_dat1_o)
+  , .QA(slv_dat2_o)
   , .QB(tx1mem_qB)
 );
 `endif

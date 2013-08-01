@@ -21,6 +21,10 @@ module ram_dp_true  (
 
 reg [15:0] mem [0:16383];
 
+initial begin
+        $readmemh("./mem_data.hex", mem);
+end
+
 always @(posedge ClockA) begin
 	if (WrA) begin
 		if (ByteEnA[0])

@@ -1,0 +1,144 @@
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+00a0	// Dest MAC
+de1c
+07e8
+0030	// Source MAC
+1ba0
+a48e
+0800	// Type=IPv4 (0x800)
+4500
+002a	// Total Length=34 (0x002a)
+d74d	// Identification=55117 (0xd74d)
+4000
+4011	// TTL=64 (0x40), Protocol=UDP (0x11)
+fc5d	// Header checksum=0xfc5d
+0a00	// Source IP=10.0.21.101
+1565
+0a00	// Dest IP=10.0.21.1
+1501
+8450	// Source port=33872 (0xc8450)
+0d5e	// Dest port=3422 (0x0d5e)
+0016	// UDP len (08)+data length
+3e8d	// UDP sum
+a111	// payload
+0000
+81ff
+d000
+0000
+a1a2
+a3a4
+84ff
+c000
+0000
+c1c2
+c3c4
+d1d2
+d3d4
+e1e2
+e3e4
+f1f2
+f3f4
+0000
+1122	// Dummy FCS=0x11223344
+3344
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+00a0	// Dest MAC
+de1c
+07e8
+0030	// Source MAC
+1ba0
+a48e
+0800	// Type=IPv4 (0x800)
+4500
+002a	// Total Length=34 (0x002a)
+d74d	// Identification=55117 (0xd74d)
+4000
+4011	// TTL=64 (0x40), Protocol=UDP (0x11)
+fc5d	// Header checksum=0xfc5d
+0a00	// Source IP=10.0.21.101
+1565
+0a00	// Dest IP=10.0.21.1
+1501
+8450	// Source port=33872 (0xc8450)
+0d5e	// Dest port=3422 (0x0d5e)
+0016	// UDP len (08)+data length
+3e8d	// UDP sum
+a111	// payload
+0000
+81ff
+d000
+0000
+a1a2
+a3a4
+84ff
+c000
+0000
+c1c2
+c3c4
+d1d2
+d3d4
+e1e2
+e3e4
+f1f2
+f3f4
+0000
+1122	// Dummy FCS=0x11223344
+3344
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000
+0000

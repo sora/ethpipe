@@ -491,7 +491,6 @@ always @(posedge clk_125) begin
 					6'h17: begin
 						slv_dat0_o <= {dma2_addr_cur[23:16], dma2_addr_cur[31:24]};
 					end
-`ifndef SIMULATION
 					// TX0 write ptr
 					6'h18: begin
 						if (slv_we_i) begin
@@ -520,7 +519,6 @@ always @(posedge clk_125) begin
 					6'h1b: begin
 						slv_dat0_o <= {tx1mem_rd_ptr[7:0], 2'b00, tx1mem_rd_ptr[13:8]};
 					end
-`endif
 					default:
 						slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
 				endcase

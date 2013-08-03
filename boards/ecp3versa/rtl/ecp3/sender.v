@@ -69,14 +69,18 @@ always @(posedge gmii_tx_clk) begin
 		mem_rd_ptr          <= 14'b0;
 		crc_rd              <= 1'b0;
 	end else begin
+
 		gmii_tx_en <= 1'b0;
+
 		case (tx_status)
 			TX_IDLE: begin
 				tx_counter <= 14'd0;
 				crc_rd     <= 1'b0;
 				ifg_count  <= 3'b0;
-				if (mem_rd_ptr != mem_wr_ptr) begin
-					tx_status  <= TX_SENDING;
+
+				// should swap the relational op to own logic :todo
+				if (mem_rd_ptr < mem_wr_ptr) begin
+					tx_status <= TX_SENDING;
 				end
 			end
 			TX_SENDING: begin
@@ -124,7 +128,7 @@ always @(posedge gmii_tx_clk) begin
 						mem_rd_ptr          <= mem_rd_ptr + 14'h1;
 					end
 					14'd7: begin
-						gmii_txd            <= 8'hd5;    // preamble + SFD
+						gmii_txd            <= 8'hd5;                     // preamble + SFD
 						tx_hash[15:0]       <= slot_tx_eth_q;
 					end
 					default: begin
@@ -147,7 +151,7 @@ always @(posedge gmii_tx_clk) begin
 					end
 				endcase
 			end
-			TX_FCS_1: begin
+			TX_FCS_1: begin                           // ethernet FCS
 				tx_status  <= TX_FCS_2;
 				gmii_tx_en <= 1'b1;
 				gmii_txd   <= crc_out[23:16];
@@ -163,7 +167,7 @@ always @(posedge gmii_tx_clk) begin
 				gmii_txd   <= crc_out[7:0];
 				crc_rd     <= 1'b0;
 			end
-			TX_IFG: begin
+			TX_IFG: begin                              // InterFrage Gap (64 bit times)
 				ifg_count <= ifg_count + 3'd1;
 				if (ifg_count == 3'd6) begin
 					tx_status <= TX_IDLE;

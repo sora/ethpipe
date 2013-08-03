@@ -45,6 +45,44 @@ e3e4
 f1f2
 f3f4
 f5f6	// payload end
+003e	// etherPIPE: Frame Length=62 (0x003e)
+1122    // etherPIPE: ts
+3344    // etherPIPE: ts
+5566    // etherPIPE: ts
+7788    // etherPIPE: ts
+abcd	// etherPIPE: hash
+dcba	// etherPIPE: hash
+000A	// Dest MAC
+E6F0
+05A3
+0012	// Src MAC
+3456
+7890
+0800	// Type=IPv4 (0x800)
+4500
+0030	// Total Length=48 (0x0030)
+B3FE
+0000
+8011	// TTL=64 (0x80), Protocol=UDP (0x11)
+72BA
+0A00
+0003
+0A00
+0002
+0400
+0400
+001C
+894D
+0001
+0203
+0405
+0607
+0809
+0A0B
+0C0D
+0E0F
+1011
+1213	// payload end, correct FCS="7A D5 6B B3"
 0060	// etherPIPE: Frame Length=96 (0x0060)
 1122    // etherPIPE: ts
 3344    // etherPIPE: ts

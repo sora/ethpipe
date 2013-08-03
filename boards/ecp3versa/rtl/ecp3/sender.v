@@ -23,6 +23,7 @@ module sender (
   , output reg  [13:0] mem_rd_ptr
 );
 
+reg [13:0] rd_ptr;
 reg [13:0] tx_counter;
 
 /* TX ethernet FCS generater */
@@ -59,15 +60,16 @@ reg [15:0] tx_data_tmp;
 /* packet sender logic */
 always @(posedge gmii_tx_clk) begin
 	if (sys_rst) begin
-		tx_status           <= 3'b0;
-		ifg_count           <= 3'b0;
-		tx_counter          <= 14'd0;
-		tx_frame_len        <= 16'b0;
-		tx_timestamp        <= 64'b0;
-		tx_hash             <= 32'b0;
-		tx_data_tmp         <= 16'b0;
-		mem_rd_ptr          <= 14'b0;
-		crc_rd              <= 1'b0;
+		tx_status    <= 3'b0;
+		ifg_count    <= 3'b0;
+		tx_counter   <= 14'd0;
+		tx_frame_len <= 16'b0;
+		tx_timestamp <= 64'b0;
+		tx_hash      <= 32'b0;
+		tx_data_tmp  <= 16'b0;
+		rd_ptr       <= 14'b0;
+		mem_rd_ptr   <= 14'b0;
+		crc_rd       <= 1'b0;
 	end else begin
 
 		gmii_tx_en <= 1'b0;
@@ -77,10 +79,12 @@ always @(posedge gmii_tx_clk) begin
 				tx_counter <= 14'd0;
 				crc_rd     <= 1'b0;
 				ifg_count  <= 3'b0;
+				rd_ptr     <= 14'h0;
 
 				// should swap the relational op to own logic :todo
 				if (mem_rd_ptr < mem_wr_ptr) begin
 					tx_status <= TX_SENDING;
+					rd_ptr    <= mem_rd_ptr;
 				end
 			end
 			TX_SENDING: begin
@@ -95,37 +99,37 @@ always @(posedge gmii_tx_clk) begin
 				case (tx_counter)
 					14'd0: begin
 						gmii_txd            <= 8'h55;                   // preamble
-						mem_rd_ptr          <= mem_rd_ptr + 14'h1;
+						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd1: begin
 						gmii_txd            <= 8'h55;
 						tx_frame_len        <= slot_tx_eth_q;
-						mem_rd_ptr          <= mem_rd_ptr + 14'h1;
+						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd2: begin
 						gmii_txd            <= 8'h55;
 						tx_timestamp[63:48] <= slot_tx_eth_q;
-						mem_rd_ptr          <= mem_rd_ptr + 14'h1;
+						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd3: begin
 						gmii_txd            <= 8'h55;
 						tx_timestamp[47:32] <= slot_tx_eth_q;
-						mem_rd_ptr          <= mem_rd_ptr + 14'h1;
+						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd4: begin
 						gmii_txd            <= 8'h55;
 						tx_timestamp[31:16] <= slot_tx_eth_q;
-						mem_rd_ptr          <= mem_rd_ptr + 14'h1;
+						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd5: begin
 						gmii_txd            <= 8'h55;
 						tx_timestamp[15:0]  <= slot_tx_eth_q;
-						mem_rd_ptr          <= mem_rd_ptr + 14'h1;
+						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd6: begin
 						gmii_txd            <= 8'h55;
 						tx_hash[31:16]      <= slot_tx_eth_q;
-						mem_rd_ptr          <= mem_rd_ptr + 14'h1;
+						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd7: begin
 						gmii_txd            <= 8'hd5;                     // preamble + SFD
@@ -133,14 +137,15 @@ always @(posedge gmii_tx_clk) begin
 					end
 					default: begin
 						if (tx_counter == tx_frame_len[13:0] + 14'd8) begin
-							tx_status <= TX_FCS_1;
-							crc_rd    <= 1'b1;
-							gmii_txd  <= crc_out[31:24];
+							tx_status  <= TX_FCS_1;
+							crc_rd     <= 1'b1;
+							gmii_txd   <= crc_out[31:24];                 // ethernet FCS 0
 						end else begin
+							// send frame data
 							case (tx_counter[0])
 								1'b0: begin
 									gmii_txd    <= slot_tx_eth_q[15:8];
-									mem_rd_ptr  <= mem_rd_ptr + 14'd1;
+									rd_ptr      <= rd_ptr + 14'd1;
 									tx_data_tmp <= slot_tx_eth_q;
 								end
 								1'b1: begin
@@ -151,26 +156,27 @@ always @(posedge gmii_tx_clk) begin
 					end
 				endcase
 			end
-			TX_FCS_1: begin                           // ethernet FCS
+			TX_FCS_1: begin                           // ethernet FCS 1
 				tx_status  <= TX_FCS_2;
 				gmii_tx_en <= 1'b1;
 				gmii_txd   <= crc_out[23:16];
 			end
-			TX_FCS_2: begin
+			TX_FCS_2: begin                           // ethernet FCS 2
 				tx_status  <= TX_FCS_3;
 				gmii_tx_en <= 1'b1;
 				gmii_txd   <= crc_out[15:8];
 			end
-			TX_FCS_3: begin
+			TX_FCS_3: begin                           // ethernet FCS 3
 				tx_status  <= TX_IFG;
 				gmii_tx_en <= 1'b1;
 				gmii_txd   <= crc_out[7:0];
 				crc_rd     <= 1'b0;
 			end
-			TX_IFG: begin                              // InterFrage Gap (64 bit times)
+			TX_IFG: begin                              // InterFrage Gap (64 bit interval)
 				ifg_count <= ifg_count + 3'd1;
 				if (ifg_count == 3'd6) begin
-					tx_status <= TX_IDLE;
+					tx_status  <= TX_IDLE;
+					mem_rd_ptr <= rd_ptr;              // update mem_rd_ptr
 				end
 			end
 			default:
@@ -178,7 +184,7 @@ always @(posedge gmii_tx_clk) begin
 		endcase
 	end
 end
-assign slot_tx_eth_addr = mem_rd_ptr;
+assign slot_tx_eth_addr = rd_ptr;
 
 endmodule
 

@@ -16,6 +16,9 @@
         <Source name="../rtl/ecp3/receiver.v" type="Verilog" type_short="Verilog">
             <Options/>
         </Source>
+        <Source name="../rtl/ecp3/sender.v" type="Verilog" type_short="Verilog">
+            <Options/>
+        </Source>
         <Source name="../rtl/ecp3/pcie_tlp.v" type="Verilog" type_short="Verilog">
             <Options/>
         </Source>

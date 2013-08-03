@@ -200,6 +200,7 @@ ethpipe_mid ethpipe_mid_inst (
   , .npd_cr(npd_cr)
 
   // Ethernet PHY#1
+`ifndef ENABLE_LOOPBACK_TEST
   , .phy1_rst_n(phy1_rst_n)
   , .phy1_125M_clk(phy1_125M_clk)
   , .phy1_tx_clk(phy1_tx_clk)
@@ -214,6 +215,22 @@ ethpipe_mid ethpipe_mid_inst (
   , .phy1_crs(phy1_crs)
   , .phy1_mii_clk(phy1_mii_clk)
   , .phy1_mii_data(phy1_mii_data)
+`else
+  , .phy1_rst_n(phy2_rst_n)
+  , .phy1_125M_clk(phy2_125M_clk)
+  , .phy1_tx_clk(phy2_tx_clk)
+  , .phy1_gtx_clk(phy2_gtx_clk)
+  , .phy1_tx_en(phy2_tx_en)
+  , .phy1_tx_data(phy2_tx_data)
+  , .phy1_rx_clk(phy2_rx_clk)
+  , .phy1_rx_dv(phy2_rx_dv)
+  , .phy1_rx_er(phy2_rx_er)
+  , .phy1_rx_data(phy2_rx_data)
+  , .phy1_col(phy2_col)
+  , .phy1_crs(phy2_crs)
+  , .phy1_mii_clk(phy2_mii_clk)
+  , .phy1_mii_data(phy2_mii_data)
+`endif
 
   // Ethernet PHY#2
   , .phy2_rst_n(phy2_rst_n)

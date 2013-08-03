@@ -1,0 +1,125 @@
+[*]
+[*] GTKWave Analyzer v3.3.45 (w)1999-2012 BSI
+[*] Sat Aug  3 10:48:21 2013
+[*]
+[dumpfile] "../test.vcd"
+[dumpfile_mtime] "Sat Aug  3 10:35:40 2013"
+[dumpfile_size] 228278
+[savefile] "send_phy1.gtkw"
+[timestart] 0
+[size] 1000 1028
+[pos] 0 -1
+*-7.000000 60 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_system.
+[treeopen] tb_system.ethpipe_mid_inst.
+[treeopen] tb_system.ethpipe_mid_inst.sender_phy1_ins.
+[sst_width] 223
+[signals_width] 222
+[sst_expanded] 1
+[sst_vpaned_height] 311
+@200
+-System
+@28
+tb_system.sys_clk
+tb_system.sys_rst
+@200
+-tb_system
+@28
+tb_system.gmii_tx_clk
+tb_system.gmii_tx_en
+@22
+tb_system.gmii_txd[7:0]
+@200
+-ethpipe_mid
+@22
+tb_system.ethpipe_mid_inst.global_counter[63:0]
+@28
+tb_system.ethpipe_mid_inst.phy1_gtx_clk
+tb_system.ethpipe_mid_inst.phy1_rst_n
+tb_system.ethpipe_mid_inst.phy1_tx_en
+@22
+tb_system.ethpipe_mid_inst.phy1_tx_data[7:0]
+@28
+tb_system.ethpipe_mid_inst.tx0mem_wr_enB
+@29
+tb_system.ethpipe_mid_inst.tx0mem_byte_enB[1:0]
+@22
+tb_system.ethpipe_mid_inst.tx0mem_addressB[13:0]
+tb_system.ethpipe_mid_inst.tx0mem_dataB[15:0]
+@c00022
+tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+@28
+(0)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(1)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(2)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(3)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(4)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(5)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(6)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(7)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(8)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(9)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(10)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(11)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(12)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(13)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(14)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+(15)tb_system.ethpipe_mid_inst.tx0mem_qB[15:0]
+@1401200
+-group_end
+@22
+tb_system.ethpipe_mid_inst.tx0mem_rd_ptr[13:0]
+tb_system.ethpipe_mid_inst.tx0mem_wr_ptr[13:0]
+@200
+-sender_phy1
+@28
+tb_system.ethpipe_mid_inst.sender_phy1_ins.sys_rst
+@22
+tb_system.ethpipe_mid_inst.sender_phy1_ins.global_counter[63:0]
+@28
+tb_system.ethpipe_mid_inst.sender_phy1_ins.gmii_tx_clk
+tb_system.ethpipe_mid_inst.sender_phy1_ins.gmii_tx_en
+@22
+tb_system.ethpipe_mid_inst.sender_phy1_ins.gmii_txd[7:0]
+@28
+tb_system.ethpipe_mid_inst.sender_phy1_ins.ifg_count[2:0]
+@22
+tb_system.ethpipe_mid_inst.sender_phy1_ins.mem_rd_ptr[13:0]
+tb_system.ethpipe_mid_inst.sender_phy1_ins.mem_wr_ptr[13:0]
+tb_system.ethpipe_mid_inst.sender_phy1_ins.slot_tx_eth_addr[13:0]
+@28
+tb_system.ethpipe_mid_inst.sender_phy1_ins.slot_tx_eth_byte_en[1:0]
+@22
+tb_system.ethpipe_mid_inst.sender_phy1_ins.slot_tx_eth_data[15:0]
+tb_system.ethpipe_mid_inst.sender_phy1_ins.slot_tx_eth_q[15:0]
+@28
+tb_system.ethpipe_mid_inst.sender_phy1_ins.slot_tx_eth_wr_en
+@22
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_counter[13:0]
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_data_tmp[15:0]
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_frame_len[15:0]
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_hash[31:0]
+@28
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_status[2:0]
+@22
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_timestamp[63:0]
+@200
+-tx_fcs_gen
+@28
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_fcs_gen.CRC_end
+@22
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_fcs_gen.CRC_out[31:0]
+@28
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_fcs_gen.CRC_rd
+@22
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_fcs_gen.CRC_reg[31:0]
+@28
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_fcs_gen.Clk
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_fcs_gen.Data_en
+@22
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_fcs_gen.Frame_data[7:0]
+@28
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_fcs_gen.Init
+tb_system.ethpipe_mid_inst.sender_phy1_ins.tx_fcs_gen.Reset
+[pattern_trace] 1
+[pattern_trace] 0

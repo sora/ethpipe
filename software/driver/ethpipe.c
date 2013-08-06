@@ -12,25 +12,30 @@
 #ifndef DRV_NAME
 #define DRV_NAME	"ethpipe"
 #endif
-#ifndef RX_ADDR
-#define RX_ADDR	 0x8000
+
+#ifndef TX_WRITE_PTR_ADDRESS
+#define TX_WRITE_PTR_ADDRESS	(0x30)
 #endif
-#ifndef TX_ADDR
-#define TX_ADDR	 0x9000
+
+#ifndef TX_READ_PTR_ADDRESS
+#define TX_READ_PTR_ADDRESS		(0x34)
 #endif
 
 #define	DRV_VERSION	"0.1.0"
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
 #define	PACKET_BUF_MAX	(1024*1024)
-#define	TEMP_BUF_MAX	2000
+#define	TEMP_BUF_MAX	(2000)
 
-#define HEADER_LEN	16
+#define ETHPIPE_HEADER_LEN		(14)
+#define MAX_FRAME_LEN			(9014)
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(3,8,0)
 #define	__devinit
 #define	__devexit
 #define	__devexit_p
 #endif
+
+#define DEBUG
 
 static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 	{0x3776, 0x8001, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
@@ -46,6 +51,9 @@ static dma_addr_t dma1_phys_ptr = 0L, dma2_phys_ptr;
 static long *dma1_addr_start, *dma2_addr_start;
 static long *dma1_addr_cur, *dma2_addr_cur;
 static long dma1_addr_read, dma2_addr_read;
+
+static unsigned int *tx_write_ptr;
+static unsigned int *tx_read_ptr;
 
 static struct pci_dev *pcidev = NULL;
 static wait_queue_head_t write_q;
@@ -199,21 +207,104 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 
 static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 			    size_t count, loff_t *ppos)
-
 {
-	int copy_len;
-	if ( count > 256 )
-		copy_len = 256;
-	else
-		copy_len = count;
+	static unsigned char tmp_pkt[14+MAX_FRAME_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	unsigned int copy_len, pos, frame_len;
+	unsigned char *cr;
+
+	copy_len = 0;
+
 #ifdef DEBUG
 	printk("%s\n", __func__);
 #endif
 
-	if ( copy_from_user( mmio1_ptr, buf, copy_len ) ) {
+	// copy from user inputs to kernel buffer
+	if ( copy_from_user( pbuf0.tx_write_ptr, buf, count ) ) {
 		printk( KERN_INFO "copy_from_user failed\n" );
 		return -EFAULT;
 	}
+	pbuf0.tx_write_ptr += count;
+
+	copy_len = count;
+
+
+ethpipe_write_loop:
+
+	// check input number of words
+	for ( cr = pbuf0.tx_read_ptr; cr < pbuf0.tx_write_ptr && *cr != '\n'; ++cr );
+	if ( cr == pbuf0.tx_write_ptr )
+		goto ethpipe_write_exit;
+
+#ifdef DEBUG
+	printk("pbuf0.tx_write_ptr: %X\n", (unsigned int)pbuf0.tx_write_ptr);
+	printk("pbuf0.tx_read_ptr: %X\n", (unsigned int)pbuf0.tx_read_ptr);
+	printk("count: %d\n", (unsigned int)count);
+#endif
+
+	frame_len = 0;
+	pos = 0;
+	for ( ; pbuf0.tx_read_ptr < cr && frame_len < MAX_FRAME_LEN; ++pbuf0.tx_read_ptr ) {
+
+		// skip blank char
+		if (*pbuf0.tx_read_ptr == ' ')
+			continue;
+
+		// upper words
+		if (*pbuf0.tx_read_ptr >= 'a' && *pbuf0.tx_read_ptr <= 'z')
+			*pbuf0.tx_read_ptr -= 0x20;
+
+		// ascii to number
+		if (*pbuf0.tx_read_ptr >= '0' && *pbuf0.tx_read_ptr <= '9') {
+			if (pos == 0) {
+				tmp_pkt[frame_len+14] = (*pbuf0.tx_read_ptr - '0') << 4;
+				pos = 1;
+			} else {
+				tmp_pkt[frame_len+14] |= (*pbuf0.tx_read_ptr - '0');
+				pos = 0;
+				++frame_len;
+			}
+		} else if (*pbuf0.tx_read_ptr >= 'A' && *pbuf0.tx_read_ptr <= 'F') {
+			if (pos == 0) {
+				tmp_pkt[frame_len+14] = (*pbuf0.tx_read_ptr - 'A' + 0xA) << 4;
+				pos = 1;
+			} else {
+				tmp_pkt[frame_len+14] |= (*pbuf0.tx_read_ptr - 'A' + 0xA);
+				pos = 0;
+				++frame_len;
+			}
+		}
+//		else {
+//			printk("input data err: %c\n", *pbuf0.tx_read_ptr);
+//			goto ethpipe_write_exit;
+//		}
+
+		printk( "frame_len: %d, word: %c\n", frame_len, *pbuf0.tx_read_ptr );
+	}
+
+	// frame length
+//	tmp_pkt[0] = (frame_len >> 8) & 0xFF;
+//	tmp_pkt[1] = frame_len & 0xFF;
+
+//	printk( "tmp_pkt[14] = %c\n", tmp_pkt[14] );
+
+#ifdef NO
+//	printk( "tmp_pkt[0]: %02x, tmp_pkt[1]: %02x\n", tmp_pkt[0], tmp_pkt[1] );
+	printk( "%02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x %02x%02x %02x %02x\n",
+		tmp_pkt[14], tmp_pkt[15], tmp_pkt[16], tmp_pkt[17], tmp_pkt[18], tmp_pkt[19],
+		tmp_pkt[20], tmp_pkt[21], tmp_pkt[22], tmp_pkt[23], tmp_pkt[24], tmp_pkt[25],
+		tmp_pkt[26], tmp_pkt[27],
+		tmp_pkt[27], tmp_pkt[28]);
+#endif
+
+	// write send data to FPGA memory
+	memcpy(mmio1_ptr, tmp_pkt, frame_len+ETHPIPE_HEADER_LEN);
+
+	// update tx_write_pointer
+//	*tx_write_ptr = tx_write_ptr + frame_len;
+
+	goto ethpipe_write_loop;
+
+ethpipe_write_exit:
 
 	return copy_len;
 }
@@ -377,6 +468,9 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	dma1_addr_read = dma1_phys_ptr;
 	dma2_addr_read = dma2_phys_ptr;
 
+	/* set TX slot Pointer */
+	tx_write_ptr = (mmio0_ptr + TX_WRITE_PTR_ADDRESS);
+	tx_read_ptr  = (mmio0_ptr + TX_READ_PTR_ADDRESS);
 
 	/* Set receive buffer */
 	if ( ( pbuf0.rx_start_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {

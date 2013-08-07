@@ -235,11 +235,12 @@ ethpipe_write_loop:
 	if ( cr == pbuf0.tx_write_ptr )
 		goto ethpipe_write_exit;
 
-#ifdef DEBUG
-	printk("pbuf0.tx_write_ptr: %X\n", (unsigned int)pbuf0.tx_write_ptr);
-	printk("pbuf0.tx_read_ptr: %X\n", (unsigned int)pbuf0.tx_read_ptr);
-	printk("count: %d\n", (unsigned int)count);
-#endif
+//#ifdef DEBUG
+	printk("pbuf0.tx_write_ptr: %p\n", pbuf0.tx_write_ptr);
+	printk("pbuf0.tx_read_ptr: %p\n", pbuf0.tx_read_ptr);
+	printk("cr               : %p\n", cr);
+	printk("count: %d\n", (int)count);
+//#endif
 
 	frame_len = 0;
 	pos = 0;
@@ -301,6 +302,7 @@ ethpipe_write_loop:
 
 	// update tx_write_pointer
 //	*tx_write_ptr = tx_write_ptr + frame_len;
+	pbuf0.tx_read_ptr = cr + 1;
 
 	goto ethpipe_write_loop;
 

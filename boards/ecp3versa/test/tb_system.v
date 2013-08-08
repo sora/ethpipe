@@ -143,8 +143,9 @@ initial begin
 
 	waitclock;
 
-	#(50*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h50;
-	#(200*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h92;
+	#(60*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h26;
+	#(120*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h4c;
+	#(180*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h100;
 
 //	#(8*2) mst_req_o = 1'b0;
 

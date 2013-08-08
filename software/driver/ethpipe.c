@@ -273,23 +273,20 @@ ethpipe_write_loop:
 				pos = 0;
 				++frame_len;
 			}
+		} else {
+			printk("input data err: %c\n", *pbuf0.tx_read_ptr);
+			goto ethpipe_write_exit;
 		}
-//		else {
-//			printk("input data err: %c\n", *pbuf0.tx_read_ptr);
-//			goto ethpipe_write_exit;
-//		}
-
-		printk( "frame_len: %d, word: %c\n", frame_len, *pbuf0.tx_read_ptr );
+//		printk( "frame_len: %d, word: %c\n", frame_len, *pbuf0.tx_read_ptr );
 	}
 
-	// frame length
-//	tmp_pkt[0] = (frame_len >> 8) & 0xFF;
-//	tmp_pkt[1] = frame_len & 0xFF;
+	// set frame length
+	printk( "frame_len: %d\n", frame_len );
+	tmp_pkt[0] = (frame_len >> 8) & 0xFF;
+	tmp_pkt[1] = frame_len & 0xFF;
+	printk( "tmp_pkt[0] = %02x, tmp_pkt[1] = %02x\n", tmp_pkt[0], tmp_pkt[1] );
 
-//	printk( "tmp_pkt[14] = %c\n", tmp_pkt[14] );
-
-#ifdef NO
-//	printk( "tmp_pkt[0]: %02x, tmp_pkt[1]: %02x\n", tmp_pkt[0], tmp_pkt[1] );
+#ifdef DEBUG
 	printk( "%02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x %02x%02x %02x %02x\n",
 		tmp_pkt[14], tmp_pkt[15], tmp_pkt[16], tmp_pkt[17], tmp_pkt[18], tmp_pkt[19],
 		tmp_pkt[20], tmp_pkt[21], tmp_pkt[22], tmp_pkt[23], tmp_pkt[24], tmp_pkt[25],
@@ -300,15 +297,23 @@ ethpipe_write_loop:
 	// write send data to FPGA memory
 	memcpy(mmio1_ptr, tmp_pkt, frame_len+ETHPIPE_HEADER_LEN);
 
+	printk( "*tx_write_ptr: %d, *tx_read_ptr %d\n", *tx_write_ptr, *tx_read_ptr);
 	// update tx_write_pointer
-//	*tx_write_ptr = tx_write_ptr + frame_len;
+	if (frame_len % 2)
+		*tx_write_ptr = *tx_write_ptr + ((frame_len + 1) / 2) + 7;
+	else
+		*tx_write_ptr = *tx_write_ptr + (frame_len / 2) + 7;
+	printk( "*tx_write_ptr: %d, *tx_read_ptr %d\n", *tx_write_ptr, *tx_read_ptr);
+
 	pbuf0.tx_read_ptr = cr + 1;
 
 	goto ethpipe_write_loop;
 
+
 ethpipe_write_exit:
 
 	return copy_len;
+
 }
 
 static int ethpipe_release(struct inode *inode, struct file *filp)

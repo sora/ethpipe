@@ -210,7 +210,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 {
 	static unsigned char tmp_pkt[14+MAX_FRAME_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	unsigned int copy_len, pos, frame_len;
-	unsigned int hw_slot_addr;
+	unsigned int hw_slot_addr = 0u;
 	unsigned char *cr;
 
 	copy_len = 0;
@@ -228,6 +228,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 
 	copy_len = count;
 
+	hw_slot_addr = *tx_write_ptr;
 
 ethpipe_write_loop:
 
@@ -295,10 +296,6 @@ ethpipe_write_loop:
 		tmp_pkt[27], tmp_pkt[28]);
 #endif
 
-	hw_slot_addr = *tx_write_ptr;
-	printk( "hw_slot_addr: %d\n", hw_slot_addr );
-	printk( "*tx_write_ptr: %d, *tx_read_ptr %d\n", *tx_write_ptr, *tx_read_ptr);
-
 	// write send data to FPGA memory
 	memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, frame_len+ETHPIPE_HEADER_LEN);
 
@@ -307,8 +304,6 @@ ethpipe_write_loop:
 	else
 		hw_slot_addr = hw_slot_addr + (frame_len / 2) + 7;
 
-	// update tx_write_pointer
-	*tx_write_ptr = hw_slot_addr;
 	printk( "hw_slot_addr: %d\n", hw_slot_addr );
 	printk( "*tx_write_ptr: %d, *tx_read_ptr %d\n", *tx_write_ptr, *tx_read_ptr);
 
@@ -319,8 +314,12 @@ ethpipe_write_loop:
 
 ethpipe_write_exit:
 
-	return copy_len;
+	printk( "ethpipe_write_exit\n" );
 
+	// update tx_write_pointer
+	*tx_write_ptr = hw_slot_addr;
+
+	return copy_len;
 }
 
 static int ethpipe_release(struct inode *inode, struct file *filp)
@@ -435,7 +434,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	printk( KERN_INFO "mmio1_flags: %X\n", (unsigned int)mmio1_flags );
 	printk( KERN_INFO "mmio1_len  : %X\n", (unsigned int)mmio1_len   );
 
-	mmio1_ptr = ioremap_wc(mmio1_start, mmio1_len);
+	mmio1_ptr = ioremap(mmio1_start, mmio1_len);
 	if (!mmio1_ptr) {
 		printk(KERN_ERR "cannot ioremap MMIO1 base\n");
 		goto error;

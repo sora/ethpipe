@@ -434,7 +434,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	printk( KERN_INFO "mmio1_flags: %X\n", (unsigned int)mmio1_flags );
 	printk( KERN_INFO "mmio1_len  : %X\n", (unsigned int)mmio1_len   );
 
-	mmio1_ptr = ioremap(mmio1_start, mmio1_len);
+	mmio1_ptr = ioremap_wc(mmio1_start, mmio1_len);
 	if (!mmio1_ptr) {
 		printk(KERN_ERR "cannot ioremap MMIO1 base\n");
 		goto error;

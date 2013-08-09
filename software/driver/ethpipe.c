@@ -52,8 +52,8 @@ static long *dma1_addr_start, *dma2_addr_start;
 static long *dma1_addr_cur, *dma2_addr_cur;
 static long dma1_addr_read, dma2_addr_read;
 
-static unsigned int *tx_write_ptr;
-static unsigned int *tx_read_ptr;
+static unsigned short *tx_write_ptr;
+static unsigned short *tx_read_ptr;
 
 static struct pci_dev *pcidev = NULL;
 static wait_queue_head_t write_q;
@@ -210,7 +210,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 {
 	static unsigned char tmp_pkt[14+MAX_FRAME_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	unsigned int copy_len, pos, frame_len;
-	unsigned int hw_slot_addr = 0u;
+	unsigned short hw_slot_addr = 0u;
 	unsigned char *cr;
 
 	copy_len = 0;
@@ -484,6 +484,9 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	/* set TX slot Pointer */
 	tx_write_ptr = (mmio0_ptr + TX_WRITE_PTR_ADDRESS);
 	tx_read_ptr  = (mmio0_ptr + TX_READ_PTR_ADDRESS);
+
+	/* clear tx_write_ptr */
+	*tx_write_ptr = *tx_read_ptr;
 
 	/* Set receive buffer */
 	if ( ( pbuf0.rx_start_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {

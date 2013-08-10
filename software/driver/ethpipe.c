@@ -206,7 +206,7 @@ static ssize_t ethpipe_read(struct file *filp, char __user *buf,
 }
 
 static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
-			    size_t count, loff_t *ppos)
+				size_t count, loff_t *ppos)
 {
 	static unsigned char tmp_pkt[14+MAX_FRAME_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	unsigned int copy_len, pos, frame_len;
@@ -294,18 +294,9 @@ ethpipe_write_loop:
 		tmp_pkt[27], tmp_pkt[28]);
 #endif
 
-	// write send data to FPGA memory
-	data_len = frame_len + ETHPIPE_HEADER_LEN;
-	j = 0x8000 - (short)(*tx_write_ptr);
-	if ( j < data_len ) {
-		memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, j);
-		memcpy(mmio1_ptr, tmp_pkt+j, data_len-j);
+	memcpy(mmio1_ptr, tmp_pkt, data_len);
 
-		hw_slot_addr = ((data_len + 1) - j) >> 1;
-	} else {
-		memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, data_len);
-		hw_slot_addr += (data_len + 1) >> 1;
-	}
+	hw_slot_addr += (data_len + 1) >> 1;
 
 #ifdef DEBUG
 	p1 = (unsigned short *)mmio1_ptr;
@@ -328,7 +319,7 @@ ethpipe_write_exit:
 	printk( "ethpipe_write_exit\n" );
 
 	// update tx_write_pointer
-	*tx_write_ptr = hw_slot_addr / 2;
+	*tx_write_ptr = hw_slot_addr;
 
 	// clear pbuf0 buffers
 	*pbuf0.tx_read_ptr = 0;

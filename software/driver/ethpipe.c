@@ -303,8 +303,10 @@ ethpipe_write_loop:
 
 #ifdef DEBUG
 	p1 = (unsigned short *)mmio1_ptr;
-	for (i=0; i<200;i++)
-		printk("%04X: %04X\n", i, *(p1++));
+	for (i=0; i<200;i++) {
+		printk("%04X: %02X%02X\n", i, *p1 & 0xFF, (*p1>>8) & 0xFF);
+		p1++;
+	}
 #endif
 
 	if (frame_len % 2)

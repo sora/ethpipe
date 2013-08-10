@@ -218,10 +218,6 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 
 	copy_len = 0;
 
-#ifdef DEBUG
-	printk("%s\n", __func__);
-#endif
-
 	// copy from user inputs to kernel buffer
 	if ( copy_from_user( pbuf0.tx_write_ptr, buf, count ) ) {
 		printk( KERN_INFO "copy_from_user failed\n" );
@@ -300,20 +296,15 @@ ethpipe_write_loop:
 
 	// write send data to FPGA memory
 	data_len = frame_len + ETHPIPE_HEADER_LEN;
-	if ( *tx_read_ptr > *tx_write_ptr ) {
-		j = 0x3FFF - (short)(*tx_write_ptr);
+	j = 0x8000 - (short)(*tx_write_ptr);
+	if ( j < data_len ) {
 		memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, j);
-		memcpy(mmio1_ptr, tmp_pkt+j, data_len - j);
-		if (frame_len % 2)
-			hw_slot_addr = (data_len + 1) - j;
-		else
-			hw_slot_addr = data_len - j;
+		memcpy(mmio1_ptr, tmp_pkt+j, data_len-j);
+
+		hw_slot_addr = ((data_len + 1) - j) >> 1;
 	} else {
 		memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, data_len);
-		if (frame_len % 2)
-			hw_slot_addr += data_len + 1;
-		else
-			hw_slot_addr += data_len;
+		hw_slot_addr += (data_len + 1) >> 1;
 	}
 
 #ifdef DEBUG
@@ -338,6 +329,10 @@ ethpipe_write_exit:
 
 	// update tx_write_pointer
 	*tx_write_ptr = hw_slot_addr / 2;
+
+	// clear pbuf0 buffers
+	*pbuf0.tx_read_ptr = 0;
+	*pbuf0.tx_write_ptr = 0;
 
 	return copy_len;
 }

@@ -299,7 +299,7 @@ ethpipe_write_loop:
 #endif
 
 	// write send data to FPGA memory
-	memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, frame_len+ETHPIPE_HEADER_LEN);
+	memcpy(mmio1_ptr + (hw_slot_addr * 2), tmp_pkt, frame_len+ETHPIPE_HEADER_LEN);
 
 #ifdef DEBUG
 	p1 = (unsigned short *)mmio1_ptr;
@@ -496,7 +496,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	tx_read_ptr  = (mmio0_ptr + TX_READ_PTR_ADDRESS);
 
 	/* clear tx_write_ptr */
-	*tx_write_ptr = *tx_read_ptr;
+//	*tx_write_ptr = *tx_read_ptr;
 
 	/* Set receive buffer */
 	if ( ( pbuf0.rx_start_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {

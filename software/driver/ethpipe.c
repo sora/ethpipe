@@ -214,6 +214,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 	unsigned char *cr;
 	unsigned short *p1;
 	int i;
+	short j, data_len;
 
 	copy_len = 0;
 
@@ -298,7 +299,22 @@ ethpipe_write_loop:
 #endif
 
 	// write send data to FPGA memory
-	memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, frame_len+ETHPIPE_HEADER_LEN);
+	data_len = frame_len + ETHPIPE_HEADER_LEN;
+	if ( *tx_read_ptr > *tx_write_ptr ) {
+		j = 0x3FFF - (short)(*tx_write_ptr);
+		memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, j);
+		memcpy(mmio1_ptr, tmp_pkt+j, data_len - j);
+		if (frame_len % 2)
+			hw_slot_addr = (data_len + 1) - j;
+		else
+			hw_slot_addr = data_len - j;
+	} else {
+		memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, data_len);
+		if (frame_len % 2)
+			hw_slot_addr += data_len + 1;
+		else
+			hw_slot_addr += data_len;
+	}
 
 #ifdef DEBUG
 	p1 = (unsigned short *)mmio1_ptr;
@@ -307,11 +323,6 @@ ethpipe_write_loop:
 		p1++;
 	}
 #endif
-
-	if (frame_len % 2)
-		hw_slot_addr += (frame_len + 1) + 14;
-	else
-		hw_slot_addr += frame_len + 14;
 
 	printk( "hw_slot_addr: %d\n", hw_slot_addr );
 	printk( "*tx_write_ptr: %d, *tx_read_ptr %d\n", *tx_write_ptr, *tx_read_ptr);

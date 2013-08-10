@@ -381,6 +381,8 @@ always @(posedge clk_125) begin
 		dma_length      <= ( 22'h1_0000 >> 2 );
 		dma1_addr_start <= ( 32'h1000_0000 >> 2 );
 		dma2_addr_start <= ( 32'h1010_0000 >> 2 );
+		tx0mem_wr_ptr   <= 14'h0;
+		tx1mem_wr_ptr   <= 14'h0;
 	end else begin
 		if (rec_intr)
 			dma_status[3] <= 1'b1;

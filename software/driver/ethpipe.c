@@ -230,7 +230,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 
 	copy_len = count;
 
-	hw_slot_addr = *tx_write_ptr;
+	hw_slot_addr = *tx_write_ptr * 2;
 
 ethpipe_write_loop:
 
@@ -281,7 +281,6 @@ ethpipe_write_loop:
 			printk("input data err: %c\n", *pbuf0.tx_read_ptr);
 			goto ethpipe_write_exit;
 		}
-//		printk( "frame_len: %d, word: %c\n", frame_len, *pbuf0.tx_read_ptr );
 	}
 
 	// set frame length
@@ -299,7 +298,7 @@ ethpipe_write_loop:
 #endif
 
 	// write send data to FPGA memory
-	memcpy(mmio1_ptr + (hw_slot_addr * 2), tmp_pkt, frame_len+ETHPIPE_HEADER_LEN);
+	memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, frame_len+ETHPIPE_HEADER_LEN);
 
 #ifdef DEBUG
 	p1 = (unsigned short *)mmio1_ptr;
@@ -310,9 +309,9 @@ ethpipe_write_loop:
 #endif
 
 	if (frame_len % 2)
-		hw_slot_addr = hw_slot_addr + ((frame_len + 1) / 2) + 7;
+		hw_slot_addr += (frame_len + 1) + 14;
 	else
-		hw_slot_addr = hw_slot_addr + (frame_len / 2) + 7;
+		hw_slot_addr += frame_len + 14;
 
 	printk( "hw_slot_addr: %d\n", hw_slot_addr );
 	printk( "*tx_write_ptr: %d, *tx_read_ptr %d\n", *tx_write_ptr, *tx_read_ptr);
@@ -327,7 +326,7 @@ ethpipe_write_exit:
 	printk( "ethpipe_write_exit\n" );
 
 	// update tx_write_pointer
-	*tx_write_ptr = hw_slot_addr;
+	*tx_write_ptr = hw_slot_addr / 2;
 
 	return copy_len;
 }

@@ -495,8 +495,13 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	tx_write_ptr = (mmio0_ptr + TX_WRITE_PTR_ADDRESS);
 	tx_read_ptr  = (mmio0_ptr + TX_READ_PTR_ADDRESS);
 
+#ifdef DEBUG
+	printk( "*tx_write_ptr: %x\n", *tx_write_ptr);
+	printk( "*tx_read_ptr: %x\n", *tx_read_ptr);
+#endif
+
 	/* clear tx_write_ptr */
-//	*tx_write_ptr = *tx_read_ptr;
+	*tx_write_ptr = *tx_read_ptr;
 
 	/* Set receive buffer */
 	if ( ( pbuf0.rx_start_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {

@@ -212,6 +212,8 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 	unsigned int copy_len, pos, frame_len;
 	unsigned short hw_slot_addr = 0u;
 	unsigned char *cr;
+	unsigned short *p1;
+	int i;
 
 	copy_len = 0;
 
@@ -298,6 +300,12 @@ ethpipe_write_loop:
 
 	// write send data to FPGA memory
 	memcpy(mmio1_ptr + hw_slot_addr, tmp_pkt, frame_len+ETHPIPE_HEADER_LEN);
+
+#ifdef DEBUG
+	p1 = (unsigned short *)mmio1_ptr;
+	for (i=0; i<frame_len;i++)
+		printk("%04X\n", *(p1++));
+#endif
 
 	if (frame_len % 2)
 		hw_slot_addr = hw_slot_addr + ((frame_len + 1) / 2) + 7;

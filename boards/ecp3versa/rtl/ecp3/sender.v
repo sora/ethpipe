@@ -82,7 +82,7 @@ always @(posedge gmii_tx_clk) begin
 				rd_ptr     <= 14'h0;
 
 				// should swap the relational op to own logic :todo
-				if (mem_rd_ptr < mem_wr_ptr) begin
+				if (mem_rd_ptr != mem_wr_ptr) begin
 					tx_status <= TX_SENDING;
 					rd_ptr    <= mem_rd_ptr;
 				end

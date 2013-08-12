@@ -30,6 +30,9 @@
 #ifndef	DRV_NAME
 #define	DRV_NAME	"genpipe"
 #endif
+#ifndef	DRV_IDX
+#define	DRV_IDX		(0)
+#endif
 #ifndef	IF_NAME
 #define	IF_NAME		"eth0"
 #endif
@@ -386,6 +389,7 @@ static struct packet_type genpipe_pack =
 static int __init genpipe_init(void)
 {
 	int ret;
+	static char name[16];
 
 #ifdef MODULE
 	pr_info(genpipe_DRIVER_NAME "\n");
@@ -419,6 +423,9 @@ static int __init genpipe_init(void)
 	pbuf0.tx_write_ptr = pbuf0.tx_start_ptr;
 	pbuf0.tx_read_ptr  = pbuf0.tx_start_ptr;
 
+	/* register character device */
+	sprintf( name, "%s/%d", DRV_NAME, DRV_IDX );
+	genpipe_dev.name = name;
 	ret = misc_register(&genpipe_dev);
 	if (ret) {
 		printk("fail to misc_register (MISC_DYNAMIC_MINOR)\n");

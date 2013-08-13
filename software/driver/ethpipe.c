@@ -210,7 +210,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 {
 	static unsigned char tmp_pkt[14+MAX_FRAME_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	unsigned int copy_len, pos, frame_len;
-	unsigned short hw_slot_addr = 0u;
+	static unsigned short hw_slot_addr = 0xffff;
 	unsigned char *cr;
 	unsigned short *p1;
 	int i, data, data2;
@@ -218,22 +218,42 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 
 	copy_len = 0;
 
-	if ( (pbuf0.tx_write_ptr + count) > pbuf0.tx_end_ptr ) {
+	if (hw_slot_addr == 0xffff)
+		hw_slot_addr = *tx_write_ptr << 1;
+
+	// mmio1 read ptr
+	i = *tx_read_ptr << 1;
+
+	// mmio1 free
+	if (i < hw_slot_addr) {
+		j = hw_slot_addr - i;
+	} else {
+		j = ((int)hw_slot_addr - (int)i) + (mmio1_len >> 1);
+	}
+
+	// count < (mmio1 free)*3
+	if ( count < j * 3 ) {
+		copy_len = count;
+	} else {
+		copy_len = j * 3;
+	}
+#ifdef DEBUG
+	printk( "count=%d, copy_len=%d, mmio1_free=%d\n", count, copy_len, j);
+#endif
+
+	if ( (pbuf0.tx_write_ptr + copy_len) > pbuf0.tx_end_ptr ) {
 		memcpy( pbuf0.tx_start_ptr, pbuf0.tx_read_ptr, (pbuf0.tx_write_ptr - pbuf0.tx_read_ptr ));
 		pbuf0.tx_write_ptr = pbuf0.tx_start_ptr + (pbuf0.tx_write_ptr - pbuf0.tx_read_ptr );
 		pbuf0.tx_read_ptr = pbuf0.tx_start_ptr;
 	}
 
 	// copy from user inputs to kernel buffer
-	if ( copy_from_user( pbuf0.tx_write_ptr, buf, count ) ) {
+	if ( copy_from_user( pbuf0.tx_write_ptr, buf, copy_len ) ) {
 		printk( KERN_INFO "copy_from_user failed\n" );
 		return -EFAULT;
 	}
 
-	pbuf0.tx_write_ptr += count;
-	copy_len = count;
-
-	hw_slot_addr = *tx_write_ptr << 1;
+	pbuf0.tx_write_ptr += copy_len;
 
 ethpipe_write_loop:
 
@@ -246,7 +266,7 @@ ethpipe_write_loop:
 	printk("pbuf0.tx_write_ptr: %p\n", pbuf0.tx_write_ptr);
 	printk("pbuf0.tx_read_ptr: %p\n", pbuf0.tx_read_ptr);
 	printk("cr	       : %p\n", cr);
-	printk("count: %d\n", (int)count);
+	printk("copy_len: %d\n", (int)copy_len);
 #endif
 
 	frame_len = 0;

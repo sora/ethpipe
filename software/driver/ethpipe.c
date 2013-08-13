@@ -213,7 +213,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 	unsigned short hw_slot_addr = 0u;
 	unsigned char *cr;
 	unsigned short *p1;
-	int i;
+	int i, data, data2;
 	short j, data_len;
 
 	copy_len = 0;
@@ -250,38 +250,40 @@ ethpipe_write_loop:
 #endif
 
 	frame_len = 0;
-	pos = 0;
 	for ( ; pbuf0.tx_read_ptr < cr && frame_len < MAX_FRAME_LEN; ++pbuf0.tx_read_ptr ) {
 
 		// skip blank char
-		if (*pbuf0.tx_read_ptr == ' ')
+		if ( (data = *pbuf0.tx_read_ptr) == ' ')
 			continue;
 
 		// upper words
-		if (*pbuf0.tx_read_ptr >= 'a' && *pbuf0.tx_read_ptr <= 'z')
-			*pbuf0.tx_read_ptr -= 0x20;
+		if (data >= 'a' && data <= 'z')
+			data -= 0x20;
 
 		// ascii to number
-		if (*pbuf0.tx_read_ptr >= '0' && *pbuf0.tx_read_ptr <= '9') {
-			if (pos == 0) {
-				tmp_pkt[frame_len+14] = (*pbuf0.tx_read_ptr - '0') << 4;
-				pos = 1;
-			} else {
-				tmp_pkt[frame_len+14] |= (*pbuf0.tx_read_ptr - '0');
-				pos = 0;
-				++frame_len;
-			}
-		} else if (*pbuf0.tx_read_ptr >= 'A' && *pbuf0.tx_read_ptr <= 'F') {
-			if (pos == 0) {
-				tmp_pkt[frame_len+14] = (*pbuf0.tx_read_ptr - 'A' + 0xA) << 4;
-				pos = 1;
-			} else {
-				tmp_pkt[frame_len+14] |= (*pbuf0.tx_read_ptr - 'A' + 0xA);
-				pos = 0;
-				++frame_len;
-			}
+		if (data >= '0' && data <= '9') {
+			data2 =  (data - '0') << 4;
+		} else if (data >= 'A' && data <= 'F') {
+			data2 =  (data - 'A' + 0xA) << 4;
 		} else {
-			printk("input data err: %c\n", *pbuf0.tx_read_ptr);
+			printk("input data err: %c\n", data);
+			goto ethpipe_write_exit;
+		}
+
+		data = *(++pbuf0.tx_read_ptr);
+		// upper words
+		if (data >= 'a' && data <= 'z')
+			data -= 0x20;
+
+		// ascii to number
+		if (data >= '0' && data <= '9') {
+			tmp_pkt[frame_len+14] = (data2 | (data - '0'));
+			++frame_len;
+		} else if (data >= 'A' && data <= 'F') {
+			tmp_pkt[frame_len+14] = (data2 | (data - 'A' + 0xA));
+			++frame_len;
+		} else {
+			printk("input data err: %c\n", data);
 			goto ethpipe_write_exit;
 		}
 	}

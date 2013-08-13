@@ -256,24 +256,19 @@ ethpipe_write_loop:
 		if ( (data = *pbuf0.tx_read_ptr) == ' ')
 			continue;
 
-		// upper words
-		if (data >= 'a' && data <= 'z')
-			data -= 0x20;
-
 		// ascii to number
 		if (data >= '0' && data <= '9') {
 			data2 =  (data - '0') << 4;
 		} else if (data >= 'A' && data <= 'F') {
 			data2 =  (data - 'A' + 0xA) << 4;
+		} else if (data >= 'a' && data <= 'f') {
+			data2 =  (data - 'a' + 0xA) << 4;
 		} else {
 			printk("input data err: %c\n", data);
 			goto ethpipe_write_exit;
 		}
 
 		data = *(++pbuf0.tx_read_ptr);
-		// upper words
-		if (data >= 'a' && data <= 'z')
-			data -= 0x20;
 
 		// ascii to number
 		if (data >= '0' && data <= '9') {
@@ -281,6 +276,9 @@ ethpipe_write_loop:
 			++frame_len;
 		} else if (data >= 'A' && data <= 'F') {
 			tmp_pkt[frame_len+14] = (data2 | (data - 'A' + 0xA));
+			++frame_len;
+		} else if (data >= 'a' && data <= 'f') {
+			tmp_pkt[frame_len+14] = (data2 | (data - 'a' + 0xA));
 			++frame_len;
 		} else {
 			printk("input data err: %c\n", data);

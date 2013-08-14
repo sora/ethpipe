@@ -1,3 +1,5 @@
+`include "setup.v"
+
 module top  (
     input  rstn
   , input  FLIP_LANES

@@ -59,6 +59,8 @@ static struct pci_dev *pcidev = NULL;
 static wait_queue_head_t write_q;
 static wait_queue_head_t read_q;
 
+static int open_count = 0;
+
 /* receive and transmitte buffer */
 struct _pbuf_dma {
 	unsigned char   *rx_start_ptr;	/* rx buf start */
@@ -168,6 +170,8 @@ static int ethpipe_open(struct inode *inode, struct file *filp)
 
 	/* enanble DMA1 and DMA2 */
 	*(mmio0_ptr + 0x10)  = 0x3;
+
+	++open_count;
 
 	return 0;
 }
@@ -370,8 +374,12 @@ static int ethpipe_release(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
 
+	if ( open_count > 0 )
+		--open_count;
+
 	/* disable DMA1 and DMA2 */
-	*(mmio0_ptr + 0x10)  = 0x0;
+	if ( open_count == 0 )
+		*(mmio0_ptr + 0x10)  = 0x0;
 
 	return 0;
 }
@@ -566,6 +574,8 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 		printk("fail to misc_register (MISC_DYNAMIC_MINOR)\n");
 		return rc;
 	}
+
+	open_count = 0;
 
 	return 0;
 

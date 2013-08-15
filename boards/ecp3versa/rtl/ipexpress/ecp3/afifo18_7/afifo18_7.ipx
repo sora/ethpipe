@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DiamondModule name="afifo18_7" module="FIFO_DC" VendorName="Lattice Semiconductor Corporation" generator="IPexpress" date="2013 08 15 21:48:18.734" version="5.5" type="IP" synthesis="synplify" source_format="Verilog">
+  <Package>
+		<File name="afifo18_7.lpc" type="lpc" modified="2013 08 15 21:48:15.114"/>
+  </Package>
+</DiamondModule>

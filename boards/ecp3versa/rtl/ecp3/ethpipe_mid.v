@@ -85,7 +85,6 @@ fifo fifo_wr_mstq (
 wire [17:0] rx1_phyq_din, rx1_phyq_dout;
 wire rx1_phyq_full, rx1_phyq_wr_en;
 wire rx1_phyq_empty, rx1_phyq_rd_en;
-wire [7:0] rx1_phyq_count;
 
 afifo18 afifo18_rx1_phyq (
 	.Data(rx1_phyq_din),
@@ -104,7 +103,6 @@ afifo18 afifo18_rx1_phyq (
 wire [17:0] rx2_phyq_din, rx2_phyq_dout;
 wire rx2_phyq_full, rx2_phyq_wr_en;
 wire rx2_phyq_empty, rx2_phyq_rd_en;
-wire [7:0] rx2_phyq_count;
 
 `ifdef ENABLE_PHY2
 afifo18 afifo18_rx2_phyq (
@@ -121,6 +119,39 @@ afifo18 afifo18_rx2_phyq (
 );
 `endif
 
+// PHY#1 RX Receive Length AFIFO
+wire [17:0] rx1_lenq_din, rx1_lenq_dout;
+wire rx1_lenq_full, rx1_lenq_wr_en;
+wire rx1_lenq_empty, rx1_lenq_rd_en;
+
+afifo18_7 afifo18_rx1_lenq (
+	.Data(rx1_lenq_din),
+	.WrClock(phy1_rx_clk),
+	.RdClock(clk_125),
+	.WrEn(rx1_lenq_wr_en),
+	.RdEn(rx1_lenq_rd_en),
+	.Reset(sys_rst),
+	.RPReset(sys_rst),
+	.Q(rx1_lenq_dout),
+	.Empty(rx1_lenq_empty),
+	.Full(rx1_lenq_full)
+);
+
+`ifdef ENABLE_PHY2
+afifo18_7 afifo18_rx2_lenq (
+	.Data(rx2_lenq_din),
+	.WrClock(phy2_rx_clk),
+	.RdClock(clk_125),
+	.WrEn(rx2_lenq_wr_en),
+	.RdEn(rx2_lenq_rd_en),
+	.Reset(sys_rst),
+	.RPReset(sys_rst),
+	.Q(rx2_lenq_dout),
+	.Empty(rx2_lenq_empty),
+	.Full(rx2_lenq_full)
+);
+`endif
+
 // PHY#1 RX GMII2FIFO18 module
 gmii2fifo18 # (
 	.Gap(4'h8)
@@ -130,10 +161,12 @@ gmii2fifo18 # (
 	.gmii_rx_clk(phy1_rx_clk),
 	.gmii_rx_dv(phy1_rx_dv),
 	.gmii_rxd(phy1_rx_data),
-	.din(rx1_phyq_din),
-	.full(rx1_phyq_full),
-	.wr_en(rx1_phyq_wr_en),
-	.wr_count(rx1_phyq_count),
+	.data_din(rx1_phyq_din),
+	.data_full(rx1_phyq_full),
+	.data_wr_en(rx1_phyq_wr_en),
+	.len_din(rx1_lenq_din),
+	.len_full(rx1_lenq_full),
+	.len_wr_en(rx1_lenq_wr_en),
 	.wr_clk()
 );
 
@@ -147,10 +180,12 @@ gmii2fifo18 # (
 	.gmii_rx_clk(phy2_rx_clk),
 	.gmii_rx_dv(phy2_rx_dv),
 	.gmii_rxd(phy2_rx_data),
-	.din(rx2_phyq_din),
-	.full(rx2_phyq_full),
-	.wr_en(rx2_phyq_wr_en),
-	.wr_count(rx2_phyq_count),
+	.data_din(rx2_phyq_din),
+	.data_full(rx2_phyq_full),
+	.data_wr_en(rx2_phyq_wr_en),
+	.length_din(rx2_lenq_din),
+	.length_full(rx2_lenq_full),
+	.length_wr_en(rx2_lenq_wr_en),
 	.wr_clk()
 );
 `endif
@@ -171,6 +206,7 @@ reg [21:2] dma_length;
 reg [31:2] dma1_addr_start, dma2_addr_start;
 wire [31:2] dma1_addr_cur, dma2_addr_cur;
 
+reg dma1_load, dma2_load;
 
 pcie_tlp inst_pcie_tlp (
   // System
@@ -238,7 +274,10 @@ receiver receiver_phy1 (
 	.phy_dout(rx1_phyq_dout),
 	.phy_empty(rx1_phyq_empty),
 	.phy_rd_en(rx1_phyq_rd_en),
-	.phy_rx_count(rx1_phyq_count),
+	// Length FIFO
+	.len_dout(rx1_lenq_dout),
+	.len_empty(rx1_lenq_empty),
+	.len_rd_en(rx1_lenq_rd_en),
 	// Master FIFO
 	.mst_din(wr_mstq_din),
 	.mst_full(wr_mstq_full),
@@ -251,6 +290,7 @@ receiver receiver_phy1 (
 	.dma_length(dma_length),
 	.dma_addr_start(dma1_addr_start),
 	.dma_addr_cur(dma1_addr_cur),
+	.dma_load(dma1_load),
 	// LED and Switches
 	.dipsw(),
 	.led(),
@@ -381,9 +421,13 @@ always @(posedge clk_125) begin
 		dma_length      <= ( 22'h1_0000 >> 2 );
 		dma1_addr_start <= ( 32'h1000_0000 >> 2 );
 		dma2_addr_start <= ( 32'h1010_0000 >> 2 );
+		dma1_load <= 1'b0;
+		dma2_load <= 1'b0;
 		tx0mem_wr_ptr   <= 14'h0;
 		tx1mem_wr_ptr   <= 14'h0;
 	end else begin
+		dma1_load <= 1'b0;
+		dma2_load <= 1'b0;
 		if (rec_intr)
 			dma_status[3] <= 1'b1;
 		if (slv_bar_i[0] & slv_ce_i) begin
@@ -427,6 +471,8 @@ always @(posedge clk_125) begin
 					// dma length
 					6'h0a: begin
 						if (slv_we_i) begin
+							dma1_load <= 1'b1;
+							dma2_load <= 1'b1;
 							if (slv_sel_i[1])
 								dma_length[ 7: 2] <= slv_dat_i[15:10];
 							if (slv_sel_i[0])
@@ -436,6 +482,8 @@ always @(posedge clk_125) begin
 					end
 					6'h0b: begin
 						if (slv_we_i) begin
+							dma1_load <= 1'b1;
+							dma2_load <= 1'b1;
 							if (slv_sel_i[1])
 								dma_length[21:16] <= slv_dat_i[13: 8];
 						end else
@@ -444,6 +492,7 @@ always @(posedge clk_125) begin
 					// dma1 start address
 					6'h10: begin
 						if (slv_we_i) begin
+							dma1_load <= 1'b1;
 							if (slv_sel_i[1])
 								dma1_addr_start[ 7: 2] <= slv_dat_i[15:10];
 							if (slv_sel_i[0])
@@ -453,6 +502,7 @@ always @(posedge clk_125) begin
 					end
 					6'h11: begin
 						if (slv_we_i) begin
+							dma1_load <= 1'b1;
 							if (slv_sel_i[1])
 								dma1_addr_start[23:16] <= slv_dat_i[15: 8];
 							if (slv_sel_i[0])
@@ -470,6 +520,7 @@ always @(posedge clk_125) begin
 					// dma2 start address
 					6'h14: begin
 						if (slv_we_i) begin
+							dma2_load <= 1'b1;
 							if (slv_sel_i[1])
 								dma2_addr_start[ 7: 2] <= slv_dat_i[15:10];
 							if (slv_sel_i[0])
@@ -479,6 +530,7 @@ always @(posedge clk_125) begin
 					end
 					6'h15: begin
 						if (slv_we_i) begin
+							dma2_load <= 1'b1;
 							if (slv_sel_i[1])
 								dma2_addr_start[23:16] <= slv_dat_i[15: 8];
 							if (slv_sel_i[0])

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DiamondModule name="afifo18_7" module="FIFO_DC" VendorName="Lattice Semiconductor Corporation" generator="IPexpress" date="2013 08 15 21:48:18.734" version="5.5" type="IP" synthesis="synplify" source_format="Verilog">
+<DiamondModule name="afifo18_7" module="afifo18_7" VendorName="Lattice Semiconductor Corporation" generator="IPexpress" date="2013 08 16 18:29:08.475" version="5.5" type="Module" synthesis="synplify" source_format="Verilog HDL">
   <Package>
-		<File name="afifo18_7.lpc" type="lpc" modified="2013 08 15 21:48:15.114"/>
+		<File name="afifo18_7.lpc" type="lpc" modified="2013 08 16 18:29:02.000"/>
+		<File name="afifo18_7.v" type="top_level_verilog" modified="2013 08 16 18:29:02.000"/>
+		<File name="afifo18_7_tmpl.v" type="template_verilog" modified="2013 08 16 18:29:02.000"/>
+		<File name="tb_afifo18_7_tmpl.v" type="testbench_verilog" modified="2013 08 16 18:29:02.000"/>
   </Package>
 </DiamondModule>

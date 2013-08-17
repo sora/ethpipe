@@ -1,5 +1,5 @@
 SCUBA, Version Diamond_2.2_Production (99)
-Thu Aug 15 21:48:15 2013
+Fri Aug 16 18:29:02 2013
 
 Copyright (c) 1991-1994 by NeoCAD Inc. All rights reserved.
 Copyright (c) 1995 AT&T Corp.   All rights reserved.
@@ -7,7 +7,7 @@ Copyright (c) 1995-2001 Lucent Technologies Inc.  All rights reserved.
 Copyright (c) 2001 Agere Systems   All rights reserved.
 Copyright (c) 2002-2013 Lattice Semiconductor Corporation,  All rights reserved.
 
-    Issued command   : C:\lscc\diamond\2.2\ispfpga\bin\nt\scuba.exe -w -n afifo18_7 -lang verilog -synth synplify -bus_exp 7 -bb -arch ep5c00 -type fifodc -addr_width 7 -data_width 18 -num_words 128 -rdata_width 18 -no_enable -pe -1 -pf -1 -e 
+    Issued command   : /usr/local/diamond/2.2_x64/ispfpga/bin/lin64/scuba -w -n afifo18_7 -lang verilog -synth synplify -bus_exp 7 -bb -arch ep5c00 -type fifodc -addr_width 7 -data_width 18 -num_words 128 -rdata_width 18 -no_enable -pe -1 -pf -1 -e 
     Circuit name     : afifo18_7
     Module type      : ebfifo
     Module Version   : 5.5

@@ -29,9 +29,9 @@ always #8 phy_tx_clk = ~phy_tx_clk;
 reg sys_rst;
 reg phy_rx_dv;
 reg [7:0] phy_rxd;
-wire [17:0] din;
-reg full;
-wire wr_en;
+wire [17:0] data_din, len_din;
+reg data_full, len_full;
+wire data_wr_en, len_wr_en;
 wire wr_clk;
 reg [63:0] global_counter;
 
@@ -45,9 +45,14 @@ gmii2fifo18 # (
         .gmii_rx_dv(phy_rx_dv),
         .gmii_rxd(phy_rxd),
 
-        .din(din),
-        .full(full),
-        .wr_en(wr_en),
+        .data_din(data_din),
+        .data_full(data_full),
+        .data_wr_en(data_wr_en),
+
+        .len_din(len_din),
+        .len_full(len_full),
+        .len_wr_en(len_wr_en),
+
         .wr_clk()
 );
 
@@ -59,8 +64,8 @@ end
 endtask
 
 always @(posedge phy_rx_clk) begin
-	if (wr_en == 1'b1)
-		$display("din: %05x", din);
+	if (data_wr_en == 1'b1)
+		$display("din: %05x", data_din);
 end
 
 reg [8:0] rom [0:199];
@@ -78,7 +83,7 @@ initial begin
 	$readmemh("./phy_rx.hex", rom);
 	/* Reset / Initialize our logic */
 	sys_rst = 1'b1;
-	full = 1'b0;
+	data_full = 1'b0;
 	global_counter <= 64'h0;
 	counter = 0;
 

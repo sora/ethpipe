@@ -16,8 +16,8 @@ CoreRevision=5.5
 ModuleName=afifo18_7
 SourceFormat=Verilog HDL
 ParameterFileVersion=1.0
-Date=08/15/2013
-Time=21:48:15
+Date=08/16/2013
+Time=18:29:02
 
 [Parameters]
 Verilog=1

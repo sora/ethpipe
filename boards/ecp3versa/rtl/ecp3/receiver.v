@@ -8,7 +8,10 @@ module receiver (
 	input [17:0] phy_dout,
 	input phy_empty,
 	output reg phy_rd_en,
-	input [7:0] phy_rx_count,
+	// Length FIFO
+	input [17:0] len_dout,
+	input len_empty,
+	output reg len_rd_en,
 	// Master FIFO
 	output reg [17:0] mst_din,
 	input mst_full,
@@ -20,6 +23,7 @@ module receiver (
 	input [7:0]  dma_status,
 	input [21:2] dma_length,
 	input [31:2] dma_addr_start,
+	input dma_load,
 	output reg [31:2] dma_addr_cur,
 	// LED and Switches
 	input [7:0] dipsw,
@@ -64,6 +68,7 @@ always @(posedge sys_clk) begin
 		dma_enable <= 1'b0;
 		dma_addr_cur <= 30'h0;
 		phy_rd_en <= 1'b0;
+		len_rd_en <= 1'b0;
 		mst_wr_en <= 1'b0;
 		rec_status <= REC_IDLE;
 	end else begin
@@ -72,7 +77,8 @@ always @(posedge sys_clk) begin
 		mst_wr_en <= 1'b0;
 		case ( rec_status )
 			REC_IDLE: begin
-				if ( dma_frame_ptr < dma_addr_start || ( dma_addr_start + dma_length ) < dma_frame_ptr ) begin
+				len_rd_en <= ~len_empty;
+				if ( dma_load ) begin
 					dma_frame_ptr <= dma_addr_start;
 					dma_addr_cur <= dma_addr_start;
 				end
@@ -80,7 +86,8 @@ always @(posedge sys_clk) begin
 					remain_word <= (8'd64 >> 1);
 					rec_status <= REC_HEAD10;
 				end else begin
-					if ( phy_rx_count != dma_rx_count ) begin
+					if ( len_rd_en && len_dout[17] ) begin
+						len_rd_en <= 1'b0;
 						dma_frame_len <= 12'h0;
 						dma_frame_start <= dma_frame_ptr;
 `ifdef SIMULATION

@@ -14,6 +14,9 @@ all: tlp_data.hex phy_data.hex isim
 gtk: all
 	gtkwave test.vcd
 
+wave: all
+	gtkwave wave_files/send_phy1.gtkw
+
 isim: tb_system
 	./tb_system
 

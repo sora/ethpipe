@@ -2,7 +2,7 @@
 [*] GTKWave Analyzer v3.3.45 (w)1999-2012 BSI
 [*] Sat Aug  3 10:48:21 2013
 [*]
-[dumpfile] "../test.vcd"
+[dumpfile] "test.vcd"
 [dumpfile_mtime] "Sat Aug  3 10:35:40 2013"
 [dumpfile_size] 228278
 [savefile] "send_phy1.gtkw"

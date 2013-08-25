@@ -79,7 +79,6 @@ always @(posedge gmii_tx_clk) begin
 				tx_counter <= 14'd0;
 				crc_rd     <= 1'b0;
 				ifg_count  <= 3'b0;
-				rd_ptr     <= 14'h0;
 
 				// should swap the relational op to own logic :todo
 				if (mem_rd_ptr != mem_wr_ptr) begin
@@ -95,61 +94,60 @@ always @(posedge gmii_tx_clk) begin
 				// gmii_tx_en
 				gmii_tx_en <= 1'b1;
 
+				// increase read memory pointer
+				if (rd_ptr != mem_wr_ptr)
+					rd_ptr <= rd_ptr + 14'h1;
+
 				// gmii_txd
 				case (tx_counter)
 					14'd0: begin
 						gmii_txd            <= 8'h55;                   // preamble
-						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd1: begin
 						gmii_txd            <= 8'h55;
 						tx_frame_len        <= slot_tx_eth_q;
-						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd2: begin
 						gmii_txd            <= 8'h55;
 						tx_timestamp[63:48] <= slot_tx_eth_q;
-						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd3: begin
 						gmii_txd            <= 8'h55;
 						tx_timestamp[47:32] <= slot_tx_eth_q;
-						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd4: begin
 						gmii_txd            <= 8'h55;
 						tx_timestamp[31:16] <= slot_tx_eth_q;
-						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd5: begin
 						gmii_txd            <= 8'h55;
 						tx_timestamp[15:0]  <= slot_tx_eth_q;
-						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd6: begin
 						gmii_txd            <= 8'h55;
 						tx_hash[31:16]      <= slot_tx_eth_q;
-						rd_ptr              <= rd_ptr + 14'h1;
 					end
 					14'd7: begin
 						gmii_txd            <= 8'hd5;                     // preamble + SFD
 						tx_hash[15:0]       <= slot_tx_eth_q;
+						rd_ptr              <= rd_ptr;
 					end
 					default: begin
 						if (tx_counter == tx_frame_len[13:0] + 14'd8) begin
 							tx_status  <= TX_FCS_1;
 							crc_rd     <= 1'b1;
+							rd_ptr     <= rd_ptr;
 							gmii_txd   <= crc_out[31:24];                 // ethernet FCS 0
 						end else begin
 							// send frame data
 							case (tx_counter[0])
 								1'b0: begin
 									gmii_txd    <= slot_tx_eth_q[15:8];
-									rd_ptr      <= rd_ptr + 14'd1;
 									tx_data_tmp <= slot_tx_eth_q;
 								end
 								1'b1: begin
 									gmii_txd <= tx_data_tmp[7:0];
+									rd_ptr   <= rd_ptr;
 								end
 							endcase
 						end

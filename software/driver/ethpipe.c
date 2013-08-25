@@ -35,7 +35,7 @@
 #define	__devexit_p
 #endif
 
-#define DEBUG
+//#define DEBUG
 
 static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 	{0x3776, 0x8001, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },

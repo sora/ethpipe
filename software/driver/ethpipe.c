@@ -35,7 +35,7 @@
 #define	__devexit_p
 #endif
 
-//#define DEBUG
+#define DEBUG
 
 static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 	{0x3776, 0x8001, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
@@ -339,10 +339,15 @@ ethpipe_write_loop:
 
 #ifdef DEBUG
 	p1 = (unsigned short *)mmio1_ptr;
-	for (i=0; i<200;i++) {
-		printk("%04X: %02X%02X\n", i, *p1 & 0xFF, (*p1>>8) & 0xFF);
+	for (i=0;i<16384;i++) {
+		if (i % 0x10 == 0)
+			printk("%04X:", i);
+		printk(" %02X%02X", *p1 & 0xFF, (*p1>>8) & 0xFF);
+		if (i % 0x10 == 0xF)
+			printk("\n");
 		p1++;
 	}
+	printk("\n");
 #endif
 
 #ifdef DEBUG

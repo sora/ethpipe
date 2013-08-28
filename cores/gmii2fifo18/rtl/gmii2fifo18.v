@@ -53,7 +53,7 @@ always @(posedge gmii_rx_clk) begin
 					gap_count <= Gap;
 					sfd_count <= sfd_count + 3'h1;
 					data_odd <= 1'b0;
-					frame_len <= 16'h0;
+					frame_len <= 16'h8;
 					rxd[17:16] <= 2'b11;
 					case (sfd_count)
 						3'h0: rxd[15:8] <= global_counter_latch[ 7: 0];

@@ -115,7 +115,7 @@ always @(posedge sys_clk) begin
 			end
 			REC_HEAD10: begin
 				mst_din[17:14] <= 4'b10_10;	// Write command
-				if (total_remain <= `TLP_MAX/4) begin
+				if (total_remain <= `TLP_MAX>>2) begin
 					mst_din[13:8] <= total_remain[5:0];
 					tlp_remain <= {total_remain[8:0], 1'b0};
 				end else begin
@@ -155,6 +155,8 @@ always @(posedge sys_clk) begin
 				rec_status <= REC_TUPLEH;
 			end
 			REC_TUPLEH: begin
+				total_remain <= total_remain - 9'h2;
+				tlp_remain <= tlp_remain - 10'h4;
 				phy_rd_en <= ~phy_empty;
 				mst_din[17:0] <= {2'b00, 16'h55_5d};
 				mst_wr_en <= dma_enable;
@@ -199,8 +201,11 @@ always @(posedge sys_clk) begin
 					mst_din[16] <= 1'b1;
 					if (total_remain != 10'h0)
 						rec_status <=  REC_HEAD10;
-					else
+					else begin
+						dma_frame_ptr[31:4] <= dma_frame_ptr[31:4] + 28'h1;
+						dma_frame_ptr[3:2] <= 2'h0;
 						rec_status <=  REC_FIN;
+					end
 				end else
 					mst_din[16] <= 1'b0;
 			end

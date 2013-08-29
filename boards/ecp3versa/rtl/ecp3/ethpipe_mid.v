@@ -7,7 +7,7 @@ module ethpipe_mid  (
   , input  sys_rst
   , output sys_intr
   , input  [7:0] dipsw
-  , output [7:0] led
+  , output reg [7:0] led
   , output [13:0] segled
   // PCIe
   , input [6:0] rx_bar_hit
@@ -415,6 +415,8 @@ end
 // PCI I/O memory mapping
 //-------------------------------------
 always @(posedge clk_125) begin
+	if (rec_intr)
+		led <= led + 8'h1;
 	if (sys_rst == 1'b1) begin
 		slv_dat0_o      <= 16'h0;
 		dma_status      <= 8'h00;

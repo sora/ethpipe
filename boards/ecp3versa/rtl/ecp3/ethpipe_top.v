@@ -10,6 +10,7 @@ module top  (
   , output hdoutp
   , output hdoutn
   , input  [7:0] dip_switch
+  , output [7:0] led
   , output [13:0] led_out
   , output dp
   , input  reset_n
@@ -179,7 +180,7 @@ ethpipe_mid ethpipe_mid_inst (
 
   , .dipsw(dip_switch)
   , .segled(led_out)
-  , .led()
+  , .led(led)
   // PCIe
   , .rx_bar_hit(rx_bar_hit)
   , .bus_num(bus_num)

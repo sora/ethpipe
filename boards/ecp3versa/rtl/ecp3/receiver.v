@@ -33,22 +33,21 @@ module receiver (
 	input btn
 );
 
-wire [31:2] dma_addr_end = (dma_addr_start + dma_length - 1);
+wire [31:2] dma_addr_end1 = (dma_addr_start + dma_length);
+wire [31:2] dma_addr_end  = (dma_addr_end1 - 1);
 
 parameter [3:0]
 	REC_IDLE     = 4'h0,
-	REC_HEAD10   = 4'h1,
-	REC_HEAD11   = 4'h2,
-	REC_HEAD12   = 4'h3,
-	REC_SKIP     = 4'h4,
-	REC_DATA     = 4'h5,
-	REC_HEAD20   = 4'h6,
-	REC_HEAD21   = 4'h7,
-	REC_HEAD22   = 4'h8,
-	REC_LENGTHL  = 4'h9,
-	REC_LENGTHH  = 4'ha,
-	REC_TUPLEL   = 4'hb,
-	REC_TUPLEH   = 4'hc,
+	REC_HEAD     = 4'h1,
+	REC_HEAD0    = 4'h2,
+	REC_HEAD1    = 4'h3,
+	REC_HEAD2    = 4'h4,
+	REC_SKIP     = 4'h5,
+	REC_LENGTHL  = 4'h6,
+	REC_LENGTHH  = 4'h7,
+	REC_TUPLEL   = 4'h8,
+	REC_TUPLEH   = 4'h9,
+	REC_DATA     = 4'ha,
 	REC_FIN      = 4'hf;
 reg [3:0] rec_status = REC_IDLE;
 
@@ -106,15 +105,14 @@ always @(posedge sys_clk) begin
 					frame_len <= (len_dout[10:0] - 11'h8);  // subtract gcounter
 					total_remain <= ((len_dout[10:0] + 11'hb) >> 2);
 					dma_frame_in <= 1'b0;
-					rec_status <= REC_HEAD10;
+					rec_status <= REC_HEAD;
 				end else if ( dma_load_req ) begin
 					dma_frame_ptr <= dma_addr_start;
 					dma_addr_cur <= dma_addr_start;
 					dma_load_ack <= 1'b1;
 				end
 			end
-			REC_HEAD10: begin
-				mst_din[17:14] <= 4'b10_10;	// Write command
+			REC_HEAD: begin
 				if (total_remain <= `TLP_MAX>>2) begin
 					mst_din[13:8] <= total_remain[5:0];
 					tlp_remain <= {total_remain[8:0], 1'b0};
@@ -122,16 +120,24 @@ always @(posedge sys_clk) begin
 					mst_din[13:8] <= `TLP_MAX>>2;
 					tlp_remain <= `TLP_MAX>>1;
 				end
+				rec_status <= REC_HEAD0;
+			end
+			REC_HEAD0: begin
+				mst_din[17:14] <= 4'b10_10;	// Write command
+				if ((dma_frame_ptr + tlp_remain[9:1]) >= dma_addr_end1) begin
+					mst_din[13:8] <= (dma_addr_end1 - dma_frame_ptr);
+					tlp_remain <= {(dma_addr_end1 - dma_frame_ptr), 1'b0};
+				end
 				mst_din[7:0] <= 8'hff;
 				mst_wr_en <= dma_enable;
-				rec_status <= REC_HEAD11;
+				rec_status <= REC_HEAD1;
 			end
-			REC_HEAD11: begin
+			REC_HEAD1: begin
 				mst_din[17:0] <= {2'b00, dma_frame_ptr[31:16]};
 				mst_wr_en <= dma_enable;
-				rec_status <= REC_HEAD12;
+				rec_status <= REC_HEAD2;
 			end
-			REC_HEAD12: begin
+			REC_HEAD2: begin
 				mst_din[17:0] <= {2'b00, dma_frame_ptr[15:2], 2'b00};
 				mst_wr_en <= dma_enable;
 				if (dma_frame_in == 1'b0)
@@ -178,7 +184,7 @@ always @(posedge sys_clk) begin
 				if (!tlp_remain[0]) begin
 					total_remain <= total_remain - 10'h1;
 					if (dma_enable) begin
-						if (dma_frame_ptr != dma_addr_end)
+						if (dma_frame_ptr < dma_addr_end)
 							dma_frame_ptr <= dma_frame_ptr + 30'h1;
 						else
 							dma_frame_ptr <= dma_addr_start;
@@ -200,10 +206,12 @@ always @(posedge sys_clk) begin
 				if (tlp_remain == 10'h00) begin
 					mst_din[16] <= 1'b1;
 					if (total_remain != 10'h0)
-						rec_status <=  REC_HEAD10;
+						rec_status <=  REC_HEAD;
 					else begin
-						dma_frame_ptr[31:4] <= dma_frame_ptr[31:4] + 28'h1;
-						dma_frame_ptr[3:2] <= 2'h0;
+						if (dma_enable) begin
+							dma_frame_ptr[31:4] <= dma_frame_ptr[31:4] + 28'h1;
+							dma_frame_ptr[3:2] <= 2'h0;
+						end
 						rec_status <=  REC_FIN;
 					end
 				end else

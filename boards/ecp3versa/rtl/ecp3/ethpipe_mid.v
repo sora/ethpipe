@@ -198,7 +198,7 @@ wire [19:1] slv_adr_i;
 wire [15:0] slv_dat_i;
 wire [1:0] slv_sel_i;
 wire [15:0] slv_dat_o, slv_dat1_o, slv_dat2_o;
-reg [15:0] slv_dat0_o;
+reg [15:0] slv_dat0_o, slv_dat0_o2;
 
 // DMA wire & regs
 reg [7:0]  dma_status;
@@ -515,10 +515,12 @@ always @(posedge clk_125) begin
 					// dma1 current address
 					6'h12: begin
 						slv_dat0_o <= {dma1_addr_cur[7:2], 2'b00, dma1_addr_cur[15:8]};
+						slv_dat0_o2 <= {dma1_addr_cur[23:16], dma1_addr_cur[31:24]};
 					end
 					6'h13: begin
-						slv_dat0_o <= {dma1_addr_cur[23:16], dma1_addr_cur[31:24]};
+						slv_dat0_o <= slv_dat0_o2;
 					end
+`ifdef ENABLE_PHY2
 					// dma2 start address
 					6'h14: begin
 						if (slv_we_i) begin
@@ -543,10 +545,12 @@ always @(posedge clk_125) begin
 					// dma2 current address
 					6'h16: begin
 						slv_dat0_o <= {dma2_addr_cur[7:2], 2'b00, dma2_addr_cur[15:8]};
+						slv_dat0_o2 <= {dma2_addr_cur[23:16], dma2_addr_cur[31:24]};
 					end
 					6'h17: begin
-						slv_dat0_o <= {dma2_addr_cur[23:16], dma2_addr_cur[31:24]};
+						slv_dat0_o <= slv_dat0_o2;
 					end
+`endif
 					// TX0 write ptr
 					6'h18: begin
 						if (slv_we_i) begin

@@ -50,7 +50,7 @@ static unsigned long long mmio1_start, mmio1_end, mmio1_flags, mmio1_len;
 static dma_addr_t dma1_phys_ptr = 0L, dma2_phys_ptr;
 static long *dma1_addr_start, *dma2_addr_start;
 static long *dma1_addr_cur, *dma2_addr_cur;
-static long dma1_addr_read, dma2_addr_read;
+static long long dma1_addr_read, dma2_addr_read;
 
 static unsigned short *tx_write_ptr;
 static unsigned short *tx_read_ptr;
@@ -104,12 +104,13 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 	}
 
 	if ( *dma1_addr_cur != dma1_addr_read ) {
-		unsigned char *read_ptr, *p;
+		unsigned char *read_ptr, *read_end, *p;
 
-		read_ptr = dma1_virt_ptr;
-		read_ptr += (int)(dma1_addr_read - dma1_phys_ptr);
+		read_ptr = dma1_virt_ptr + (int)(dma1_addr_read - dma1_phys_ptr);
+		read_end = dma1_virt_ptr + PACKET_BUF_MAX - 1;
+		p = read_ptr;
 		
-		frame_len = *(unsigned short *)(read_ptr + 0);
+		frame_len = *(unsigned short *)(p + 0);
 
 #ifdef DEBUG
 		printk( "frame_len=%4d\n", frame_len );
@@ -126,22 +127,25 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		}
 
 		// L2 header
-		p = (read_ptr + 0x10);
+		p += 0x10;
+		if (p > read_end)
+			p -= PACKET_BUF_MAX;
 
 		for ( i = 0; i < 14; ++i ) {
-			*(unsigned short *)pbuf0.rx_write_ptr = hex[ p[i] ];
+			*(unsigned short *)pbuf0.rx_write_ptr = hex[ *p ];
 			pbuf0.rx_write_ptr += 2;
 			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
 				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
 			if ( i == 5 || i== 11 || i == 13 ) {
 				*pbuf0.rx_write_ptr++ = ' ';
 			}
+			if (++p > read_end)
+				p -= PACKET_BUF_MAX;
 		}
 
 		// L3 header
-		p = (read_ptr + 0x24);
 		for ( i = 0; i < (frame_len-14) ; ++i) {
-			*(unsigned short *)pbuf0.rx_write_ptr = hex[ p[i] ];
+			*(unsigned short *)pbuf0.rx_write_ptr = hex[ *p ];
 			pbuf0.rx_write_ptr += 2;
 			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
 				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
@@ -152,10 +156,13 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 			}
 			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
 				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
+			if (++p > read_end)
+				p -= PACKET_BUF_MAX;
 		}
 
-
-		dma1_addr_read = (long)*dma1_addr_cur;
+		p = (p & 0xfffffffffffffff0) + 0x10;
+		dma1_addr_read = dma1_phys_ptr + (int)(p - dma1_virt_ptr);
+//		dma1_addr_read = (long)*dma1_addr_cur;
 
 		wake_up_interruptible( &read_q );
 	}

@@ -9,6 +9,8 @@
 #include <linux/interrupt.h>
 #include <linux/version.h>
 
+#define	USE_TIMER
+
 #ifndef DRV_NAME
 #define DRV_NAME	"ethpipe"
 #endif
@@ -103,7 +105,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		initialized = 1;
 	}
 
-	if ( *dma1_addr_cur != dma1_addr_read ) {
+	while ( *dma1_addr_cur != dma1_addr_read ) {
 		unsigned char *read_ptr, *read_end, *p;
 
 		read_ptr = dma1_virt_ptr + (int)(dma1_addr_read - dma1_phys_ptr);
@@ -126,11 +128,29 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 			pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
 		}
 
-		// L2 header
+		// global counter
+#ifdef USE_TIMER
+		p += 0x08;
+		if (p > read_end)
+			p -= PACKET_BUF_MAX;
+		for ( i = 0; i < 8; ++i ) {
+			*(unsigned short *)pbuf0.rx_write_ptr = hex[ *p ];
+			pbuf0.rx_write_ptr += 2;
+			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
+			if ( i == 7) {
+				*pbuf0.rx_write_ptr++ = ' ';
+			}
+			if (++p > read_end)
+				p -= PACKET_BUF_MAX;
+		}
+#else
 		p += 0x10;
 		if (p > read_end)
 			p -= PACKET_BUF_MAX;
+#endif
 
+		// L2 header
 		for ( i = 0; i < 14; ++i ) {
 			*(unsigned short *)pbuf0.rx_write_ptr = hex[ *p ];
 			pbuf0.rx_write_ptr += 2;
@@ -160,12 +180,12 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				p -= PACKET_BUF_MAX;
 		}
 
-		p = (p & 0xfffffffffffffff0) + 0x10;
-		dma1_addr_read = dma1_phys_ptr + (int)(p - dma1_virt_ptr);
-//		dma1_addr_read = (long)*dma1_addr_cur;
+		p = (unsigned char *)(((long long)p & 0xfffffffffffffff0) + 0x10);
+//		dma1_addr_read = dma1_phys_ptr + (int)(p - dma1_virt_ptr);
+		dma1_addr_read = (long)*dma1_addr_cur;
 
-		wake_up_interruptible( &read_q );
 	}
+	wake_up_interruptible( &read_q );
 
 lend:
 	return IRQ_RETVAL(handled);

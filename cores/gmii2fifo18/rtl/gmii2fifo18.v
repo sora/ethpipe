@@ -56,14 +56,14 @@ always @(posedge gmii_rx_clk) begin
 					frame_len <= 16'h8;
 					rxd[17:16] <= 2'b11;
 					case (sfd_count)
-						3'h0: rxd[15:8] <= global_counter_latch[ 7: 0];
-						3'h1: rxd[ 7:0] <= global_counter_latch[15: 8];
-						3'h2: rxd[15:8] <= global_counter_latch[23:16];
-						3'h3: rxd[ 7:0] <= global_counter_latch[31:24];
-						3'h4: rxd[15:8] <= global_counter_latch[39:32];
-						3'h5: rxd[ 7:0] <= global_counter_latch[47:40];
-						3'h6: rxd[15:8] <= global_counter_latch[55:48];
-						3'h7: rxd[ 7:0] <= global_counter_latch[63:56];
+						3'h0: rxd[15:8] <= global_counter_latch[63:56];
+						3'h1: rxd[ 7:0] <= global_counter_latch[55:48];
+						3'h2: rxd[15:8] <= global_counter_latch[47:40];
+						3'h3: rxd[ 7:0] <= global_counter_latch[39:32];
+						3'h4: rxd[15:8] <= global_counter_latch[31:24];
+						3'h5: rxd[ 7:0] <= global_counter_latch[23:16];
+						3'h6: rxd[15:8] <= global_counter_latch[15: 8];
+						3'h7: rxd[ 7:0] <= global_counter_latch[ 7: 0];
 					endcase
 	       	 			data_wr_en <= sfd_count[0];
 					if (sfd_count == 3'h7)

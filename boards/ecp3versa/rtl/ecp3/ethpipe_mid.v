@@ -154,7 +154,7 @@ afifo18_7 afifo18_rx2_lenq (
 
 // PHY#1 RX GMII2FIFO18 module
 gmii2fifo18 # (
-	.Gap(4'h8)
+	.Gap(4'h4)
 ) rx1gmii2fifo (
 	.sys_rst(sys_rst),
 	.global_counter(global_counter),
@@ -173,7 +173,7 @@ gmii2fifo18 # (
 // PHY#2 RX GMII2FIFO18 module
 `ifdef ENABLE_PHY2
 gmii2fifo18 # (
-	.Gap(4'h8)
+	.Gap(4'h4)
 ) rx2gmii2fifo (
 	.sys_rst(sys_rst),
 	.global_counter(global_counter),

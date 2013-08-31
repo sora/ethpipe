@@ -86,6 +86,9 @@ always @(posedge gmii_rx_clk) begin
 			sfd_count <= 3'h0;
 			state <= STATE_SFD;
 			if (state == STATE_DATA) begin
+				if (data_odd == 1'b1) begin
+	       		 		data_wr_en <= 1'b1;
+				end
 				len_din[17:0] <= {2'b10, frame_len};
 				len_wr_en <= 1'b1;
 			end else begin

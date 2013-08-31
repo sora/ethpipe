@@ -209,8 +209,7 @@ always @(posedge sys_clk) begin
 						rec_status <=  REC_HEAD;
 					else begin
 						if (dma_enable) begin
-							dma_frame_ptr[31:4] <= dma_frame_ptr[31:4] + 28'h1;
-							dma_frame_ptr[3:2] <= 2'h0;
+							dma_frame_ptr[31:2] <= (dma_frame_ptr[31:2] + 30'b11) & 30'b11111111_11111111_11111111_111100;
 						end
 						rec_status <=  REC_FIN;
 					end

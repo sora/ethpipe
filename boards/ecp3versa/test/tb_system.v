@@ -143,6 +143,7 @@ initial begin
 
 	waitclock;
 
+	#(1*16) ethpipe_mid_inst.global_counter = 64'h0123456789abcdef;
 	#(60*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h26;
 	#(120*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h4c;
 	#(180*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h72;

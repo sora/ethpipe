@@ -180,9 +180,13 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				p -= PACKET_BUF_MAX;
 		}
 
-		p = (unsigned char *)(((long long)p & 0xfffffffffffffff0) + 0x10);
-//		dma1_addr_read = dma1_phys_ptr + (int)(p - dma1_virt_ptr);
+//intk( "%llx,", p);
+		p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
+//intk( "%llx,", p);
+//		dma1_addr_read = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
+//intk( "%llx,", (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr));
 		dma1_addr_read = (long)*dma1_addr_cur;
+//printk( "%llx\n", dma1_addr_read);
 
 	}
 	wake_up_interruptible( &read_q );

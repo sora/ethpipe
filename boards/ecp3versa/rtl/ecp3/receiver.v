@@ -179,7 +179,6 @@ always @(posedge sys_clk) begin
 				tlp_remain <= tlp_remain - 10'h4;
 				mst_din[17:0] <= {2'b00, 16'h55_5d};
 				mst_wr_en <= dma_enable;
-				phy_rd_en <= ~phy_empty;
 				rec_status <= REC_DATA;
 			end
 			REC_DATA: begin

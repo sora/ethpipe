@@ -117,8 +117,10 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 #ifdef DEBUG
 		printk( "frame_len=%4d\n", frame_len );
 #endif
-		if (frame_len>1518)
-			frame_len = 1518;
+		if (frame_len == 0 || frame_len > 1518) {
+			dma1_addr_read = (long)*dma1_addr_cur;
+			goto lend;
+		}
 
 		if ( (pbuf0.rx_write_ptr + frame_len + 0x10) > pbuf0.rx_end_ptr ) {
 			if (pbuf0.rx_read_ptr == pbuf0.rx_start_ptr)
@@ -134,7 +136,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		if (p > read_end)
 			p -= PACKET_BUF_MAX;
 		for ( i = 0; i < 8; ++i ) {
-			*(unsigned short *)pbuf0.rx_write_ptr = hex[ *p ];
+			*(unsigned short *)pbuf0.rx_write_ptr = hex[ i > 1 ? *p : 0 ];
 			pbuf0.rx_write_ptr += 2;
 			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
 				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
@@ -180,10 +182,10 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				p -= PACKET_BUF_MAX;
 		}
 
-//		if ((long long)p & 0xf)
-//			p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
-//		dma1_addr_read = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
-		dma1_addr_read = (long)*dma1_addr_cur;
+		if ((long long)p & 0xf)
+			p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
+		dma1_addr_read = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
+//		dma1_addr_read = (long)*dma1_addr_cur;
 
 	}
 	wake_up_interruptible( &read_q );

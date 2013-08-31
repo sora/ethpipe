@@ -38,17 +38,18 @@ wire [31:2] dma_addr_end  = (dma_addr_end1 - 1);
 
 parameter [3:0]
 	REC_IDLE     = 4'h0,
-	REC_HEAD     = 4'h1,
-	REC_HEAD0    = 4'h2,
-	REC_HEAD1    = 4'h3,
-	REC_HEAD2    = 4'h4,
-	REC_SKIP     = 4'h5,
+	REC_SKIP     = 4'h1,
+	REC_HEAD     = 4'h2,
+	REC_HEAD0    = 4'h3,
+	REC_HEAD1    = 4'h4,
+	REC_HEAD2    = 4'h5,
 	REC_LENGTHL  = 4'h6,
 	REC_LENGTHH  = 4'h7,
 	REC_TUPLEL   = 4'h8,
 	REC_TUPLEH   = 4'h9,
 	REC_DATA     = 4'ha,
-	REC_FIN      = 4'hf;
+	REC_FIN      = 4'he,
+	REC_FIN2     = 4'hf;
 reg [3:0] rec_status = REC_IDLE;
 
 reg dma_load_req = 1'b0, dma_load_ack = 1'b0;
@@ -91,6 +92,7 @@ always @(posedge sys_clk) begin
 		sys_intr <= 1'b0;
 		dma_load_ack <= 1'b0;
 		phy_rd_en <= 1'b0;
+		len_rd_en <= 1'b0;
 		mst_wr_en <= 1'b0;
 		case ( rec_status )
 			REC_IDLE: begin
@@ -105,15 +107,22 @@ always @(posedge sys_clk) begin
 					frame_len <= (len_dout[10:0] - 11'h8);  // subtract gcounter
 					total_remain <= ((len_dout[10:0] + 11'hb) >> 2);
 					dma_frame_in <= 1'b0;
-					rec_status <= REC_HEAD;
+					rec_status <= REC_SKIP;
 				end else if ( dma_load_req ) begin
 					dma_frame_ptr <= dma_addr_start;
 					dma_addr_cur <= dma_addr_start;
 					dma_load_ack <= 1'b1;
 				end
 			end
+			REC_SKIP: begin
+				phy_rd_en <= ~phy_empty;
+				if (phy_rd_en && phy_dout[17]) begin
+					phy_rd_en <= 1'b0;
+					rec_status <= REC_HEAD;
+				end
+			end
 			REC_HEAD: begin
-				if (total_remain <= `TLP_MAX>>2) begin
+				if (total_remain < `TLP_MAX>>2) begin
 					mst_din[13:8] <= total_remain[5:0];
 					tlp_remain <= {total_remain[8:0], 1'b0};
 				end else begin
@@ -140,12 +149,15 @@ always @(posedge sys_clk) begin
 			REC_HEAD2: begin
 				mst_din[17:0] <= {2'b00, dma_frame_ptr[15:2], 2'b00};
 				mst_wr_en <= dma_enable;
-				if (dma_frame_in == 1'b0)
+				if (dma_frame_in == 1'b0) begin
 					rec_status <= REC_LENGTHL;
-				else
+				end else begin
+					phy_rd_en <= ~phy_empty;
 					rec_status <= REC_DATA;
+				end
 			end
 			REC_LENGTHL: begin
+				dma_frame_in <= 1'b1;
 				mst_din[17:0] <= {2'b00, frame_len[7:0], 5'b00000, frame_len[10:8]};
 				mst_wr_en <= dma_enable;
 				rec_status <= REC_LENGTHH;
@@ -161,63 +173,66 @@ always @(posedge sys_clk) begin
 				rec_status <= REC_TUPLEH;
 			end
 			REC_TUPLEH: begin
+				if (dma_enable)
+					dma_frame_ptr <= dma_frame_ptr + 30'h2;
 				total_remain <= total_remain - 9'h2;
 				tlp_remain <= tlp_remain - 10'h4;
-				phy_rd_en <= ~phy_empty;
 				mst_din[17:0] <= {2'b00, 16'h55_5d};
 				mst_wr_en <= dma_enable;
-				rec_status <= REC_SKIP;
-			end
-			REC_SKIP: begin
 				phy_rd_en <= ~phy_empty;
-				if (phy_rd_en && phy_dout[17]) begin
-					dma_frame_in <= 1'b1;
-					mst_din[17:0] <= {2'b00, phy_dout[15:0]};
-					mst_wr_en <= dma_enable;
-					total_remain <= total_remain - 10'h1;
-					tlp_remain <= tlp_remain - 10'h1;
-					rec_status <= REC_DATA;
-				end
+				rec_status <= REC_DATA;
 			end
 			REC_DATA: begin
-				tlp_remain <= tlp_remain - 10'h1;
-				if (!tlp_remain[0]) begin
-					total_remain <= total_remain - 10'h1;
-					if (dma_enable) begin
-						if (dma_frame_ptr < dma_addr_end)
-							dma_frame_ptr <= dma_frame_ptr + 30'h1;
-						else
-							dma_frame_ptr <= dma_addr_start;
-					end
-				end
 				mst_din[15:0] <= phy_dout[15:0];
-				if (phy_rd_en) begin
-					if (phy_dout[17:16] != 2'b11) begin
-						dma_frame_in <= 1'b0;
-						if (dma_frame_in) begin
-							sys_intr <= dma_status[0];
-						end
-					end
+				if (phy_dout[17:16] != 2'b11) begin
+					dma_frame_in <= 1'b0;
+					phy_rd_en <= 1'b0;
 				end
-				if (dma_frame_in)
-					phy_rd_en <= ~phy_empty;
 				mst_wr_en <= dma_enable;
 				mst_din[17] <= 1'b0;
 				if (tlp_remain == 10'h00) begin
+					phy_rd_en <= 1'b0;
 					mst_din[16] <= 1'b1;
 					if (total_remain != 10'h0)
 						rec_status <=  REC_HEAD;
 					else begin
-						if (dma_enable) begin
-							dma_frame_ptr[31:2] <= (dma_frame_ptr[31:2] + 30'b11) & 30'b11111111_11111111_11111111_111100;
-						end
 						rec_status <=  REC_FIN;
 					end
-				end else
+				end else begin
 					mst_din[16] <= 1'b0;
+					tlp_remain <= tlp_remain - 10'h1;
+					if (!tlp_remain[0]) begin
+						total_remain <= total_remain - 10'h1;
+						if (dma_enable) begin
+							if (dma_frame_ptr == dma_addr_end)
+								dma_frame_ptr <= dma_addr_start;
+							else
+								dma_frame_ptr <= dma_frame_ptr + 30'h1;
+						end
+					end
+					if (dma_frame_in && tlp_remain != 10'h1)
+						phy_rd_en <= ~phy_empty;
+					else
+						phy_rd_en <= 1'b0;
+				end
 			end
 			REC_FIN: begin
-				dma_addr_cur <= dma_frame_ptr;
+				if (dma_enable) begin
+					if (dma_frame_ptr[3:2] != 2'b00) begin
+						dma_frame_ptr[31:4] <= (dma_frame_ptr[31:4] + 28'h1);
+					end
+					dma_frame_ptr[3:2] <= 2'b00;
+					sys_intr <= 1'b1;
+				end
+				rec_status <= REC_FIN2;
+			end
+			REC_FIN2: begin
+				if (dma_frame_ptr == dma_addr_end1) begin
+					dma_frame_ptr <= dma_addr_start;
+					dma_addr_cur <= dma_addr_start;
+				end else begin
+					dma_addr_cur <= dma_frame_ptr;
+				end
 				rec_status <= REC_IDLE;
 			end
 		endcase

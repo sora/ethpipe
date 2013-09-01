@@ -44,14 +44,13 @@ crc_gen tx_fcs_gen (
 
 /* sender logic */
 parameter [2:0]            // TX status
-    TX_IDLE     = 3'b000
-  , TX_SENDING  = 3'b001
-  , TX_FCS_1    = 3'b010
-  , TX_FCS_2    = 3'b011
-  , TX_FCS_3    = 3'b100
-  , TX_IFG      = 3'b101;
+    TX_IDLE    = 3'b000
+  , TX_SENDING = 3'b001
+  , TX_FCS_1   = 3'b010
+  , TX_FCS_2   = 3'b011
+  , TX_FCS_3   = 3'b100;
 reg [ 2:0] tx_status;
-reg [ 2:0] ifg_count;
+reg [ 3:0] ifg_count;
 reg [15:0] tx_frame_len;
 reg [63:0] tx_timestamp;
 reg [31:0] tx_hash;
@@ -61,7 +60,7 @@ reg [15:0] tx_data_tmp;
 always @(posedge gmii_tx_clk) begin
 	if (sys_rst) begin
 		tx_status    <= 3'b0;
-		ifg_count    <= 3'b0;
+		ifg_count    <= 4'b0;
 		tx_counter   <= 14'd0;
 		tx_frame_len <= 16'b0;
 		tx_timestamp <= 64'b0;
@@ -78,10 +77,11 @@ always @(posedge gmii_tx_clk) begin
 			TX_IDLE: begin
 				tx_counter <= 14'd0;
 				crc_rd     <= 1'b0;
-				ifg_count  <= 3'b0;
 
-				// should swap the relational op to own logic :todo
-				if (mem_rd_ptr != mem_wr_ptr) begin
+				if (ifg_count != 4'd12)
+					ifg_count = ifg_count + 4'd1;
+
+				if (ifg_count == 4'd12 && mem_rd_ptr != mem_wr_ptr) begin
 					tx_status <= TX_SENDING;
 					rd_ptr    <= mem_rd_ptr;
 				end
@@ -165,20 +165,16 @@ always @(posedge gmii_tx_clk) begin
 				gmii_txd   <= crc_out[15:8];
 			end
 			TX_FCS_3: begin                           // ethernet FCS 3
-				tx_status  <= TX_IFG;
+				tx_status  <= TX_IDLE;
 				gmii_tx_en <= 1'b1;
 				gmii_txd   <= crc_out[7:0];
 				crc_rd     <= 1'b0;
+				mem_rd_ptr <= rd_ptr;              // update mem_rd_ptr
+				ifg_count  <= 4'd0;
 			end
-			TX_IFG: begin                              // InterFrage Gap (64 bit interval)
-				ifg_count <= ifg_count + 3'd1;
-				if (ifg_count == 3'd6) begin
-					tx_status  <= TX_IDLE;
-					mem_rd_ptr <= rd_ptr;              // update mem_rd_ptr
-				end
-			end
-			default:
+			default: begin
 				tx_status <= TX_IDLE;
+			end
 		endcase
 	end
 end

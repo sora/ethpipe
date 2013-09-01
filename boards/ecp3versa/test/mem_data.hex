@@ -1,8 +1,8 @@
 003e	// etherPIPE: Frame Length=62 (0x003e)
-1122    // etherPIPE: ts
-3344    // etherPIPE: ts
-5566    // etherPIPE: ts
-7788    // etherPIPE: ts
+9000    // etherPIPE: ts
+0000    // etherPIPE: ts
+0000    // etherPIPE: ts
+0000    // etherPIPE: ts
 abcd	// etherPIPE: hash
 dcba	// etherPIPE: hash
 000A	// Dest MAC
@@ -37,10 +37,10 @@ B3FE
 1011
 1213	// payload end, correct FCS="7A D5 6B B3"
 003e	// etherPIPE: Frame Length=62 (0x003e)
-1122    // etherPIPE: ts
-3344    // etherPIPE: ts
-5566    // etherPIPE: ts
-7788    // etherPIPE: ts
+1000    // etherPIPE: ts
+0000    // etherPIPE: ts
+0000    // etherPIPE: ts
+0100    // etherPIPE: ts
 abcd	// etherPIPE: hash
 dcba	// etherPIPE: hash
 000A	// Dest MAC
@@ -75,10 +75,10 @@ B3FE
 1011
 1213	// payload end, correct FCS="7A D5 6B B3"
 003e	// etherPIPE: Frame Length=62 (0x003e)
-1122    // etherPIPE: ts
-3344    // etherPIPE: ts
-5566    // etherPIPE: ts
-7788    // etherPIPE: ts
+1000    // etherPIPE: ts
+0000    // etherPIPE: ts
+0000    // etherPIPE: ts
+0200    // etherPIPE: ts
 abcd	// etherPIPE: hash
 dcba	// etherPIPE: hash
 000A	// Dest MAC
@@ -113,10 +113,10 @@ B3FE
 1011
 1213	// payload end, correct FCS="7A D5 6B B3"
 0060	// etherPIPE: Frame Length=96 (0x0060)
-1122    // etherPIPE: ts
-3344    // etherPIPE: ts
-5566    // etherPIPE: ts
-7788    // etherPIPE: ts
+1000    // etherPIPE: ts
+0000    // etherPIPE: ts
+0000    // etherPIPE: ts
+0300    // etherPIPE: ts
 abcd	// etherPIPE: hash
 dcba	// etherPIPE: hash
 00a0	// Dest MAC
@@ -168,10 +168,10 @@ f3f4
 0000
 f5f6	// payload end
 0050	// etherPIPE: Frame Length=80 (0x0050)
-1122    // etherPIPE: ts
-3344    // etherPIPE: ts
-5566    // etherPIPE: ts
-7788    // etherPIPE: ts
+1000    // etherPIPE: ts
+0000    // etherPIPE: ts
+0000    // etherPIPE: ts
+0001    // etherPIPE: ts
 abcd	// etherPIPE: hash
 dcba	// etherPIPE: hash
 00a0	// Dest MAC

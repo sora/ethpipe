@@ -122,7 +122,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 			goto lend;
 		}
 
-		if ( (pbuf0.rx_write_ptr + frame_len + 0x10) > pbuf0.rx_end_ptr ) {
+		if ( (pbuf0.rx_write_ptr + frame_len * 3 + 0x10) > pbuf0.rx_end_ptr ) {
 			if (pbuf0.rx_read_ptr == pbuf0.rx_start_ptr)
 				pbuf0.rx_read_ptr = pbuf0.rx_write_ptr;
 			memcpy( pbuf0.rx_start_ptr, pbuf0.rx_read_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr ));

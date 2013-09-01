@@ -10,6 +10,7 @@
 #include <linux/version.h>
 
 #define	USE_TIMER
+#define DROP_FCS
 
 #ifndef DRV_NAME
 #define DRV_NAME	"ethpipe"
@@ -166,12 +167,20 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		}
 
 		// L3 header
+#ifdef DROP_FCS
+		for ( i = 0; i < (frame_len-14-4) ; ++i) {
+#else
 		for ( i = 0; i < (frame_len-14) ; ++i) {
+#endif
 			*(unsigned short *)pbuf0.rx_write_ptr = hex[ *p ];
 			pbuf0.rx_write_ptr += 2;
 			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
 				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
+#ifdef DROP_FCS
+			if ( likely( i != (frame_len-14-4-1) ) ) {
+#else
 			if ( likely( i != (frame_len-14-1) ) ) {
+#endif
 				*pbuf0.rx_write_ptr++ = ' ';
 			} else {
 				*pbuf0.rx_write_ptr++ = '\n';
@@ -181,6 +190,11 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 			if (++p > read_end)
 				p -= PACKET_BUF_MAX;
 		}
+#ifdef DROP_FCS
+		p += 4;
+		if (p > read_end)
+			p -= PACKET_BUF_MAX;
+#endif
 
 		if ((long long)p & 0xf)
 			p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);

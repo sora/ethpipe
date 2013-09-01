@@ -362,7 +362,7 @@ sender sender_phy1_ins (
 
   , .global_counter(global_counter)
 
-  , .gmii_tx_clk(phy1_125M_clk)
+  , .gmii_tx_clk(clk_125)
   , .gmii_txd(phy1_tx_data)
   , .gmii_tx_en(phy1_tx_en)
   , .slot_tx_eth_data(tx0mem_dataB)
@@ -381,7 +381,7 @@ sender sender_phy2_ins (
 
   , .global_counter(global_counter)
 
-  , .gmii_tx_clk(phy2_125M_clk)
+  , .gmii_tx_clk(clk_125)
   , .gmii_txd(phy2_tx_data)
   , .gmii_tx_en(phy2_tx_en)
   , .slot_tx_eth_data(tx1mem_dataB)
@@ -398,10 +398,10 @@ sender sender_phy2_ins (
 
 assign phy1_mii_clk  = 1'b0;
 assign phy1_mii_data = 1'b0;
-assign phy1_gtx_clk  = phy1_125M_clk;
+assign phy1_gtx_clk  = clk_125;
 assign phy2_mii_clk  = 1'b0;
 assign phy2_mii_data = 1'b0;
-assign phy2_gtx_clk  = phy2_125M_clk;
+assign phy2_gtx_clk  = clk_125;
 
 // Global counter
 always @(posedge clk_125) begin

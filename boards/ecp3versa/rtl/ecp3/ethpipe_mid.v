@@ -445,43 +445,38 @@ end
 //-------------------------------------
 // PCI I/O memory mapping
 //-------------------------------------
+reg [6:0] local_time_update_pending;
+reg       local_time_update_ack;
 always @(posedge clk_125) begin
 	if (rec_intr)
 		led <= led + 8'h1;
 	if (sys_rst == 1'b1) begin
-		slv_dat0_o      <= 16'h0;
-		dma_status      <= 8'h00;
-		dma_length      <= ( 22'h1_0000 >> 2 );
-		dma1_addr_start <= ( 32'h1000_0000 >> 2 );
-		dma2_addr_start <= ( 32'h1010_0000 >> 2 );
-		dma1_load       <= 1'b0;
-		dma2_load       <= 1'b0;
-		tx0mem_wr_ptr   <= 14'h0;
-		tx1mem_wr_ptr   <= 14'h0;
-		local_time1     <= 48'h0;
-		local_time2     <= 48'h0;
-		local_time3     <= 48'h0;
-		local_time4     <= 48'h0;
-		local_time5     <= 48'h0;
-		local_time6     <= 48'h0;
-		local_time7     <= 48'h0;
+		slv_dat0_o                <= 16'h0;
+		dma_status                <= 8'h00;
+		dma_length                <= ( 22'h1_0000 >> 2 );
+		dma1_addr_start           <= ( 32'h1000_0000 >> 2 );
+		dma2_addr_start           <= ( 32'h1010_0000 >> 2 );
+		dma1_load                 <= 1'b0;
+		dma2_load                 <= 1'b0;
+		tx0mem_wr_ptr             <= 14'h0;
+		tx1mem_wr_ptr             <= 14'h0;
+		local_time1               <= 48'h0;
+		local_time2               <= 48'h0;
+		local_time3               <= 48'h0;
+		local_time4               <= 48'h0;
+		local_time5               <= 48'h0;
+		local_time6               <= 48'h0;
+		local_time7               <= 48'h0;
+		local_time_update_pending <= 7'b0;
+		local_time_update_ack     <= 1'b0;
 	end else begin
 
-			// temporary
-			if (tx0local_time_req[0])
-				local_time1 <= global_counter - 48'h1;
-			else if (tx0local_time_req[1])
-				local_time2 <= global_counter - 48'h1;
-			else if (tx0local_time_req[2])
-				local_time3 <= global_counter - 48'h1;
-			else if (tx0local_time_req[3])
-				local_time4 <= global_counter - 48'h1;
-			else if (tx0local_time_req[4])
-				local_time5 <= global_counter - 48'h1;
-			else if (tx0local_time_req[5])
-				local_time6 <= global_counter - 48'h1;
-			else if (tx0local_time_req[6])
-				local_time7 <= global_counter - 48'h1;
+		if (tx0local_time_req != 7'b0)
+			local_time_update_pending <= tx0local_time_req;
+		else if(tx1local_time_req != 7'b0)
+			local_time_update_pending <= tx1local_time_req;
+		else if (local_time_update_ack == 1'b1)
+			local_time_update_pending <= 7'b0;
 
 		dma1_load <= 1'b0;
 		dma2_load <= 1'b0;
@@ -687,6 +682,31 @@ always @(posedge clk_125) begin
 				endcase
 			end else
 				slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
+		end else begin
+			if (local_time_update_pending[0]) begin
+				local_time1           <= global_counter - 48'h3;
+				local_time_update_ack <= 1'b1;
+			end else if (local_time_update_pending[1]) begin
+				local_time2           <= global_counter - 48'h3;
+				local_time_update_ack <= 1'b1;
+			end else if (local_time_update_pending[2]) begin
+				local_time3           <= global_counter - 48'h3;
+				local_time_update_ack <= 1'b1;
+			end else if (local_time_update_pending[3]) begin
+				local_time4           <= global_counter - 48'h3;
+				local_time_update_ack <= 1'b1;
+			end else if (local_time_update_pending[4]) begin
+				local_time5           <= global_counter - 48'h3;
+				local_time_update_ack <= 1'b1;
+			end else if (local_time_update_pending[5]) begin
+				local_time6           <= global_counter - 48'h3;
+				local_time_update_ack <= 1'b1;
+			end else if (local_time_update_pending[6]) begin
+				local_time7           <= global_counter - 48'h3;
+				local_time_update_ack <= 1'b1;
+			end else begin
+				local_time_update_ack <= 1'b0;
+			end
 		end
 	end
 end

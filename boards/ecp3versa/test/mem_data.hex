@@ -40,7 +40,7 @@ B3FE
 1000    // etherPIPE: ts
 0000    // etherPIPE: ts
 0000    // etherPIPE: ts
-0100    // etherPIPE: ts
+0064    // etherPIPE: ts
 abcd	// etherPIPE: hash
 dcba	// etherPIPE: hash
 000A	// Dest MAC
@@ -78,7 +78,7 @@ B3FE
 1000    // etherPIPE: ts
 0000    // etherPIPE: ts
 0000    // etherPIPE: ts
-0200    // etherPIPE: ts
+0120    // etherPIPE: ts
 abcd	// etherPIPE: hash
 dcba	// etherPIPE: hash
 000A	// Dest MAC
@@ -116,7 +116,7 @@ B3FE
 1000    // etherPIPE: ts
 0000    // etherPIPE: ts
 0000    // etherPIPE: ts
-0300    // etherPIPE: ts
+023F    // etherPIPE: ts
 abcd	// etherPIPE: hash
 dcba	// etherPIPE: hash
 00a0	// Dest MAC
@@ -171,7 +171,7 @@ f5f6	// payload end
 1000    // etherPIPE: ts
 0000    // etherPIPE: ts
 0000    // etherPIPE: ts
-0001    // etherPIPE: ts
+0333    // etherPIPE: ts
 abcd	// etherPIPE: hash
 dcba	// etherPIPE: hash
 00a0	// Dest MAC

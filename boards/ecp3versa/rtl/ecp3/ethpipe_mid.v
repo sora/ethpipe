@@ -262,6 +262,15 @@ pcie_tlp inst_pcie_tlp (
   , .btn()
 );
 
+// local time registers
+reg [47:0] local_time1;
+reg [47:0] local_time2;
+reg [47:0] local_time3;
+reg [47:0] local_time4;
+reg [47:0] local_time5;
+reg [47:0] local_time6;
+reg [47:0] local_time7;
+
 // PHY Receiver
 wire btn;
 wire rec_intr;
@@ -356,6 +365,8 @@ wire [13:0] tx0mem_rd_ptr;
 reg  [13:0] tx0mem_wr_ptr;
 wire [13:0] tx1mem_rd_ptr;
 reg  [13:0] tx1mem_wr_ptr;
+wire [ 6:0] tx0local_time_req;
+wire [ 6:0] tx1local_time_req;
 `ifdef ENABLE_TRANSMITTER
 sender sender_phy1_ins (
     .sys_rst(sys_rst)
@@ -373,6 +384,16 @@ sender sender_phy1_ins (
 
   , .mem_wr_ptr(tx0mem_wr_ptr)
   , .mem_rd_ptr(tx0mem_rd_ptr)
+
+  , .local_time1(local_time1)
+  , .local_time2()
+  , .local_time3()
+  , .local_time4()
+  , .local_time5()
+  , .local_time6()
+  , .local_time7()
+
+  , .local_time_req(tx0local_time_req)
 );
 
 `ifdef ENABLE_PHY2
@@ -392,6 +413,16 @@ sender sender_phy2_ins (
 
   , .mem_wr_ptr(tx1mem_wr_ptr)
   , .mem_rd_ptr(tx1mem_rd_ptr)
+
+  , .local_time1(local_time1)
+  , .local_time2()
+  , .local_time3()
+  , .local_time4()
+  , .local_time5()
+  , .local_time6()
+  , .local_time7()
+
+  , .local_time_req(tx1local_time_req)
 );
 `endif
 `endif
@@ -427,7 +458,31 @@ always @(posedge clk_125) begin
 		dma2_load <= 1'b0;
 		tx0mem_wr_ptr   <= 14'h0;
 		tx1mem_wr_ptr   <= 14'h0;
+		local_time1     <= 48'h0;
+		local_time2     <= 48'h0;
+		local_time3     <= 48'h0;
+		local_time4     <= 48'h0;
+		local_time5     <= 48'h0;
+		local_time6     <= 48'h0;
+		local_time7     <= 48'h0;
 	end else begin
+
+			// temporary
+			if (tx0local_time_req[0])
+				local_time1 <= global_counter - 48'h1;
+			else if (tx0local_time_req[1])
+				local_time2 <= global_counter - 48'h1;
+			else if (tx0local_time_req[2])
+				local_time3 <= global_counter - 48'h1;
+			else if (tx0local_time_req[3])
+				local_time4 <= global_counter - 48'h1;
+			else if (tx0local_time_req[4])
+				local_time5 <= global_counter - 48'h1;
+			else if (tx0local_time_req[5])
+				local_time6 <= global_counter - 48'h1;
+			else if (tx0local_time_req[6])
+				local_time7 <= global_counter - 48'h1;
+
 		dma1_load <= 1'b0;
 		dma2_load <= 1'b0;
 		if (rec_intr)
@@ -579,6 +634,27 @@ always @(posedge clk_125) begin
 					6'h1b: begin
 						slv_dat0_o <= {tx1mem_rd_ptr[7:0], 2'b00, tx1mem_rd_ptr[13:8]};
 					end
+					// local time 1 [15:0]
+					// local time 1 [31:16]
+					// local time 1 [47:32]
+					// local time 2 [15:0]
+					// local time 2 [31:16]
+					// local time 2 [47:32]
+					// local time 3 [15:0]
+					// local time 3 [31:16]
+					// local time 3 [47:32]
+					// local time 4 [15:0]
+					// local time 4 [31:16]
+					// local time 4 [47:32]
+					// local time 5 [15:0]
+					// local time 5 [31:16]
+					// local time 5 [47:32]
+					// local time 6 [15:0]
+					// local time 6 [31:16]
+					// local time 6 [47:32]
+					// local time 7 [15:0]
+					// local time 7 [31:16]
+					// local time 7 [47:32]
 					default:
 						slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
 				endcase

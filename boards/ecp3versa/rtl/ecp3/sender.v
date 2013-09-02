@@ -21,6 +21,16 @@ module sender (
 
   , input  wire [13:0] mem_wr_ptr
   , output reg  [13:0] mem_rd_ptr
+
+  , input  wire [47:0] local_time1
+  , input  wire [47:0] local_time2
+  , input  wire [47:0] local_time3
+  , input  wire [47:0] local_time4
+  , input  wire [47:0] local_time5
+  , input  wire [47:0] local_time6
+  , input  wire [47:0] local_time7
+
+  , output reg  [ 6:0] local_time_req
 );
 
 reg [13:0] rd_ptr;
@@ -57,6 +67,10 @@ reg [15:0] tx_frame_len;
 reg [63:0] tx_timestamp;
 reg [31:0] tx_hash;
 reg [15:0] tx_data_tmp;
+/* timestamp commands */
+// still not implement the global counter reset yet
+wire       ts_rst        = tx_timestamp[63];
+wire [2:0] ts_local_time = tx_timestamp[62:60];
 
 /* packet sender logic */
 always @(posedge gmii_tx_clk) begin
@@ -74,7 +88,8 @@ always @(posedge gmii_tx_clk) begin
 		crc_rd         <= 1'b0;
 	end else begin
 
-		gmii_tx_en <= 1'b0;
+		gmii_tx_en     <= 1'b0;
+		local_time_req <= 7'b0;
 
 		/* interframe gap counter */
 		if (tx_status == TX_IDLE) begin
@@ -125,7 +140,60 @@ always @(posedge gmii_tx_clk) begin
 					4'd5: tx_timestamp[15: 0] <= slot_tx_eth_q;
 					4'd6: tx_hash[31:16]      <= slot_tx_eth_q;
 					4'd7: tx_hash[15: 0]      <= slot_tx_eth_q;
-					4'd8: tx_status           <= TX_SENDING;
+					4'd8: begin
+						if (ts_rst) begin
+							tx_status <= TX_SENDING;
+							case (ts_local_time)
+								3'd0: begin
+								end
+								3'd1: local_time_req[0] <= 1'b1;
+								3'd2: local_time_req[1] <= 1'b1;
+								3'd3: local_time_req[2] <= 1'b1;
+								3'd4: local_time_req[3] <= 1'b1;
+								3'd5: local_time_req[4] <= 1'b1;
+								3'd6: local_time_req[5] <= 1'b1;
+								3'd7: local_time_req[6] <= 1'b1;
+							endcase
+						end else begin
+							if (tx_timestamp[47:0] == 48'h0) begin
+								tx_status <= TX_SENDING;
+							end else begin
+								case (ts_local_time)
+									3'd0: begin
+										tx_status <= TX_SENDING;
+									end
+									3'd1: begin
+										if (global_counter == tx_timestamp[47:0] + local_time1)
+											tx_status <= TX_SENDING;
+									end
+									3'd2: begin
+										if (global_counter == tx_timestamp[47:0] + local_time2)
+											tx_status <= TX_SENDING;
+									end
+									3'd3: begin
+										if (global_counter == tx_timestamp[47:0] + local_time3)
+											tx_status <= TX_SENDING;
+									end
+									3'd4: begin
+										if (global_counter == tx_timestamp[47:0] + local_time4)
+											tx_status <= TX_SENDING;
+									end
+									3'd5: begin
+										if (global_counter == tx_timestamp[47:0] + local_time5)
+											tx_status <= TX_SENDING;
+									end
+									3'd6: begin
+										if (global_counter == tx_timestamp[47:0] + local_time6)
+											tx_status <= TX_SENDING;
+									end
+									3'd7: begin
+										if (global_counter == tx_timestamp[47:0] + local_time7)
+											tx_status <= TX_SENDING;
+									end
+								endcase
+							end
+						end
+					end
 					default: begin
 						tx_status <= TX_IDLE;
 					end

@@ -143,8 +143,9 @@ initial begin
 
 	waitclock;
 
-	#(1*16) ethpipe_mid_inst.global_counter[47:0] = 64'h0123456789ab;
-	#(60*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h26;
+//	#(1*16) ethpipe_mid_inst.global_counter[47:0] = 64'h0123456789ab;
+	#(1*16) ethpipe_mid_inst.global_counter[47:0] = 64'h2000;
+//	#(60*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h26;
 	#(60*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h4c;
 	#(180*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h72;
 	#(240*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'hd8;

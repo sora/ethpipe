@@ -454,8 +454,8 @@ always @(posedge clk_125) begin
 		dma_length      <= ( 22'h1_0000 >> 2 );
 		dma1_addr_start <= ( 32'h1000_0000 >> 2 );
 		dma2_addr_start <= ( 32'h1010_0000 >> 2 );
-		dma1_load <= 1'b0;
-		dma2_load <= 1'b0;
+		dma1_load       <= 1'b0;
+		dma2_load       <= 1'b0;
 		tx0mem_wr_ptr   <= 14'h0;
 		tx1mem_wr_ptr   <= 14'h0;
 		local_time1     <= 48'h0;
@@ -635,8 +635,35 @@ always @(posedge clk_125) begin
 						slv_dat0_o <= {tx1mem_rd_ptr[7:0], 2'b00, tx1mem_rd_ptr[13:8]};
 					end
 					// local time 1 [15:0]
+					8'h80: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[1])
+								local_time1[ 7:0] <= slv_dat_i[15: 8];
+						if (slv_sel_i[0])
+								local_time1[15:8] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {local_time1[7:0], local_time1[15:8]};
+					end
 					// local time 1 [31:16]
+					8'h81: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[1])
+								local_time1[23:16] <= slv_dat_i[31:24];
+						if (slv_sel_i[0])
+								local_time1[31:24] <= slv_dat_i[23:16];
+						end else
+							slv_dat0_o <= {local_time1[23:16], local_time1[31:24]};
+					end
 					// local time 1 [47:32]
+					8'h82: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[1])
+								local_time1[39:32] <= slv_dat_i[47:40];
+						if (slv_sel_i[0])
+								local_time1[47:40] <= slv_dat_i[39:32];
+						end else
+							slv_dat0_o <= {local_time1[39:32], local_time1[47:40]};
+					end
 					// local time 2 [15:0]
 					// local time 2 [31:16]
 					// local time 2 [47:32]

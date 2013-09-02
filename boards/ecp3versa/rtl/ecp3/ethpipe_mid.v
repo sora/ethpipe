@@ -488,37 +488,37 @@ always @(posedge clk_125) begin
 		if (rec_intr)
 			dma_status[3] <= 1'b1;
 		if (slv_bar_i[0] & slv_ce_i) begin
-			if (slv_adr_i[11:7] == 5'h0) begin
-				case (slv_adr_i[6:1])
+			if (slv_adr_i[11:9] == 3'h0) begin
+				case (slv_adr_i[8:1])
 					// slots status
-					6'h00: begin
+					8'h00: begin
 					end
 					// global counter [15:0]
-					6'h02: begin
+					8'h02: begin
 						if (~slv_we_i) begin
 							slv_dat0_o <= {global_counter[7:0], global_counter[15:8]};
 						end
 					end
 					// global counter [31:16]
-					6'h03: begin
+					8'h03: begin
 						if (~slv_we_i) begin
 							slv_dat0_o <= {global_counter[23:16], global_counter[31:24]};
 						end
 					end
 					// global counter [47:32]
-					6'h04: begin
+					8'h04: begin
 						if (~slv_we_i) begin
 							slv_dat0_o <= {global_counter[39:32], global_counter[47:40]};
 						end
 					end
 					// global counter [63:48]
-					6'h05: begin
+					8'h05: begin
 						if (~slv_we_i) begin
 							slv_dat0_o <= {global_counter[55:48], global_counter[63:56]};
 						end
 					end
 					// dma status regs
-					6'h08: begin
+					8'h08: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
 								dma_status[ 7: 0] <= slv_dat_i[15:8];
@@ -526,7 +526,7 @@ always @(posedge clk_125) begin
 							slv_dat0_o <= {dma_status[7:0], 8'h00};
 					end
 					// dma length
-					6'h0a: begin
+					8'h0a: begin
 						if (slv_we_i) begin
 							dma1_load <= 1'b1;
 							dma2_load <= 1'b1;
@@ -537,7 +537,7 @@ always @(posedge clk_125) begin
 						end else
 							slv_dat0_o <= {dma_length[7:2], 2'b00, dma_length[15:8]};
 					end
-					6'h0b: begin
+					8'h0b: begin
 						if (slv_we_i) begin
 							dma1_load <= 1'b1;
 							dma2_load <= 1'b1;
@@ -547,7 +547,7 @@ always @(posedge clk_125) begin
 							slv_dat0_o <= {2'b00, dma_length[21:16], 8'h00};
 					end
 					// dma1 start address
-					6'h10: begin
+					8'h10: begin
 						if (slv_we_i) begin
 							dma1_load <= 1'b1;
 							if (slv_sel_i[1])
@@ -557,7 +557,7 @@ always @(posedge clk_125) begin
 						end else
 							slv_dat0_o <= {dma1_addr_start[7:2], 2'b00, dma1_addr_start[15:8]};
 					end
-					6'h11: begin
+					8'h11: begin
 						if (slv_we_i) begin
 							dma1_load <= 1'b1;
 							if (slv_sel_i[1])
@@ -568,16 +568,16 @@ always @(posedge clk_125) begin
 							slv_dat0_o <= {dma1_addr_start[23:16], dma1_addr_start[31:24]};
 					end
 					// dma1 current address
-					6'h12: begin
+					8'h12: begin
 						slv_dat0_o <= {dma1_addr_cur[7:2], 2'b00, dma1_addr_cur[15:8]};
 						slv_dat0_o2 <= {dma1_addr_cur[23:16], dma1_addr_cur[31:24]};
 					end
-					6'h13: begin
+					8'h13: begin
 						slv_dat0_o <= slv_dat0_o2;
 					end
 `ifdef ENABLE_PHY2
 					// dma2 start address
-					6'h14: begin
+					8'h14: begin
 						if (slv_we_i) begin
 							dma2_load <= 1'b1;
 							if (slv_sel_i[1])
@@ -587,7 +587,7 @@ always @(posedge clk_125) begin
 						end else
 							slv_dat0_o <= {dma2_addr_start[7:2], 2'b00, dma2_addr_start[15:8]};
 					end
-					6'h15: begin
+					8'h15: begin
 						if (slv_we_i) begin
 							dma2_load <= 1'b1;
 							if (slv_sel_i[1])
@@ -598,16 +598,16 @@ always @(posedge clk_125) begin
 							slv_dat0_o <= {dma2_addr_start[23:16], dma2_addr_start[31:24]};
 					end
 					// dma2 current address
-					6'h16: begin
+					8'h16: begin
 						slv_dat0_o <= {dma2_addr_cur[7:2], 2'b00, dma2_addr_cur[15:8]};
 						slv_dat0_o2 <= {dma2_addr_cur[23:16], dma2_addr_cur[31:24]};
 					end
-					6'h17: begin
+					8'h17: begin
 						slv_dat0_o <= slv_dat0_o2;
 					end
 `endif
 					// TX0 write ptr
-					6'h18: begin
+					8'h18: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
 								tx0mem_wr_ptr[ 7:0] <= slv_dat_i[15: 8];
@@ -617,7 +617,7 @@ always @(posedge clk_125) begin
 							slv_dat0_o <= {tx0mem_wr_ptr[7:0], 2'b00, tx0mem_wr_ptr[13:8]};
 					end
 					// TX1 write ptr
-					6'h19: begin
+					8'h19: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
 								tx1mem_wr_ptr[ 7:0] <= slv_dat_i[15: 8];
@@ -627,11 +627,11 @@ always @(posedge clk_125) begin
 							slv_dat0_o <= {tx1mem_wr_ptr[7:0], 2'b00, tx1mem_wr_ptr[13:8]};
 					end
 					// TX0 read ptr
-					6'h1a: begin
+					8'h1a: begin
 						slv_dat0_o <= {tx0mem_rd_ptr[7:0], 2'b00, tx0mem_rd_ptr[13:8]};
 					end
 					// TX1 read ptr
-					6'h1b: begin
+					8'h1b: begin
 						slv_dat0_o <= {tx1mem_rd_ptr[7:0], 2'b00, tx1mem_rd_ptr[13:8]};
 					end
 					// local time 1 [15:0]

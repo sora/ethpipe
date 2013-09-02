@@ -44,13 +44,15 @@ crc_gen tx_fcs_gen (
 
 /* sender logic */
 parameter [2:0]            // TX status
-    TX_IDLE    = 3'b000
-  , TX_SENDING = 3'b001
-  , TX_FCS_1   = 3'b010
-  , TX_FCS_2   = 3'b011
-  , TX_FCS_3   = 3'b100;
+    TX_IDLE     = 3'b000
+  , TX_HDR_LOAD = 3'b001
+  , TX_SENDING  = 3'b010
+  , TX_FCS_1    = 3'b011
+  , TX_FCS_2    = 3'b100
+  , TX_FCS_3    = 3'b101;
 reg [ 2:0] tx_status;
-reg [ 3:0] ifg_count;
+reg [ 1:0] ifg_count;
+reg [ 3:0] hdr_load_count;
 reg [15:0] tx_frame_len;
 reg [63:0] tx_timestamp;
 reg [31:0] tx_hash;
@@ -59,95 +61,107 @@ reg [15:0] tx_data_tmp;
 /* packet sender logic */
 always @(posedge gmii_tx_clk) begin
 	if (sys_rst) begin
-		tx_status    <= 3'b0;
-		ifg_count    <= 4'b0;
-		tx_counter   <= 14'd0;
-		tx_frame_len <= 16'b0;
-		tx_timestamp <= 64'b0;
-		tx_hash      <= 32'b0;
-		tx_data_tmp  <= 16'b0;
-		rd_ptr       <= 14'b0;
-		mem_rd_ptr   <= 14'b0;
-		crc_rd       <= 1'b0;
+		tx_status      <= 3'b0;
+		ifg_count      <= 2'b0;
+		hdr_load_count <= 4'b0;
+		tx_counter     <= 14'd0;
+		tx_frame_len   <= 16'b0;
+		tx_timestamp   <= 64'b0;
+		tx_hash        <= 32'b0;
+		tx_data_tmp    <= 16'b0;
+		rd_ptr         <= 14'b0;
+		mem_rd_ptr     <= 14'b0;
+		crc_rd         <= 1'b0;
 	end else begin
 
 		gmii_tx_en <= 1'b0;
 
+		/* interframe gap counter */
+		if (tx_status == TX_IDLE) begin
+			if (ifg_count != 2'd2)
+				ifg_count <= ifg_count + 2'd1;
+		end else begin
+			ifg_count <= 4'd0;
+		end
+
+		/* ethpipe header loading counter */
+		if (tx_status == TX_HDR_LOAD) begin
+			if (hdr_load_count != 4'd8)
+				hdr_load_count <= hdr_load_count + 4'd1;
+		end else begin
+			hdr_load_count <= 4'd0;
+		end
+
+		/* transmit counter */
+		if (tx_status == TX_SENDING) begin
+			tx_counter <= tx_counter + 14'd1;
+		end else begin
+			tx_counter <= 14'd0;
+		end
+
+		/* transmit main */
 		case (tx_status)
 			TX_IDLE: begin
-				tx_counter <= 14'd0;
-				crc_rd     <= 1'b0;
 
-				if (ifg_count != 4'd12)
-					ifg_count = ifg_count + 4'd1;
+				crc_rd <= 1'b0;
 
-				if (ifg_count == 4'd12 && mem_rd_ptr != mem_wr_ptr) begin
-					tx_status <= TX_SENDING;
+				if (ifg_count == 2'd2 && mem_rd_ptr != mem_wr_ptr) begin
+					tx_status <= TX_HDR_LOAD;
 					rd_ptr    <= mem_rd_ptr;
 				end
 			end
-			TX_SENDING: begin
+			TX_HDR_LOAD: begin
 
-				// tx_counter
-				tx_counter <= tx_counter + 14'd1;
+				if (hdr_load_count != 4'd7 && hdr_load_count != 4'd8 && rd_ptr != mem_wr_ptr)
+					rd_ptr <= rd_ptr + 14'h1;
+				
+				case (hdr_load_count)
+					4'd0: begin
+					end
+					4'd1: tx_frame_len        <= slot_tx_eth_q;
+					4'd2: tx_timestamp[63:48] <= slot_tx_eth_q;
+					4'd3: tx_timestamp[47:32] <= slot_tx_eth_q;
+					4'd4: tx_timestamp[31:16] <= slot_tx_eth_q;
+					4'd5: tx_timestamp[15: 0] <= slot_tx_eth_q;
+					4'd6: tx_hash[31:16]      <= slot_tx_eth_q;
+					4'd7: tx_hash[15: 0]      <= slot_tx_eth_q;
+					4'd8: tx_status           <= TX_SENDING;
+					default: begin
+						tx_status <= TX_IDLE;
+					end
+				endcase
+			end
+			TX_SENDING: begin
 
 				// gmii_tx_en
 				gmii_tx_en <= 1'b1;
 
-				// increase read memory pointer
-				if (rd_ptr != mem_wr_ptr)
-					rd_ptr <= rd_ptr + 14'h1;
-
 				// gmii_txd
 				case (tx_counter)
-					14'd0: begin
-						gmii_txd            <= 8'h55;                   // preamble
-					end
-					14'd1: begin
-						gmii_txd            <= 8'h55;
-						tx_frame_len        <= slot_tx_eth_q;
-					end
-					14'd2: begin
-						gmii_txd            <= 8'h55;
-						tx_timestamp[63:48] <= slot_tx_eth_q;
-					end
-					14'd3: begin
-						gmii_txd            <= 8'h55;
-						tx_timestamp[47:32] <= slot_tx_eth_q;
-					end
-					14'd4: begin
-						gmii_txd            <= 8'h55;
-						tx_timestamp[31:16] <= slot_tx_eth_q;
-					end
-					14'd5: begin
-						gmii_txd            <= 8'h55;
-						tx_timestamp[15:0]  <= slot_tx_eth_q;
-					end
-					14'd6: begin
-						gmii_txd            <= 8'h55;
-						tx_hash[31:16]      <= slot_tx_eth_q;
-					end
-					14'd7: begin
-						gmii_txd            <= 8'hd5;                     // preamble + SFD
-						tx_hash[15:0]       <= slot_tx_eth_q;
-						rd_ptr              <= rd_ptr;
-					end
+					14'd0: gmii_txd <= 8'h55;   // preamble
+					14'd1: gmii_txd <= 8'h55;
+					14'd2: gmii_txd <= 8'h55;
+					14'd3: gmii_txd <= 8'h55;
+					14'd4: gmii_txd <= 8'h55;
+					14'd5: gmii_txd <= 8'h55;
+					14'd6: gmii_txd <= 8'h55;
+					14'd7: gmii_txd <= 8'hd5;   // preamble+SFD
 					default: begin
 						if (tx_counter == tx_frame_len[13:0] + 14'd8) begin
 							tx_status  <= TX_FCS_1;
 							crc_rd     <= 1'b1;
-							rd_ptr     <= rd_ptr;
-							gmii_txd   <= crc_out[31:24];                 // ethernet FCS 0
+							gmii_txd   <= crc_out[31:24];   // ethernet FCS 0
 						end else begin
 							// send frame data
 							case (tx_counter[0])
 								1'b0: begin
 									gmii_txd    <= slot_tx_eth_q[15:8];
 									tx_data_tmp <= slot_tx_eth_q;
+									if (rd_ptr != mem_wr_ptr)
+										rd_ptr <= rd_ptr + 14'h1;
 								end
 								1'b1: begin
 									gmii_txd <= tx_data_tmp[7:0];
-									rd_ptr   <= rd_ptr;
 								end
 							endcase
 						end
@@ -169,8 +183,7 @@ always @(posedge gmii_tx_clk) begin
 				gmii_tx_en <= 1'b1;
 				gmii_txd   <= crc_out[7:0];
 				crc_rd     <= 1'b0;
-				mem_rd_ptr <= rd_ptr;              // update mem_rd_ptr
-				ifg_count  <= 4'd0;
+				mem_rd_ptr <= rd_ptr;                 // update mem_rd_ptr
 			end
 			default: begin
 				tx_status <= TX_IDLE;

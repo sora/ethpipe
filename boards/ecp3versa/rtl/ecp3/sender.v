@@ -154,7 +154,8 @@ always @(posedge gmii_tx_clk) begin
 							end else begin
 								case (ts_local_time)
 									3'd0: begin
-										tx_status <= TX_SENDING;
+										if (global_counter == tx_timestamp[47:0])
+											tx_status <= TX_SENDING;
 									end
 									3'd1: begin
 										if (global_counter == tx_timestamp[47:0] + local_time1)

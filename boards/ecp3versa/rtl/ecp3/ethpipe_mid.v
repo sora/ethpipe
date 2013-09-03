@@ -643,9 +643,9 @@ always @(posedge clk_125) begin
 					8'h81: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
-								local_time1[23:16] <= slv_dat_i[31:24];
+								local_time1[23:16] <= slv_dat_i[15: 8];
 						if (slv_sel_i[0])
-								local_time1[31:24] <= slv_dat_i[23:16];
+								local_time1[31:24] <= slv_dat_i[ 7: 0];
 						end else
 							slv_dat0_o <= {local_time1[23:16], local_time1[31:24]};
 					end
@@ -653,9 +653,9 @@ always @(posedge clk_125) begin
 					8'h82: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
-								local_time1[39:32] <= slv_dat_i[47:40];
+								local_time1[39:32] <= slv_dat_i[15: 8];
 						if (slv_sel_i[0])
-								local_time1[47:40] <= slv_dat_i[39:32];
+								local_time1[47:40] <= slv_dat_i[ 7: 0];
 						end else
 							slv_dat0_o <= {local_time1[39:32], local_time1[47:40]};
 					end

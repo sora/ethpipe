@@ -90,33 +90,20 @@ always @(posedge gmii_tx_clk) begin
 
 		gmii_tx_en     <= 1'b0;
 		local_time_req <= 7'b0;
-
-		/* interframe gap counter */
-		if (tx_status == TX_IDLE) begin
-			if (ifg_count != 2'd2)
-				ifg_count <= ifg_count + 2'd1;
-		end else begin
-			ifg_count <= 4'd0;
-		end
-
-		/* ethpipe header loading counter */
-		if (tx_status == TX_HDR_LOAD) begin
-			if (hdr_load_count != 4'd8)
-				hdr_load_count <= hdr_load_count + 4'd1;
-		end else begin
-			hdr_load_count <= 4'd0;
-		end
-
-		/* transmit counter */
-		if (tx_status == TX_SENDING) begin
-			tx_counter <= tx_counter + 14'd1;
-		end else begin
-			tx_counter <= 14'd0;
-		end
+		ifg_count      <= 4'd0;
+		hdr_load_count <= 4'd0;
+		tx_counter     <= 14'd0;
 
 		/* transmit main */
 		case (tx_status)
 			TX_IDLE: begin
+
+				/* interframe gap counter */
+				if (ifg_count != 2'd2) begin
+					ifg_count <= ifg_count + 2'd1;
+				end else begin
+					ifg_count <= ifg_count;
+				end
 
 				crc_rd <= 1'b0;
 
@@ -126,6 +113,13 @@ always @(posedge gmii_tx_clk) begin
 				end
 			end
 			TX_HDR_LOAD: begin
+
+				/* ethpipe header loading counter */
+				if (hdr_load_count != 4'd8) begin
+					hdr_load_count <= hdr_load_count + 4'd1;
+				end else begin
+					hdr_load_count <= hdr_load_count;
+				end
 
 				if (hdr_load_count != 4'd7 && hdr_load_count != 4'd8 && rd_ptr != mem_wr_ptr)
 					rd_ptr <= rd_ptr + 14'h1;
@@ -200,6 +194,9 @@ always @(posedge gmii_tx_clk) begin
 				endcase
 			end
 			TX_SENDING: begin
+
+				/* transmit counter */
+				tx_counter <= tx_counter + 14'd1;
 
 				// gmii_tx_en
 				gmii_tx_en <= 1'b1;

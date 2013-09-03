@@ -3,6 +3,7 @@
 //`include "../rtl/setup.v"
 module tb_system();
 
+`ifndef VERILATOR
 /* 125MHz system clock */
 reg sys_clk;
 initial sys_clk = 1'b0;
@@ -156,6 +157,7 @@ initial begin
 
 	$finish;
 end
+`endif
 
 endmodule
 

@@ -20,6 +20,12 @@ wave: all
 isim: tb_system
 	./tb_system
 
+lint: $(SOURCES) lint.vh
+	verilator --lint-only --top-module ethpipe_mid lint.vh $(SOURCES)
+
+lint-all: $(SOURCES) lint.vh
+	verilator --lint-only -Wall --top-module ethpipe_mid lint.vh $(SOURCES)
+
 cversim: $(SOURCES)
 	cver $(SOURCES)
 

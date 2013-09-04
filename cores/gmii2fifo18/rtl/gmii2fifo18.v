@@ -93,6 +93,7 @@ always @(posedge gmii_rx_clk) begin
 				len_wr_en <= 1'b1;
 			end else begin
 				rxd <= 18'h000;
+				rxd[17:0] <= 18'h00;
 				len_din <= 18'h0;
 				if (gap_count != 4'h0) begin
 					data_wr_en <= 1'b1;

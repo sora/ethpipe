@@ -338,13 +338,13 @@ ethpipe_write_loop:
 
 		// ascii to number
 		if (data >= '0' && data <= '9') {
-			tmp_pkt[frame_len+6] = (data2 | (data - '0'));
+			tmp_pkt[frame_len+2] = (data2 | (data - '0'));
 			++frame_len;
 		} else if (data >= 'A' && data <= 'F') {
-			tmp_pkt[frame_len+6] = (data2 | (data - 'A' + 0xA));
+			tmp_pkt[frame_len+2] = (data2 | (data - 'A' + 0xA));
 			++frame_len;
 		} else if (data >= 'a' && data <= 'f') {
-			tmp_pkt[frame_len+6] = (data2 | (data - 'a' + 0xA));
+			tmp_pkt[frame_len+2] = (data2 | (data - 'a' + 0xA));
 			++frame_len;
 		} else {
 			printk("input data err: %c\n", data);
@@ -361,8 +361,9 @@ ethpipe_write_loop:
 #endif
 
 #ifdef DEBUG
-	printk( "%02x%02x%02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x %02x%02x %02x %02x\n",
-		tmp_pkt[ 6], tmp_pkt[ 7], tmp_pkt[ 8], tmp_pkt[ 9], tmp_pkt[10], tmp_pkt[11], tmp_pkt[12], tmp_pkt[13],
+	printk( "%02x%02x%02x%02x%02x%02x%02x%02x %02x%02x%02x%02x %02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x %02x%02x %02x %02x\n",
+		tmp_pkt[ 2], tmp_pkt[ 3], tmp_pkt[ 4], tmp_pkt[ 5], tmp_pkt[ 6], tmp_pkt[ 7], tmp_pkt[ 8], tmp_pkt[ 9],
+		tmp_pkt[10], tmp_pkt[11], tmp_pkt[12], tmp_pkt[13],
 		tmp_pkt[14], tmp_pkt[15], tmp_pkt[16], tmp_pkt[17], tmp_pkt[18], tmp_pkt[19],
 		tmp_pkt[20], tmp_pkt[21], tmp_pkt[22], tmp_pkt[23], tmp_pkt[24], tmp_pkt[25],
 		tmp_pkt[26], tmp_pkt[27],

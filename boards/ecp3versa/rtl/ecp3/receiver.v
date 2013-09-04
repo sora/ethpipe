@@ -72,6 +72,7 @@ end
 reg [10:0] frame_len;
 reg [8:0] total_remain;
 reg [9:0] tlp_remain;
+reg [12:2] page_remain;
 always @(posedge sys_clk) begin
 	if (sys_rst) begin
 		sys_intr <= 1'b0;
@@ -122,6 +123,7 @@ always @(posedge sys_clk) begin
 				end
 			end
 			REC_HEAD: begin
+				page_remain[12:2] <= 11'd1024 - {1'b0, dma_frame_ptr[11:2]};
 				if (total_remain < `TLP_MAX>>2) begin
 					mst_din[13:8] <= total_remain[5:0];
 					tlp_remain <= {total_remain[8:0], 1'b0};
@@ -133,7 +135,10 @@ always @(posedge sys_clk) begin
 			end
 			REC_HEAD0: begin
 				mst_din[17:14] <= 4'b10_10;	// Write command
-				if ((dma_frame_ptr + tlp_remain[9:1]) >= dma_addr_end1) begin
+				if ( tlp_remain[9:1] > page_remain) begin
+					mst_din[13:8] <= page_remain;
+					tlp_remain <= {page_remain, 1'b0};
+				end else if ((dma_frame_ptr + tlp_remain[9:1]) >= dma_addr_end1) begin
 					mst_din[13:8] <= (dma_addr_end1 - dma_frame_ptr);
 					tlp_remain <= {(dma_addr_end1 - dma_frame_ptr), 1'b0};
 				end

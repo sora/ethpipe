@@ -139,12 +139,12 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		for ( i = 0; i < 8; ++i ) {
 			*(unsigned short *)pbuf0.rx_write_ptr = hex[ i > 1 ? *p : 0 ];
 			pbuf0.rx_write_ptr += 2;
-			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+			if ( unlikely( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr ) )
 				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
-			if ( i == 7) {
+			if ( unlikely( i == 7 ) ) {
 				*pbuf0.rx_write_ptr++ = ' ';
 			}
-			if (++p > read_end)
+			if ( unlikely( ++p > read_end ) )
 				p -= PACKET_BUF_MAX;
 		}
 #else
@@ -157,9 +157,9 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		for ( i = 0; i < 14; ++i ) {
 			*(unsigned short *)pbuf0.rx_write_ptr = hex[ *p ];
 			pbuf0.rx_write_ptr += 2;
-			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+			if ( unlikely( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr ) )
 				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
-			if ( i == 5 || i== 11 || i == 13 ) {
+			if ( unlikely( i == 5 || i== 11 || i == 13 ) ) {
 				*pbuf0.rx_write_ptr++ = ' ';
 			}
 			if (++p > read_end)
@@ -174,22 +174,18 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 #endif
 			*(unsigned short *)pbuf0.rx_write_ptr = hex[ *p ];
 			pbuf0.rx_write_ptr += 2;
-			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+			if ( unlikely( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr ) )
 				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
-#ifdef DROP_FCS
-			if ( likely( i != (frame_len-14-4-1) ) ) {
-#else
-			if ( likely( i != (frame_len-14-1) ) ) {
-#endif
-				*pbuf0.rx_write_ptr++ = ' ';
-			} else {
-				*pbuf0.rx_write_ptr++ = '\n';
-			}
-			if ( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr )
+			*pbuf0.rx_write_ptr++ = ' ';
+			if ( unlikely( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr ) )
 				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
-			if (++p > read_end)
+			if ( unlikely( ++p > read_end ) )
 				p -= PACKET_BUF_MAX;
 		}
+		if ( likely( pbuf0.rx_write_ptr != pbuf0.rx_start_ptr ) )
+			*(pbuf0.rx_write_ptr-1) = '\n';
+		else
+			*(pbuf0.rx_end_ptr) = '\n';
 #ifdef DROP_FCS
 		p += 4;
 		if (p > read_end)

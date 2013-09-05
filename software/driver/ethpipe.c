@@ -17,17 +17,17 @@
 #endif
 
 #ifndef TX_WRITE_PTR_ADDRESS
-#define TX_WRITE_PTR_ADDRESS	(0x30)
+#define TX_WRITE_PTR_ADDRESS		(0x30)
 #endif
 
 #ifndef TX_READ_PTR_ADDRESS
 #define TX_READ_PTR_ADDRESS		(0x34)
 #endif
 
-#define	DRV_VERSION	"0.1.0"
+#define	DRV_VERSION			"0.2.0"
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
-#define	PACKET_BUF_MAX	(1024*1024)
-#define	TEMP_BUF_MAX	(2000)
+#define	PACKET_BUF_MAX			(1024*1024)
+#define	TEMP_BUF_MAX			(2000)
 
 #define ETHPIPE_HEADER_LEN		(14)
 #define MAX_FRAME_LEN			(9014)
@@ -53,23 +53,27 @@ static unsigned long long mmio1_start, mmio1_end, mmio1_flags, mmio1_len;
 static dma_addr_t dma1_phys_ptr = 0L, dma2_phys_ptr;
 static long *dma1_addr_start, *dma2_addr_start;
 static long *dma1_addr_cur, *dma2_addr_cur;
-static long long dma1_addr_read, dma2_addr_read;
+static long long dma1_addr_read_ascii, dma1_addr_read_binary, dma2_addr_read;
 
 static unsigned short *tx_write_ptr;
 static unsigned short *tx_read_ptr;
 
 static struct pci_dev *pcidev = NULL;
-static wait_queue_head_t write_q;
-static wait_queue_head_t read_q;
+static wait_queue_head_t write_q_ascii, write_q_binary;
+static wait_queue_head_t read_q_ascii, read_q_binary;
 
-static int open_count = 0;
+static int open_count_ascii = 0, open_count_binary = 0;
 
 /* receive and transmitte buffer */
 struct _pbuf_dma {
-	unsigned char   *rx_start_ptr;	/* rx buf start */
-	unsigned char   *rx_end_ptr;	/* rx buf end */
-	unsigned char   *rx_write_ptr;	/* rx write ptr */
-	unsigned char   *rx_read_ptr;	/* rx read ptr */
+	unsigned char   *rx_start_ascii_ptr;	/* rx buf ascii start */
+	unsigned char   *rx_start_binary_ptr;	/* rx buf binary start */
+	unsigned char   *rx_end_ascii_ptr;	/* rx buf ascii end */
+	unsigned char   *rx_end_binary_ptr;	/* rx buf binary end */
+	unsigned char   *rx_write_ascii_ptr;	/* rx write ascii ptr */
+	unsigned char   *rx_write_binary_ptr;	/* rx write binary ptr */
+	unsigned char   *rx_read_ascii_ptr;	/* rx read ascii ptr */
+	unsigned char   *rx_read_binary_ptr;	/* rx read binary ptr */
 	unsigned char   *tx_start_ptr;	/* tx buf start */
 	unsigned char   *tx_end_ptr;	/* tx buf end */
 	unsigned char   *tx_write_ptr;	/* tx write ptr */
@@ -103,99 +107,177 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		initialized = 1;
 	}
 
-	while ( *dma1_addr_cur != dma1_addr_read ) {
-		unsigned char *read_ptr, *read_end, *p;
+	// for ASCII Interface
+	if ( open_count_ascii ) {
+		while ( *dma1_addr_cur != dma1_addr_read_ascii ) {
+			unsigned char *read_ptr, *read_end, *p;
 
-		read_ptr = dma1_virt_ptr + (int)(dma1_addr_read - dma1_phys_ptr);
-		read_end = dma1_virt_ptr + PACKET_BUF_MAX - 1;
-		p = read_ptr;
+			read_ptr = dma1_virt_ptr + (int)(dma1_addr_read_ascii - dma1_phys_ptr);
+			read_end = dma1_virt_ptr + PACKET_BUF_MAX - 1;
+			p = read_ptr;
 		
-		frame_len = *(unsigned short *)(p + 0);
+			frame_len = *(unsigned short *)(p + 0);
 
 #ifdef DEBUG
-		printk( "frame_len=%4d\n", frame_len );
+			printk( "frame_len=%4d\n", frame_len );
 #endif
-		if (frame_len == 0 || frame_len > 1518) {
-			dma1_addr_read = (long)*dma1_addr_cur;
-			goto lexit;
-		}
+			if (frame_len == 0 || frame_len > 1518) {
+				dma1_addr_read_ascii = (long)*dma1_addr_cur;
+				goto lexit;
+			}
 
-		if ( (pbuf0.rx_write_ptr + frame_len * 3 + 0x10) > pbuf0.rx_end_ptr ) {
-			if (pbuf0.rx_read_ptr == pbuf0.rx_start_ptr)
-				pbuf0.rx_read_ptr = pbuf0.rx_write_ptr;
-			memcpy( pbuf0.rx_start_ptr, pbuf0.rx_read_ptr, (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr ));
-			pbuf0.rx_write_ptr = pbuf0.rx_start_ptr + (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr );
-			pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
-		}
+			if ( (pbuf0.rx_write_ascii_ptr + frame_len * 3 + 0x10) > pbuf0.rx_end_ascii_ptr ) {
+				if (pbuf0.rx_read_ascii_ptr == pbuf0.rx_start_ascii_ptr)
+					pbuf0.rx_read_ascii_ptr = pbuf0.rx_write_ascii_ptr;
+				memcpy( pbuf0.rx_start_ascii_ptr, pbuf0.rx_read_ascii_ptr, (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr ));
+				pbuf0.rx_write_ascii_ptr = pbuf0.rx_start_ascii_ptr + (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr );
+				pbuf0.rx_read_ascii_ptr = pbuf0.rx_start_ascii_ptr;
+			}
 
-		// global counter
+			// global counter
 #ifdef USE_TIMER
-		p += 0x08;
-		if (p > read_end)
-			p -= PACKET_BUF_MAX;
-		for ( i = 0; i < 8; ++i ) {
-			*(unsigned short *)pbuf0.rx_write_ptr = hex[ i > 1 ? *p : 0 ];
-			pbuf0.rx_write_ptr += 2;
-			if ( unlikely( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr ) )
-				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
-			if ( unlikely( i == 7 ) ) {
-				*pbuf0.rx_write_ptr++ = ' ';
+			p += 0x08;
+			if (p > read_end)
+				p -= PACKET_BUF_MAX;
+			for ( i = 0; i < 8; ++i ) {
+				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ i > 1 ? *p : 0 ];
+				pbuf0.rx_write_ascii_ptr += 2;
+				if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
+					pbuf0.rx_write_ascii_ptr -= (pbuf0.rx_end_ascii_ptr - pbuf0.rx_start_ascii_ptr + 1);
+				if ( unlikely( i == 7 ) ) {
+					*pbuf0.rx_write_ascii_ptr++ = ' ';
+				}
+				if ( unlikely( ++p > read_end ) )
+					p -= PACKET_BUF_MAX;
 			}
-			if ( unlikely( ++p > read_end ) )
-				p -= PACKET_BUF_MAX;
-		}
 #else
-		p += 0x10;
-		if (p > read_end)
-			p -= PACKET_BUF_MAX;
+			p += 0x10;
+			if (p > read_end)
+				p -= PACKET_BUF_MAX;
 #endif
 
-		// L2 header
-		for ( i = 0; i < 14; ++i ) {
-			*(unsigned short *)pbuf0.rx_write_ptr = hex[ *p ];
-			pbuf0.rx_write_ptr += 2;
-			if ( unlikely( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr ) )
-				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
-			if ( unlikely( i == 5 || i== 11 || i == 13 ) ) {
-				*pbuf0.rx_write_ptr++ = ' ';
+			// L2 header
+			for ( i = 0; i < 14; ++i ) {
+				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
+				pbuf0.rx_write_ascii_ptr += 2;
+				if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
+					pbuf0.rx_write_ascii_ptr -= (pbuf0.rx_end_ascii_ptr - pbuf0.rx_start_ascii_ptr + 1);
+				if ( unlikely( i == 5 || i== 11 || i == 13 ) ) {
+					*pbuf0.rx_write_ascii_ptr++ = ' ';
+				}
+				if (++p > read_end)
+					p -= PACKET_BUF_MAX;
 			}
-			if (++p > read_end)
-				p -= PACKET_BUF_MAX;
-		}
-
-		// L3 header
+	
+			// L3 header
 #ifdef DROP_FCS
-		for ( i = 0; i < (frame_len-14-4) ; ++i) {
+			for ( i = 0; i < (frame_len-14-4) ; ++i) {
 #else
-		for ( i = 0; i < (frame_len-14) ; ++i) {
+			for ( i = 0; i < (frame_len-14) ; ++i) {
 #endif
-			*(unsigned short *)pbuf0.rx_write_ptr = hex[ *p ];
-			pbuf0.rx_write_ptr += 2;
-			if ( unlikely( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr ) )
-				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
-			*pbuf0.rx_write_ptr++ = ' ';
-			if ( unlikely( pbuf0.rx_write_ptr > pbuf0.rx_end_ptr ) )
-				pbuf0.rx_write_ptr -= (pbuf0.rx_end_ptr - pbuf0.rx_start_ptr + 1);
-			if ( unlikely( ++p > read_end ) )
-				p -= PACKET_BUF_MAX;
-		}
-		if ( likely( pbuf0.rx_write_ptr != pbuf0.rx_start_ptr ) )
-			*(pbuf0.rx_write_ptr-1) = '\n';
-		else
-			*(pbuf0.rx_end_ptr) = '\n';
+				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
+				pbuf0.rx_write_ascii_ptr += 2;
+				if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
+					pbuf0.rx_write_ascii_ptr -= (pbuf0.rx_end_ascii_ptr - pbuf0.rx_start_ascii_ptr + 1);
+				*pbuf0.rx_write_ascii_ptr++ = ' ';
+				if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
+					pbuf0.rx_write_ascii_ptr -= (pbuf0.rx_end_ascii_ptr - pbuf0.rx_start_ascii_ptr + 1);
+				if ( unlikely( ++p > read_end ) )
+					p -= PACKET_BUF_MAX;
+			}
+			if ( likely( pbuf0.rx_write_ascii_ptr != pbuf0.rx_start_ascii_ptr ) )
+				*(pbuf0.rx_write_ascii_ptr-1) = '\n';
+			else
+				*(pbuf0.rx_end_ascii_ptr) = '\n';
 #ifdef DROP_FCS
-		p += 4;
-		if (p > read_end)
-			p -= PACKET_BUF_MAX;
+			p += 4;
+			if (p > read_end)
+				p -= PACKET_BUF_MAX;
 #endif
 
-		if ((long long)p & 0xf)
-			p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
-		dma1_addr_read = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
-//		dma1_addr_read = (long)*dma1_addr_cur;
+			if ((long long)p & 0xf)
+				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
+			dma1_addr_read_ascii = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
+//			dma1_addr_read_ascii = (long)*dma1_addr_cur;
 
+		}
+		wake_up_interruptible( &read_q_ascii );
 	}
-	wake_up_interruptible( &read_q );
+
+
+	// for BINARY Interface
+	if ( open_count_binary ) {
+		while ( *dma1_addr_cur != dma1_addr_read_binary ) {
+			unsigned char *read_ptr, *read_end, *p;
+
+			read_ptr = dma1_virt_ptr + (int)(dma1_addr_read_binary - dma1_phys_ptr);
+			read_end = dma1_virt_ptr + PACKET_BUF_MAX - 1;
+			p = read_ptr;
+		
+			frame_len = *(unsigned short *)(p + 0);
+
+#ifdef DEBUG
+			printk( "frame_len=%4d\n", frame_len );
+#endif
+			if (frame_len == 0 || frame_len > 1518) {
+				dma1_addr_read_binary = (long)*dma1_addr_cur;
+				goto lexit;
+			}
+
+			if ( (pbuf0.rx_write_binary_ptr + frame_len + 0x10) > pbuf0.rx_end_binary_ptr ) {
+				if (pbuf0.rx_read_binary_ptr == pbuf0.rx_start_binary_ptr)
+					pbuf0.rx_read_binary_ptr = pbuf0.rx_write_binary_ptr;
+				memcpy( pbuf0.rx_start_binary_ptr, pbuf0.rx_read_binary_ptr, (pbuf0.rx_write_binary_ptr - pbuf0.rx_read_binary_ptr ));
+				pbuf0.rx_write_binary_ptr = pbuf0.rx_start_binary_ptr + (pbuf0.rx_write_binary_ptr - pbuf0.rx_read_binary_ptr );
+				pbuf0.rx_read_binary_ptr = pbuf0.rx_start_binary_ptr;
+			}
+
+			// global counter
+#ifdef USE_TIMER
+			p += 0x08;
+			if (p > read_end)
+				p -= PACKET_BUF_MAX;
+			for ( i = 0; i < 8; ++i ) {
+				*(unsigned char *)pbuf0.rx_write_binary_ptr = *p;
+				pbuf0.rx_write_binary_ptr += 1;
+				if ( unlikely( pbuf0.rx_write_binary_ptr > pbuf0.rx_end_binary_ptr ) )
+					pbuf0.rx_write_binary_ptr -= (pbuf0.rx_end_binary_ptr - pbuf0.rx_start_binary_ptr + 1);
+				if ( unlikely( ++p > read_end ) )
+					p -= PACKET_BUF_MAX;
+			}
+#else
+			p += 0x10;
+			if (p > read_end)
+				p -= PACKET_BUF_MAX;
+#endif
+
+			// L3 header
+#ifdef DROP_FCS
+			for ( i = 0; i < (frame_len-4) ; ++i) {
+#else
+			for ( i = 0; i < (frame_len) ; ++i) {
+#endif
+				*(unsigned char *)pbuf0.rx_write_binary_ptr =*p;
+				pbuf0.rx_write_binary_ptr += 1;
+				if ( unlikely( pbuf0.rx_write_binary_ptr > pbuf0.rx_end_binary_ptr ) )
+					pbuf0.rx_write_binary_ptr -= (pbuf0.rx_end_binary_ptr - pbuf0.rx_start_binary_ptr + 1);
+				if ( unlikely( ++p > read_end ) )
+					p -= PACKET_BUF_MAX;
+			}
+#ifdef DROP_FCS
+			p += 4;
+			if (p > read_end)
+				p -= PACKET_BUF_MAX;
+#endif
+
+			if ((long long)p & 0xf)
+				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
+			dma1_addr_read_binary = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
+//			dma1_addr_read_binary = (long)*dma1_addr_cur;
+
+		}
+		wake_up_interruptible( &read_q_binary );
+	}
 
 lexit:
 	// clear interrupt flag
@@ -204,61 +286,104 @@ lend:
 	return IRQ_RETVAL(handled);
 }
 
-static int ethpipe_open(struct inode *inode, struct file *filp)
+static int ethpipe_open_ascii(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
 
 	/* enanble DMA1 and DMA2 */
 	*(mmio0_ptr + 0x10)  = 0x3;
 
-	++open_count;
+	++open_count_ascii;
 
-	dma1_addr_read = (long)*dma1_addr_cur;
+	dma1_addr_read_ascii = (long)*dma1_addr_cur;
 
 	return 0;
 }
 
-static ssize_t ethpipe_read(struct file *filp, char __user *buf,
-			size_t count, loff_t *ppos)
+static int ethpipe_open_binary(struct inode *inode, struct file *filp)
+{
+	printk("%s\n", __func__);
+
+	/* enanble DMA1 and DMA2 */
+	*(mmio0_ptr + 0x10)  = 0x3;
+
+	++open_count_binary;
+
+	dma1_addr_read_binary = (long)*dma1_addr_cur;
+
+	return 0;
+}
+
+static ssize_t ethpipe_read_ascii(struct file *filp, char __user *buf, size_t count, loff_t *ppos)
 {
 	int copy_len, available_read_len;
 #ifdef DEBUG
 	printk("%s\n", __func__);
 #endif
 
-	if ( wait_event_interruptible( read_q, ( pbuf0.rx_read_ptr != pbuf0.rx_write_ptr ) ) )
+	if ( wait_event_interruptible( read_q_ascii, ( pbuf0.rx_read_ascii_ptr != pbuf0.rx_write_ascii_ptr ) ) )
 		return -ERESTARTSYS;
 
-	available_read_len = (pbuf0.rx_write_ptr - pbuf0.rx_read_ptr);
+	available_read_len = (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr);
 
-	if ( (pbuf0.rx_read_ptr + available_read_len ) > pbuf0.rx_end_ptr )
-		available_read_len = (pbuf0.rx_end_ptr - pbuf0.rx_read_ptr + 1);
+	if ( (pbuf0.rx_read_ascii_ptr + available_read_len ) > pbuf0.rx_end_ascii_ptr )
+		available_read_len = (pbuf0.rx_end_ascii_ptr - pbuf0.rx_read_ascii_ptr + 1);
 
 	if ( count > available_read_len )
 		copy_len = available_read_len;
 	else
 		copy_len = count;
 
-	if ( copy_to_user( buf, pbuf0.rx_read_ptr, copy_len ) ) {
+	if ( copy_to_user( buf, pbuf0.rx_read_ascii_ptr, copy_len ) ) {
 		printk( KERN_INFO "copy_to_user failed\n" );
 		return -EFAULT;
 	}
 
-	pbuf0.rx_read_ptr += copy_len;
-	if (pbuf0.rx_read_ptr > pbuf0.rx_end_ptr)
-		pbuf0.rx_read_ptr = pbuf0.rx_start_ptr;
+	pbuf0.rx_read_ascii_ptr += copy_len;
+	if (pbuf0.rx_read_ascii_ptr > pbuf0.rx_end_ascii_ptr)
+		pbuf0.rx_read_ascii_ptr = pbuf0.rx_start_ascii_ptr;
 
 	return copy_len;
 }
 
-static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
-				size_t count, loff_t *ppos)
+static ssize_t ethpipe_read_binary(struct file *filp, char __user *buf, size_t count, loff_t *ppos)
+{
+	int copy_len, available_read_len;
+#ifdef DEBUG
+	printk("%s\n", __func__);
+#endif
+
+	if ( wait_event_interruptible( read_q_binary, ( pbuf0.rx_read_binary_ptr != pbuf0.rx_write_binary_ptr ) ) )
+		return -ERESTARTSYS;
+
+	available_read_len = (pbuf0.rx_write_binary_ptr - pbuf0.rx_read_binary_ptr);
+
+	if ( (pbuf0.rx_read_binary_ptr + available_read_len ) > pbuf0.rx_end_binary_ptr )
+		available_read_len = (pbuf0.rx_end_binary_ptr - pbuf0.rx_read_binary_ptr + 1);
+
+	if ( count > available_read_len )
+		copy_len = available_read_len;
+	else
+		copy_len = count;
+
+	if ( copy_to_user( buf, pbuf0.rx_read_binary_ptr, copy_len ) ) {
+		printk( KERN_INFO "copy_to_user failed\n" );
+		return -EFAULT;
+	}
+
+	pbuf0.rx_read_binary_ptr += copy_len;
+	if (pbuf0.rx_read_binary_ptr > pbuf0.rx_end_binary_ptr)
+		pbuf0.rx_read_binary_ptr = pbuf0.rx_start_binary_ptr;
+
+	return copy_len;
+}
+
+static ssize_t ethpipe_write(int is_binary, struct file *filp, const char __user *buf, size_t count, loff_t *ppos)
 {
 	static unsigned char tmp_pkt[14+MAX_FRAME_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	unsigned int copy_len, pos, frame_len;
+	unsigned int copy_len, frame_len;
 	static unsigned short hw_slot_addr = 0xffff;
 	unsigned char *cr;
-	unsigned short *p1;
 	int i, data, data2;
 	short j, data_len;
 
@@ -417,32 +542,54 @@ ethpipe_write_exit:
 	return copy_len;
 }
 
-static int ethpipe_release(struct inode *inode, struct file *filp)
+static ssize_t ethpipe_write_ascii(struct file *filp, const char __user *buf, size_t count, loff_t *ppos)
+{
+	return ethpipe_write( 0, filp, buf, count, ppos);
+}
+
+static ssize_t ethpipe_write_binary(struct file *filp, const char __user *buf, size_t count, loff_t *ppos)
+{
+	return ethpipe_write( 1, filp, buf, count, ppos);
+}
+
+static int ethpipe_release_ascii(struct inode *inode, struct file *filp)
 {
 	printk("%s\n", __func__);
 
-	if ( open_count > 0 )
-		--open_count;
+	if ( open_count_ascii > 0 )
+		--open_count_ascii;
 
 	/* disable DMA1 and DMA2 */
-	if ( open_count == 0 )
+	if ( open_count_ascii == 0 && open_count_binary == 0 )
 		*(mmio0_ptr + 0x10)  = 0x0;
 
 	return 0;
 }
 
-static unsigned int ethpipe_poll( struct file* filp, poll_table* wait )
+static int ethpipe_release_binary(struct inode *inode, struct file *filp)
+{
+	printk("%s\n", __func__);
+
+	if ( open_count_binary > 0 )
+		--open_count_binary;
+
+	/* disable DMA1 and DMA2 */
+	if ( open_count_ascii == 0 && open_count_binary == 0 )
+		*(mmio0_ptr + 0x10)  = 0x0;
+
+	return 0;
+}
+
+static unsigned int ethpipe_poll_ascii(struct file* filp, poll_table* wait )
 {
 	unsigned int retmask = 0;
-
 #ifdef DEBUG
 	printk("%s\n", __func__);
 #endif
+	poll_wait( filp, &read_q_ascii,  wait );
+//      poll_wait( filp, &write_q_ascii, wait );
 
-	poll_wait( filp, &read_q,  wait );
-//      poll_wait( filp, &write_q, wait );
-
-	if ( pbuf0.rx_read_ptr != pbuf0.rx_write_ptr ) {
+	if ( pbuf0.rx_read_ascii_ptr != pbuf0.rx_write_ascii_ptr ) {
 		retmask |= ( POLLIN  | POLLRDNORM );
 //		log_format( "POLLIN  | POLLRDNORM" );
 	}
@@ -455,7 +602,36 @@ static unsigned int ethpipe_poll( struct file* filp, poll_table* wait )
 	return retmask;
 }
 
-static int ethpipe_ioctl(struct inode *inode, struct file *filp,
+static unsigned int ethpipe_poll_binary(struct file* filp, poll_table* wait )
+{
+	unsigned int retmask = 0;
+#ifdef DEBUG
+	printk("%s\n", __func__);
+#endif
+	poll_wait( filp, &read_q_binary,  wait );
+//      poll_wait( filp, &write_q_binary, wait );
+
+	if ( pbuf0.rx_read_binary_ptr != pbuf0.rx_write_binary_ptr ) {
+		retmask |= ( POLLIN  | POLLRDNORM );
+//		log_format( "POLLIN  | POLLRDNORM" );
+	}
+/*
+   読み込みデバイスが EOF の場合は retmask に POLLHUP を設定
+   デバイスがエラー状態である場合は POLLERR を設定
+   out-of-band データが読み出せる場合は POLLPRI を設定
+ */
+
+	return retmask;
+}
+
+static int ethpipe_ioctl_ascii(struct inode *inode, struct file *filp,
+			unsigned int cmd, unsigned long arg)
+{
+	printk("%s\n", __func__);
+	return  -ENOTTY;
+}
+
+static int ethpipe_ioctl_binary(struct inode *inode, struct file *filp,
 			unsigned int cmd, unsigned long arg)
 {
 	printk("%s\n", __func__);
@@ -464,20 +640,35 @@ static int ethpipe_ioctl(struct inode *inode, struct file *filp,
 
 static struct file_operations ethpipe_fops = {
 	.owner		= THIS_MODULE,
-	.read		= ethpipe_read,
-	.write		= ethpipe_write,
-	.poll		= ethpipe_poll,
-	.compat_ioctl	= ethpipe_ioctl,
-	.open		= ethpipe_open,
-	.release	= ethpipe_release,
+	.read		= ethpipe_read_ascii,
+	.write		= ethpipe_write_ascii,
+	.poll		= ethpipe_poll_ascii,
+	.compat_ioctl	= ethpipe_ioctl_ascii,
+	.open		= ethpipe_open_ascii,
+	.release	= ethpipe_release_ascii,
 };
 
-static struct miscdevice ethpipe_dev = {
+static struct file_operations ethpipeb_fops = {
+	.owner		= THIS_MODULE,
+	.read		= ethpipe_read_binary,
+	.write		= ethpipe_write_binary,
+	.poll		= ethpipe_poll_binary,
+	.compat_ioctl	= ethpipe_ioctl_binary,
+	.open		= ethpipe_open_binary,
+	.release	= ethpipe_release_binary,
+};
+
+static struct miscdevice ethpipea_dev = {
 	.minor = MISC_DYNAMIC_MINOR,
 	.name = DRV_NAME,
 	.fops = &ethpipe_fops,
 };
 
+static struct miscdevice ethpipeb_dev = {
+	.minor = MISC_DYNAMIC_MINOR,
+	.name = DRV_NAME,
+	.fops = &ethpipeb_fops,
+};
 
 static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 				       const struct pci_device_id *ent)
@@ -577,7 +768,8 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	*dma2_addr_start  = dma2_phys_ptr;
 
 	/* set DMA read pointer */
-	dma1_addr_read = dma1_phys_ptr;
+	dma1_addr_read_ascii = dma1_phys_ptr;
+	dma1_addr_read_binary = dma1_phys_ptr;
 	dma2_addr_read = dma2_phys_ptr;
 
 	/* set TX slot Pointer */
@@ -592,15 +784,25 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	/* clear tx_write_ptr */
 	*tx_write_ptr = *tx_read_ptr;
 
-	/* Set receive buffer */
-	if ( ( pbuf0.rx_start_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
+	/* Set receive ascii buffer */
+	if ( ( pbuf0.rx_start_ascii_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
 		printk("fail to kmalloc\n");
 		rc = -1;
 		goto error;
 	}
-	pbuf0.rx_end_ptr = (pbuf0.rx_start_ptr + PACKET_BUF_MAX - 1);
-	pbuf0.rx_write_ptr = pbuf0.rx_start_ptr;
-	pbuf0.rx_read_ptr  = pbuf0.rx_start_ptr;
+	pbuf0.rx_end_ascii_ptr = (pbuf0.rx_start_ascii_ptr + PACKET_BUF_MAX - 1);
+	pbuf0.rx_write_ascii_ptr = pbuf0.rx_start_ascii_ptr;
+	pbuf0.rx_read_ascii_ptr  = pbuf0.rx_start_ascii_ptr;
+
+	/* Set receive binary buffer */
+	if ( ( pbuf0.rx_start_binary_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
+		printk("fail to kmalloc\n");
+		rc = -1;
+		goto error;
+	}
+	pbuf0.rx_end_binary_ptr = (pbuf0.rx_start_binary_ptr + PACKET_BUF_MAX - 1);
+	pbuf0.rx_write_binary_ptr = pbuf0.rx_start_binary_ptr;
+	pbuf0.rx_read_binary_ptr  = pbuf0.rx_start_binary_ptr;
 
 	/* Set transmitte buffer */
 	if ( ( pbuf0.tx_start_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
@@ -613,23 +815,35 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	pbuf0.tx_read_ptr  = pbuf0.tx_start_ptr;
 
 
-	/* register character device */
+	/* register ascii character device */
 	sprintf( name, "%s/%d", DRV_NAME, board_idx );
-	ethpipe_dev.name = name,
-	rc = misc_register(&ethpipe_dev);
+	ethpipea_dev.name = name,
+	rc = misc_register(&ethpipea_dev);
+	if (rc) {
+		printk("fail to misc_register (MISC_DYNAMIC_MINOR)\n");
+		return rc;
+	}
+	/* register raw character device */
+	sprintf( name, "%s/r%d", DRV_NAME, board_idx );
+	ethpipeb_dev.name = name,
+	rc = misc_register(&ethpipeb_dev);
 	if (rc) {
 		printk("fail to misc_register (MISC_DYNAMIC_MINOR)\n");
 		return rc;
 	}
 
-	open_count = 0;
+	open_count_ascii = 0;
 
 	return 0;
 
 error:
-	if ( pbuf0.rx_start_ptr ) {
-		kfree( pbuf0.rx_start_ptr );
-		pbuf0.rx_start_ptr = NULL;
+	if ( pbuf0.rx_start_ascii_ptr ) {
+		kfree( pbuf0.rx_start_ascii_ptr );
+		pbuf0.rx_start_ascii_ptr = NULL;
+	}
+	if ( pbuf0.rx_start_binary_ptr ) {
+		kfree( pbuf0.rx_start_binary_ptr );
+		pbuf0.rx_start_binary_ptr = NULL;
 	}
 
 	if ( pbuf0.tx_start_ptr ) {
@@ -642,7 +856,6 @@ error:
 
 	return -1;
 }
-
 
 static void __devexit ethpipe_remove_one (struct pci_dev *pdev)
 {
@@ -657,9 +870,13 @@ static void __devexit ethpipe_remove_one (struct pci_dev *pdev)
 		iounmap(mmio1_ptr);
 		mmio1_ptr = 0L;
 	}
-	if ( pbuf0.rx_start_ptr ) {
-		kfree( pbuf0.rx_start_ptr );
-		pbuf0.rx_start_ptr = NULL;
+	if ( pbuf0.rx_start_ascii_ptr ) {
+		kfree( pbuf0.rx_start_ascii_ptr );
+		pbuf0.rx_start_ascii_ptr = NULL;
+	}
+	if ( pbuf0.rx_start_binary_ptr ) {
+		kfree( pbuf0.rx_start_binary_ptr );
+		pbuf0.rx_start_binary_ptr = NULL;
 	}
 
 	if ( pbuf0.tx_start_ptr ) {
@@ -691,8 +908,10 @@ static int __init ethpipe_init(void)
 	pr_info(ethpipe_DRIVER_NAME "\n");
 #endif
 
-	init_waitqueue_head( &write_q );
-	init_waitqueue_head( &read_q );
+	init_waitqueue_head( &write_q_ascii );
+	init_waitqueue_head( &write_q_binary );
+	init_waitqueue_head( &read_q_ascii );
+	init_waitqueue_head( &read_q_binary );
 	
 	printk("%s\n", __func__);
 	return pci_register_driver(&ethpipe_pci_driver);
@@ -701,7 +920,8 @@ static int __init ethpipe_init(void)
 static void __exit ethpipe_cleanup(void)
 {
 	printk("%s\n", __func__);
-	misc_deregister(&ethpipe_dev);
+	misc_deregister(&ethpipea_dev);
+	misc_deregister(&ethpipeb_dev);
 	pci_unregister_driver(&ethpipe_pci_driver);
 
 	if ( dma1_virt_ptr )

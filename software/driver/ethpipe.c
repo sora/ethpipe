@@ -232,11 +232,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				pbuf0.rx_read_binary_ptr = pbuf0.rx_start_binary_ptr;
 			}
 
-			// global counter
-#ifdef USE_TIMER
-			p += 0x08;
-			if (p > read_end)
-				p -= PACKET_BUF_MAX;
+			// length and SFD
 			for ( i = 0; i < 8; ++i ) {
 				*(unsigned char *)pbuf0.rx_write_binary_ptr = *p;
 				pbuf0.rx_write_binary_ptr += 1;
@@ -245,13 +241,23 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				if ( unlikely( ++p > read_end ) )
 					p -= PACKET_BUF_MAX;
 			}
+			// global counter
+#ifdef USE_TIMER
+			for ( i = 0; i < 8; ++i ) {
+				*(unsigned char *)pbuf0.rx_write_binary_ptr = i > 2 ? *p : 0;
+				pbuf0.rx_write_binary_ptr += 1;
+				if ( unlikely( pbuf0.rx_write_binary_ptr > pbuf0.rx_end_binary_ptr ) )
+					pbuf0.rx_write_binary_ptr -= (pbuf0.rx_end_binary_ptr - pbuf0.rx_start_binary_ptr + 1);
+				if ( unlikely( ++p > read_end ) )
+					p -= PACKET_BUF_MAX;
+			}
 #else
-			p += 0x10;
+			p += 0x08;
 			if (p > read_end)
 				p -= PACKET_BUF_MAX;
 #endif
 
-			// L3 header
+			// Packet
 #ifdef DROP_FCS
 			for ( i = 0; i < (frame_len-4) ; ++i) {
 #else

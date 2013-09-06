@@ -351,6 +351,7 @@ ethpipe_write_loop:
 			goto ethpipe_write_exit;
 		}
 	}
+	frame_len -= 12;
 
 	// set frame length
 	tmp_pkt[0] = (frame_len >> 8) & 0xFF;
@@ -383,7 +384,7 @@ ethpipe_write_loop:
 
 #ifdef DEBUG
 	p1 = (unsigned short *)mmio1_ptr;
-	for (i=0;i<16384;i++) {
+	for (i=0;i<0x1FF;i++) {
 		if (i % 0x10 == 0)
 			printk("%04X:", i);
 		printk(" %02X%02X", *p1 & 0xFF, (*p1>>8) & 0xFF);

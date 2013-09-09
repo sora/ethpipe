@@ -34,19 +34,39 @@ module sender (
   , output wire [ 7:0] led
 );
 
-reg [13:0] rd_ptr;
-reg [31:0] tx_counter;
-
 reg debug1;
 reg debug2;
 reg debug3;
 reg debug4;
 reg debug5;
-reg [7:0] debug_counter;
+
+function [47:0] select_local_time;
+	input [ 2:0] sel;
+	input [47:0] ts;
+	input [47:0] time1;
+	input [47:0] time2;
+	input [47:0] time3;
+	input [47:0] time4;
+	input [47:0] time5;
+	input [47:0] time6;
+	input [47:0] time7;
+	case (sel)
+		3'd0: select_local_time = ts;
+		3'd1: select_local_time = ts + time1;
+		3'd2: select_local_time = ts + time2;
+		3'd3: select_local_time = ts + time3;
+		3'd4: select_local_time = ts + time4;
+		3'd5: select_local_time = ts + time5;
+		3'd6: select_local_time = ts + time6;
+		3'd7: select_local_time = ts + time7;
+	endcase
+endfunction
 
 /* TX ethernet FCS generater */
+reg [13:0] tx_counter;
+
 reg  crc_rd;
-wire crc_init = (tx_counter == 32'h08);
+wire crc_init = (tx_counter == 14'h08);
 wire [31:0] crc_out;
 wire crc_data_en = ~crc_rd;
 crc_gen tx_fcs_gen (
@@ -64,28 +84,28 @@ crc_gen tx_fcs_gen (
 parameter [2:0]            // TX status
     TX_IDLE     = 3'b000
   , TX_HDR_LOAD = 3'b001
-  , TX_SENDING  = 3'b010
-  , TX_FCS_1    = 3'b011
-  , TX_FCS_2    = 3'b100
-  , TX_FCS_3    = 3'b101;
+  , TX_WAITING  = 3'b010
+  , TX_SENDING  = 3'b011
+  , TX_FCS_1    = 3'b100
+  , TX_FCS_2    = 3'b101
+  , TX_FCS_3    = 3'b110;
 reg [ 2:0] tx_status;
 //reg [ 3:0] ifg_count;
+reg [ 3:0] IFG_count;
 reg [ 3:0] hdr_load_count;
 reg [15:0] tx_frame_len;
 reg [63:0] tx_timestamp;
 reg [31:0] tx_hash;
 reg [15:0] tx_data_tmp;
-/* timestamp commands */
-// still not implement the global counter reset yet
-wire       ts_rst        = tx_timestamp[63];
-wire [2:0] ts_local_time = tx_timestamp[62:60];
+reg [13:0] rd_ptr;
 
 /* packet sender logic */
 always @(posedge gmii_tx_clk) begin
 	if (sys_rst) begin
 		tx_status      <= 3'b0;
+		IFG_count      <= 4'd0;
 		hdr_load_count <= 4'b0;
-		tx_counter     <= 32'd0;
+		tx_counter     <= 14'd0;
 		tx_frame_len   <= 16'b0;
 		tx_timestamp   <= 64'b0;
 		tx_hash        <= 32'b0;
@@ -93,149 +113,110 @@ always @(posedge gmii_tx_clk) begin
 		rd_ptr         <= 14'b0;
 		mem_rd_ptr     <= 14'b0;
 		crc_rd         <= 1'b0;
+		// debug
 		debug1         <= 1'b0;
 		debug2         <= 1'b0;
 		debug3         <= 1'b0;
 		debug4         <= 1'b0;
 		debug5         <= 1'b0;
-		debug_counter  <= 8'b0;
 	end else begin
 
 		gmii_tx_en     <= 1'b0;
 		local_time_req <= 7'b0;
-		debug1         <= 1'b0;
-		debug2         <= 1'b0;
-		debug3         <= 1'b0;
-		debug4         <= 1'b0;
+
+		/* count Inter-frame Gap (12 clock) */
+		if (IFG_count != 4'd11)
+			IFG_count <= IFG_count + 4'd1;
 
 		/* transmit main */
 		case (tx_status)
 			TX_IDLE: begin
-
-//				/* interframe gap counter */
-//				if (ifg_count != 2'd2)
-//					ifg_count <= ifg_count + 2'd1;
-
-				crc_rd <= 1'b0;
-
 				if (mem_rd_ptr != mem_wr_ptr) begin
 					tx_status      <= TX_HDR_LOAD;
-					rd_ptr         <= mem_rd_ptr;
+					rd_ptr         <= mem_rd_ptr + 14'h1;
 					hdr_load_count <= 4'd0;
-					tx_counter     <= 32'd0;
+					tx_counter     <= 14'd0;
+					crc_rd         <= 1'b0;
 				end
 			end
 			TX_HDR_LOAD: begin
-				/* ethpipe header loading counter */
-				if (hdr_load_count != 4'd11)
-					hdr_load_count <= hdr_load_count + 4'd1;
 
-				if (hdr_load_count == 4'd0 || hdr_load_count == 4'd1 || hdr_load_count == 4'd2 ||
-					hdr_load_count == 4'd3 || hdr_load_count == 4'd4 || hdr_load_count == 4'd5 ||
-					hdr_load_count == 4'd6) begin
-					if (rd_ptr != mem_wr_ptr) begin
-						rd_ptr <= rd_ptr + 14'h1;
-					end
-				end
+				hdr_load_count <= hdr_load_count + 4'd1;
+
+				if (hdr_load_count != 4'd6 && rd_ptr != mem_wr_ptr)
+					rd_ptr <= rd_ptr + 14'h1;
 				
 				case (hdr_load_count)
-					4'd0: begin
+					4'd0: tx_frame_len[15: 0] <= slot_tx_eth_q;
+					4'd1: tx_timestamp[63:48] <= slot_tx_eth_q;
+					4'd2: tx_timestamp[47:32] <= slot_tx_eth_q;
+					4'd3: tx_timestamp[31:16] <= slot_tx_eth_q;
+					4'd4: tx_timestamp[15: 0] <= slot_tx_eth_q;
+					4'd5: tx_hash[31:16]      <= slot_tx_eth_q;
+					4'd6: begin
+						tx_hash[15:0] <= slot_tx_eth_q;
+						tx_status     <= TX_WAITING;
 					end
-					4'd1: tx_frame_len[15: 0] <= slot_tx_eth_q;
-					4'd2: tx_timestamp[63:48] <= slot_tx_eth_q;
-					4'd3: tx_timestamp[47:32] <= slot_tx_eth_q;
-					4'd4: tx_timestamp[31:16] <= slot_tx_eth_q;
-					4'd5: tx_timestamp[15: 0] <= slot_tx_eth_q;
-					4'd6: tx_hash[31:16]      <= slot_tx_eth_q;
-					4'd7: tx_hash[15: 0]      <= slot_tx_eth_q;
-					4'd8: begin
-					end
-					4'd9: begin
-					end
-					4'd10: begin
-					end
-					4'd11: begin
-						if (ts_rst) begin
+					default: tx_status <= TX_IDLE;
+				endcase
+			end
+			TX_WAITING: begin
+				// reset command
+				if (tx_timestamp[63]) begin
+					tx_status <= TX_SENDING;
+					case (tx_timestamp[62:60])
+						3'd0: begin  // reset global counter :todo
+						end
+						3'd1: local_time_req[0] <= 1'b1;
+						3'd2: local_time_req[1] <= 1'b1;
+						3'd3: local_time_req[2] <= 1'b1;
+						3'd4: local_time_req[3] <= 1'b1;
+						3'd5: local_time_req[4] <= 1'b1;
+						3'd6: local_time_req[5] <= 1'b1;
+						3'd7: local_time_req[6] <= 1'b1;
+					endcase
+				end else begin
+					if (IFG_count == 4'd11) begin
+						if (tx_timestamp[47:0] == 48'h0) begin
 							tx_status <= TX_SENDING;
-							case (ts_local_time)
-								3'd0: begin
-								end
-								3'd1: local_time_req[0] <= 1'b1;
-								3'd2: local_time_req[1] <= 1'b1;
-								3'd3: local_time_req[2] <= 1'b1;
-								3'd4: local_time_req[3] <= 1'b1;
-								3'd5: local_time_req[4] <= 1'b1;
-								3'd6: local_time_req[5] <= 1'b1;
-								3'd7: local_time_req[6] <= 1'b1;
-							endcase
 						end else begin
-							if (tx_timestamp[47:0] == 48'h0) begin
+							if (global_counter[47:0] == select_local_time( tx_timestamp[62:60]
+							                                             , tx_timestamp[47: 0]
+							                                             , local_time1
+							                                             , local_time2
+							                                             , local_time3
+							                                             , local_time4
+							                                             , local_time5
+							                                             , local_time6
+							                                             , local_time7 )) begin
 								tx_status <= TX_SENDING;
-							end else begin
-								case (ts_local_time)
-									3'd0: begin
-										if (global_counter[47:0] == tx_timestamp[47:0])
-											tx_status <= TX_SENDING;
-									end
-									3'd1: begin
-										if (global_counter[47:0] == tx_timestamp[47:0] + local_time1)
-											tx_status <= TX_SENDING;
-									end
-									3'd2: begin
-										if (global_counter[47:0] == tx_timestamp[47:0] + local_time2)
-											tx_status <= TX_SENDING;
-									end
-									3'd3: begin
-										if (global_counter[47:0] == tx_timestamp[47:0] + local_time3)
-											tx_status <= TX_SENDING;
-									end
-									3'd4: begin
-										if (global_counter[47:0] == tx_timestamp[47:0] + local_time4)
-											tx_status <= TX_SENDING;
-									end
-									3'd5: begin
-										if (global_counter[47:0] == tx_timestamp[47:0] + local_time5)
-											tx_status <= TX_SENDING;
-									end
-									3'd6: begin
-										if (global_counter[47:0] == tx_timestamp[47:0] + local_time6)
-											tx_status <= TX_SENDING;
-									end
-									3'd7: begin
-										if (global_counter[47:0] == tx_timestamp[47:0] + local_time7)
-											tx_status <= TX_SENDING;
-									end
-								endcase
 							end
 						end
 					end
-//					default: begin
-//						tx_status <= TX_IDLE;
-//					end
-				endcase
+				end
 			end
 			TX_SENDING: begin
 				/* transmit counter */
-				tx_counter <= tx_counter + 32'd1;
+				tx_counter <= tx_counter + 14'd1;
 				
 				// gmii_tx_en
 				gmii_tx_en <= 1'b1;
 
 				// gmii_txd
 				case (tx_counter)
-					32'd0: gmii_txd <= 8'h55;   // preamble
-					32'd1: gmii_txd <= 8'h55;
-					32'd2: gmii_txd <= 8'h55;
-					32'd3: gmii_txd <= 8'h55;
-					32'd4: gmii_txd <= 8'h55;
-					32'd5: gmii_txd <= 8'h55;
-					32'd6: gmii_txd <= 8'h55;
-					32'd7: gmii_txd <= 8'hd5;   // preamble+SFD
+					14'd0: gmii_txd <= 8'h55;   // preamble
+					14'd1: gmii_txd <= 8'h55;
+					14'd2: gmii_txd <= 8'h55;
+					14'd3: gmii_txd <= 8'h55;
+					14'd4: gmii_txd <= 8'h55;
+					14'd5: gmii_txd <= 8'h55;
+					14'd6: gmii_txd <= 8'h55;
+					14'd7: gmii_txd <= 8'hd5;   // preamble+SFD
 					default: begin
 						if (tx_counter[13:0] == tx_frame_len[13:0] + 14'd8) begin
-							tx_status  <= TX_FCS_1;
-							crc_rd     <= 1'b1;
-							gmii_txd   <= crc_out[31:24];   // ethernet FCS 0
+							tx_status <= TX_FCS_1;
+							crc_rd    <= 1'b1;
+							gmii_txd  <= crc_out[31:24];   // ethernet FCS 0
 						end else begin
 							// send frame data
 							case (tx_counter[0])
@@ -267,12 +248,14 @@ always @(posedge gmii_tx_clk) begin
 				tx_status  <= TX_IDLE;
 				gmii_tx_en <= 1'b1;
 				gmii_txd   <= crc_out[7:0];
-				crc_rd     <= 1'b0;
-				mem_rd_ptr <= rd_ptr;                 // update mem_rd_ptr
+				// reset IFG_count
+				IFG_count  <= 4'd0;
+				// update mem_rd_ptr
+				mem_rd_ptr <= rd_ptr;
 			end
-//			default: begin
-//				tx_status <= TX_IDLE;
-//			end
+			default: begin
+				tx_status <= TX_IDLE;
+			end
 		endcase
 	end
 end

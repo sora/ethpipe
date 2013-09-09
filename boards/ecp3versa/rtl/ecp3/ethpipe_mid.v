@@ -7,7 +7,7 @@ module ethpipe_mid  (
   , input  sys_rst
   , output sys_intr
   , input  [7:0] dipsw
-  , output reg [7:0] led
+  , output wire [7:0] led
   , output [13:0] segled
   // PCIe
   , input [6:0] rx_bar_hit
@@ -394,6 +394,8 @@ sender sender_phy1_ins (
   , .local_time7()
 
   , .local_time_req(tx0local_time_req)
+
+  , .led(led)
 );
 
 `ifdef ENABLE_PHY2
@@ -448,8 +450,8 @@ end
 reg [6:0] local_time_update_pending;
 reg       local_time_update_ack;
 always @(posedge clk_125) begin
-	if (rec_intr)
-		led <= led + 8'h1;
+//	if (rec_intr)
+//		led <= led + 8'h1;
 	if (sys_rst == 1'b1) begin
 		slv_dat0_o                <= 16'h0;
 		dma_status                <= 8'h00;

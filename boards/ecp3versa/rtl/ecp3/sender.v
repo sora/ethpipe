@@ -42,7 +42,6 @@ reg debug5;
 
 function [47:0] select_local_time;
 	input [ 2:0] sel;
-	input [47:0] ts;
 	input [47:0] time1;
 	input [47:0] time2;
 	input [47:0] time3;
@@ -51,14 +50,14 @@ function [47:0] select_local_time;
 	input [47:0] time6;
 	input [47:0] time7;
 	case (sel)
-		3'd0: select_local_time = ts;
-		3'd1: select_local_time = ts + time1;
-		3'd2: select_local_time = ts + time2;
-		3'd3: select_local_time = ts + time3;
-		3'd4: select_local_time = ts + time4;
-		3'd5: select_local_time = ts + time5;
-		3'd6: select_local_time = ts + time6;
-		3'd7: select_local_time = ts + time7;
+		3'd0: select_local_time = 48'h0;
+		3'd1: select_local_time = time1;
+		3'd2: select_local_time = time2;
+		3'd3: select_local_time = time3;
+		3'd4: select_local_time = time4;
+		3'd5: select_local_time = time5;
+		3'd6: select_local_time = time6;
+		3'd7: select_local_time = time7;
 	endcase
 endfunction
 
@@ -180,15 +179,14 @@ always @(posedge gmii_tx_clk) begin
 						if (tx_timestamp[47:0] == 48'h0) begin
 							tx_status <= TX_SENDING;
 						end else begin
-							if (global_counter[47:0] == select_local_time( tx_timestamp[62:60]
-							                                             , tx_timestamp[47: 0]
-							                                             , local_time1
-							                                             , local_time2
-							                                             , local_time3
-							                                             , local_time4
-							                                             , local_time5
-							                                             , local_time6
-							                                             , local_time7 )) begin
+							if (global_counter[47:0] == tx_timestamp[47:0] + select_local_time( tx_timestamp[62:60]
+							                                                                  , local_time1
+							                                                                  , local_time2
+							                                                                  , local_time3
+							                                                                  , local_time4
+							                                                                  , local_time5
+							                                                                  , local_time6
+							                                                                  , local_time7 )) begin
 								tx_status <= TX_SENDING;
 							end
 						end

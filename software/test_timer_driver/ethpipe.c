@@ -38,7 +38,7 @@
 #define	__devexit_p
 #endif
 
-//#define DEBUG
+#define DEBUG
 
 static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 	{0x3776, 0x8001, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
@@ -374,6 +374,10 @@ ethpipe_write_loop:
 	data_len = frame_len + ETHPIPE_HEADER_LEN;
 	if ( (hw_slot_addr + data_len) < (mmio1_len>>1)) {
 		memcpy(mmio1_ptr+hw_slot_addr, tmp_pkt, data_len);
+		if ( memcmp(mmio1_ptr+hw_slot_addr, tmp_pkt, data_len) == 0)
+			printk("memcmp: correct\n");
+		else
+			printk("memcmp: error\n");
 	} else {
 		memcpy(mmio1_ptr+hw_slot_addr, tmp_pkt, ((mmio1_len>>1) - hw_slot_addr));
 		memcpy(mmio1_ptr, tmp_pkt+((mmio1_len>>1) - hw_slot_addr), data_len - ((mmio1_len>>1) - hw_slot_addr));

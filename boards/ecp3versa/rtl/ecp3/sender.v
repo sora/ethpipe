@@ -270,16 +270,43 @@ assign slot_tx_eth_addr = rd_ptr;
 
 always @* begin
 	case (dipsw)
-		8'h0: led = ~tx_timestamp[ 7: 0];
-		8'h1: led = ~tx_timestamp[15: 8];
-		8'h2: led = ~tx_timestamp[23:16];
-		8'h3: led = ~tx_timestamp[31:24];
-		8'h4: led = ~tx_timestamp[39:32];
-		8'h5: led = ~tx_timestamp[47:40];
-		8'h6: led = ~tx_timestamp[55:48];
-		8'h7: led = ~tx_timestamp[63:56];
+		// tx_timestamp
+		8'h00: led = ~tx_timestamp[ 7: 0];
+		8'h01: led = ~tx_timestamp[15: 8];
+		8'h02: led = ~tx_timestamp[23:16];
+		8'h03: led = ~tx_timestamp[31:24];
+		8'h04: led = ~tx_timestamp[39:32];
+		8'h05: led = ~tx_timestamp[47:40];
+		8'h06: led = ~tx_timestamp[55:48];
+		8'h07: led = ~tx_timestamp[63:56];
+		// mem_wr_ptr
+		8'h10: led = ~mem_wr_ptr[ 7: 0];
+		8'h11: led = ~{ 2'b0, mem_wr_ptr[13: 8] };
+		// mem_rd_ptr
+		8'h12: led = ~mem_rd_ptr[ 7: 0];
+		8'h13: led = ~{ 2'b0, mem_rd_ptr[13: 8] };
+		// rd_ptr
+		8'h14: led = ~rd_ptr[ 7: 0];
+		8'h15: led = ~{ 2'b0, rd_ptr[13: 8] };
+		// tx_status and debug
+		8'h20: led = ~{ debug5, debug4, debug3, debug2, debug1, tx_status[2:0] };
+		// IFG_count
+		8'h30: led = ~{ 4'b0, IFG_count[3:0] };
+		// hdr_load_count
+		8'h40: led = ~{ 4'b0, hdr_load_count[3:0] };
+		// tx_counter
+		8'h50: led = ~tx_counter[ 7: 0];
+		8'h51: led = ~{ 2'b0, tx_counter[13: 8] };
+		// tx_frame_len
+		8'h60: led = ~tx_frame_len[ 7: 0];
+		8'h61: led = ~tx_frame_len[15: 8];
+		// tx_hash
+		8'h70: led = ~tx_hash[ 7: 0];
+		8'h71: led = ~tx_hash[15: 8];
+		8'h72: led = ~tx_hash[23:16];
+		8'h73: led = ~tx_hash[31:24];
 		default: begin
-			led = ~tx_timestamp[7:0];
+			led = ~{ 8'b0 };
 		end
 	endcase
 end

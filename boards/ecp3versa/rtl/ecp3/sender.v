@@ -31,7 +31,9 @@ module sender (
   , input  wire [47:0] local_time7
 
   , output reg  [ 6:0] local_time_req
+
   , output wire [ 7:0] led
+  , input  wire [ 7:0] dipsw
 );
 
 reg debug1;
@@ -264,7 +266,23 @@ assign slot_tx_eth_addr = rd_ptr;
 //assign led[7:0] = ~rd_ptr[7:0];
 //assign led[7:0] = ~debug_counter[7:0];
 //assign led[7:0] = ~tx_counter[7:0];
-assign led[7:0] = ~{ 1'b1, hdr_load_count[3:0], tx_status[2:0] };
+//assign led[7:0] = ~{ 1'b1, hdr_load_count[3:0], tx_status[2:0] };
+
+always @* begin
+	case (dipsw)
+		8'h0: led = ~tx_timestamp[ 7: 0];
+		8'h1: led = ~tx_timestamp[15: 8];
+		8'h2: led = ~tx_timestamp[23:16];
+		8'h3: led = ~tx_timestamp[31:24];
+		8'h4: led = ~tx_timestamp[39:32];
+		8'h5: led = ~tx_timestamp[47:40];
+		8'h6: led = ~tx_timestamp[55:48];
+		8'h7: led = ~tx_timestamp[63:56];
+		default: begin
+			led = ~tx_timestamp[7:0];
+		end
+	endcase
+end
 
 /*
 assign led[0] = (tx_status == TX_IDLE)     ? 1'b0 : 1'b1;

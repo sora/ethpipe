@@ -396,6 +396,7 @@ sender sender_phy1_ins (
   , .local_time_req(tx0local_time_req)
 
   , .led(led)
+  , .dipsw(dipsw)
 );
 
 `ifdef ENABLE_PHY2

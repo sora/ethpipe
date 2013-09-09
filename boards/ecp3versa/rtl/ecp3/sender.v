@@ -32,7 +32,7 @@ module sender (
 
   , output reg  [ 6:0] local_time_req
 
-  , output wire [ 7:0] led
+  , output reg  [ 7:0] led
   , input  wire [ 7:0] dipsw
 );
 

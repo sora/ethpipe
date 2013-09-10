@@ -259,8 +259,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 	static unsigned short hw_slot_addr = 0xffff;
 	unsigned char *cr;
 	unsigned short *p1;
-	int i, data, data2;
-	short j, data_len;
+	int i, data, data2, j, data_len;
 
 	copy_len = 0;
 
@@ -271,10 +270,10 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 	i = *tx_read_ptr << 1;
 
 	// mmio1 free
-	if (i < hw_slot_addr) {
-		j = hw_slot_addr - i;
+	if (i <= hw_slot_addr) {
+		j = ((int)i - (int)hw_slot_addr) + mmio1_len;
 	} else {
-		j = ((int)hw_slot_addr - (int)i) + (mmio1_len >> 1);
+		j = ((int)i - (int)hw_slot_addr);
 	}
 
 	// count < (mmio1 free)*3
@@ -284,7 +283,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 		copy_len = j * 3;
 	}
 #ifdef DEBUG
-	printk( "count=%d, copy_len=%d, mmio1_free=%d\n", count, copy_len, j);
+	printk( "count=%X, copy_len=%X, mmio1_free=%X\n", count, copy_len, j);
 #endif
 
 	if ( (pbuf0.tx_write_ptr + copy_len) > pbuf0.tx_end_ptr ) {
@@ -312,7 +311,7 @@ ethpipe_write_loop:
 	printk("pbuf0.tx_write_ptr: %p\n", pbuf0.tx_write_ptr);
 	printk("pbuf0.tx_read_ptr: %p\n", pbuf0.tx_read_ptr);
 	printk("cr	       : %p\n", cr);
-	printk("copy_len: %d\n", (int)copy_len);
+	printk("copy_len: %X\n", (int)copy_len);
 #endif
 
 	frame_len = 0;
@@ -357,8 +356,8 @@ ethpipe_write_loop:
 	tmp_pkt[0] = (frame_len >> 8) & 0xFF;
 	tmp_pkt[1] = frame_len & 0xFF;
 #ifdef DEBUG
-	printk( "frame_len: %d\n", frame_len );
-	printk( "tmp_pkt[0] = %02x, tmp_pkt[1] = %02x\n", tmp_pkt[0], tmp_pkt[1] );
+	printk( "frame_len: %X\n", frame_len );
+	printk( "tmp_pkt[0] = %02X, tmp_pkt[1] = %02X\n", tmp_pkt[0], tmp_pkt[1] );
 #endif
 
 #ifdef DEBUG
@@ -383,8 +382,7 @@ ethpipe_write_loop:
 		memcpy(mmio1_ptr, tmp_pkt+((mmio1_len>>1) - hw_slot_addr), data_len - ((mmio1_len>>1) - hw_slot_addr));
 	}
 
-	hw_slot_addr += (data_len + 1) & 0xfffffffe;
-	hw_slot_addr &= ((mmio1_len>>1) - 1);
+	hw_slot_addr = (hw_slot_addr + data_len + 1) & (mmio1_len - 1) & 0xfffffffe;
 
 #ifdef DEBUG
 	p1 = (unsigned short *)mmio1_ptr;
@@ -400,8 +398,8 @@ ethpipe_write_loop:
 #endif
 
 #ifdef DEBUG
-	printk( "hw_slot_addr: %d\n", hw_slot_addr );
-	printk( "*tx_write_ptr: %d, *tx_read_ptr %d\n", *tx_write_ptr, *tx_read_ptr);
+	printk( "hw_slot_addr: %X\n", hw_slot_addr );
+	printk( "*tx_write_ptr: %X, *tx_read_ptr %X\n", *tx_write_ptr, *tx_read_ptr);
 #endif
 
 	pbuf0.tx_read_ptr = cr + 1;
@@ -418,7 +416,7 @@ ethpipe_write_exit:
 	// update tx_write_pointer
 	*tx_write_ptr = hw_slot_addr >> 1;
 #ifdef DEBUG
-	printk( "*tx_write_ptr: %d, *tx_read_ptr %d\n", *tx_write_ptr, *tx_read_ptr);
+	printk( "*tx_write_ptr: %X, *tx_read_ptr %X\n", *tx_write_ptr, *tx_read_ptr);
 #endif
 
 	return copy_len;

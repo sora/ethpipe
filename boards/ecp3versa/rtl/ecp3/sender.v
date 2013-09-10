@@ -151,10 +151,12 @@ always @(posedge gmii_tx_clk) begin
 			end
 			TX_HDR_LOAD: begin
 
-				hdr_load_count <= hdr_load_count + 4'd1;
+				if (hdr_load_count != 4'd6) begin
+					hdr_load_count <= hdr_load_count + 4'd1;
+					if (rd_ptr != mem_wr_ptr)
+						rd_ptr <= rd_ptr + 14'h1;
+				end
 
-				if (hdr_load_count != 4'd6 && rd_ptr != mem_wr_ptr)
-					rd_ptr <= rd_ptr + 14'h1;
 				
 				case (hdr_load_count)
 					4'd0: tx_frame_len[15: 0] <= slot_tx_eth_q;
@@ -167,40 +169,30 @@ always @(posedge gmii_tx_clk) begin
 						tx_hash[15:0] <= slot_tx_eth_q;
 						tx_status     <= TX_WAITING;
 					end
-					default: tx_status <= TX_IDLE;
 				endcase
 			end
 			TX_WAITING: begin
-				// reset command
-				if (tx_timestamp[63]) begin
-					tx_status <= TX_SENDING;
-					case (tx_timestamp[62:60])
-						3'd0: begin  // reset global counter :todo
-						end
-						3'd1: local_time_req[0] <= 1'b1;
-						3'd2: local_time_req[1] <= 1'b1;
-						3'd3: local_time_req[2] <= 1'b1;
-						3'd4: local_time_req[3] <= 1'b1;
-						3'd5: local_time_req[4] <= 1'b1;
-						3'd6: local_time_req[5] <= 1'b1;
-						3'd7: local_time_req[6] <= 1'b1;
-					endcase
-				end else begin
-					if (IFG_count == 4'd11) begin
-						if (tx_timestamp[47:0] == 48'h0) begin
-							tx_status <= TX_SENDING;
-						end else begin
-							if (global_counter[47:0] == tx_timestamp[47:0] + select_local_time( tx_timestamp[62:60]
-							                                                                  , local_time1
-							                                                                  , local_time2
-							                                                                  , local_time3
-							                                                                  , local_time4
-							                                                                  , local_time5
-							                                                                  , local_time6
-							                                                                  , local_time7 )) begin
-								tx_status <= TX_SENDING;
+				if (IFG_count == 4'd11) begin
+					// reset command
+					if (tx_timestamp[63]) begin
+						tx_status <= TX_SENDING;
+						case (tx_timestamp[62:60])
+							3'd0: begin  // reset global counter :todo
 							end
-						end
+							3'd1: local_time_req[0] <= 1'b1;
+							3'd2: local_time_req[1] <= 1'b1;
+							3'd3: local_time_req[2] <= 1'b1;
+							3'd4: local_time_req[3] <= 1'b1;
+							3'd5: local_time_req[4] <= 1'b1;
+							3'd6: local_time_req[5] <= 1'b1;
+							3'd7: local_time_req[6] <= 1'b1;
+						endcase
+					end else if (tx_timestamp[47:0] == 48'h0) begin
+						tx_status <= TX_SENDING;
+					end else if (global_counter[47:0] == tx_timestamp[47:0] + select_local_time(
+							tx_timestamp[62:60] , local_time1 , local_time2 , local_time3 ,
+							local_time4 , local_time5 , local_time6 , local_time7 )) begin
+						tx_status <= TX_SENDING;
 					end
 				end
 			end

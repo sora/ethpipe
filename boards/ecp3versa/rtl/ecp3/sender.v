@@ -13,10 +13,10 @@ module sender (
   , output reg         gmii_tx_en
 
   // TX frame slot
-  , output reg  [15:0] slot_tx_eth_data
-  , output reg  [ 1:0] slot_tx_eth_byte_en
+  , output      [15:0] slot_tx_eth_data
+  , output      [ 1:0] slot_tx_eth_byte_en
   , output wire [13:0] slot_tx_eth_addr
-  , output reg         slot_tx_eth_wr_en
+  , output             slot_tx_eth_wr_en
   , input  wire [15:0] slot_tx_eth_q
 
   , input  wire [13:0] mem_wr_ptr
@@ -259,6 +259,9 @@ always @(posedge gmii_tx_clk) begin
 		endcase
 	end
 end
+assign slot_tx_eth_data = 16'hz;
+assign slot_tx_eth_byte_en = 2'b00;
+assign slot_tx_eth_wr_en = 1'b0;
 assign slot_tx_eth_addr = rd_ptr;
 
 //assign led[7:0] = ~{ debug1, debug2, debug3, debug4, debug5, tx_status[2:0] };

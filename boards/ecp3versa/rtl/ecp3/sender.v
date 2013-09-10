@@ -16,6 +16,7 @@ module sender (
   , output      [15:0] slot_tx_eth_data
   , output      [ 1:0] slot_tx_eth_byte_en
   , output wire [13:0] slot_tx_eth_addr
+  , output reg         slot_tx_eth_en
   , output             slot_tx_eth_wr_en
   , input  wire [15:0] slot_tx_eth_q
 
@@ -84,12 +85,13 @@ crc_gen tx_fcs_gen (
 /* sender logic */
 parameter [2:0]            // TX status
     TX_IDLE     = 3'b000
-  , TX_HDR_LOAD = 3'b001
-  , TX_WAITING  = 3'b010
-  , TX_SENDING  = 3'b011
-  , TX_FCS_1    = 3'b100
-  , TX_FCS_2    = 3'b101
-  , TX_FCS_3    = 3'b110;
+  , TX_MEMWAIT  = 3'b001
+  , TX_HDR_LOAD = 3'b010
+  , TX_WAITING  = 3'b011
+  , TX_SENDING  = 3'b100
+  , TX_FCS_1    = 3'b101
+  , TX_FCS_2    = 3'b110
+  , TX_FCS_3    = 3'b111;
 reg [ 2:0] tx_status;
 //reg [ 3:0] ifg_count;
 reg [ 3:0] IFG_count;
@@ -114,6 +116,7 @@ always @(posedge gmii_tx_clk) begin
 		rd_ptr         <= 14'b0;
 		mem_rd_ptr     <= 14'b0;
 		crc_rd         <= 1'b0;
+		slot_tx_eth_en <= 1'b0;
 		// debug
 		debug1         <= 1'b0;
 		debug2         <= 1'b0;
@@ -133,12 +136,18 @@ always @(posedge gmii_tx_clk) begin
 		case (tx_status)
 			TX_IDLE: begin
 				if (mem_rd_ptr != mem_wr_ptr) begin
-					tx_status      <= TX_HDR_LOAD;
-					rd_ptr         <= mem_rd_ptr + 14'h1;
+					slot_tx_eth_en <= 1'b1;
+					tx_status      <= TX_MEMWAIT;
+					rd_ptr         <= mem_rd_ptr;
 					hdr_load_count <= 4'd0;
 					tx_counter     <= 14'd0;
 					crc_rd         <= 1'b0;
-				end
+				end else
+					slot_tx_eth_en <= 1'b0;
+			end
+			TX_MEMWAIT: begin
+					rd_ptr         <= rd_ptr + 14'h1;
+					tx_status      <= TX_HDR_LOAD;
 			end
 			TX_HDR_LOAD: begin
 
@@ -215,6 +224,7 @@ always @(posedge gmii_tx_clk) begin
 					default: begin
 						if (tx_counter[13:0] == tx_frame_len[13:0] + 14'd8) begin
 							tx_status <= TX_FCS_1;
+							slot_tx_eth_en <= 1'b0;
 							crc_rd    <= 1'b1;
 							gmii_txd  <= crc_out[31:24];   // ethernet FCS 0
 						end else begin

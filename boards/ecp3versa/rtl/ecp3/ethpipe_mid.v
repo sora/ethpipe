@@ -312,6 +312,7 @@ receiver receiver_phy1 (
 wire [15:0] tx0mem_dataB;
 wire [ 1:0] tx0mem_byte_enB;
 wire [13:0] tx0mem_addressB;
+wire        tx0mem_enB;
 wire        tx0mem_wr_enB;
 wire [15:0] tx0mem_qB;
 wire [15:0] tx1mem_dataB;
@@ -330,7 +331,7 @@ ram_dp_true tx0_mem (
   , .ClockA(clk_125)
   , .ClockB(phy1_rx_clk)
   , .ClockEnA(slv_ce_i & slv_bar_i[2] & ~slv_adr_i[15])
-  , .ClockEnB(1'b1)
+  , .ClockEnB(tx0mem_enB)
   , .WrA(slv_we_i)
   , .WrB(tx0mem_wr_enB)
   , .ResetA(sys_rst)
@@ -379,6 +380,7 @@ sender sender_phy1_ins (
   , .slot_tx_eth_data(tx0mem_dataB)
   , .slot_tx_eth_byte_en(tx0mem_byte_enB)
   , .slot_tx_eth_addr(tx0mem_addressB)
+  , .slot_tx_eth_en(tx0mem_enB)
   , .slot_tx_eth_wr_en(tx0mem_wr_enB)
   , .slot_tx_eth_q(tx0mem_qB)
 

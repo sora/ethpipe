@@ -38,7 +38,7 @@
 #define	__devexit_p
 #endif
 
-#define DEBUG
+//#define DEBUG
 
 static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 	{0x3776, 0x8001, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
@@ -49,6 +49,7 @@ MODULE_DEVICE_TABLE(pci, ethpipe_pci_tbl);
 static unsigned char *mmio0_ptr = 0L, *mmio1_ptr = 0L, *dma1_virt_ptr = 0L, *dma2_virt_ptr = 0L;
 static unsigned long long mmio0_start, mmio0_end, mmio0_flags, mmio0_len;
 static unsigned long long mmio1_start, mmio1_end, mmio1_flags, mmio1_len;
+static unsigned long long slot_size;
 
 static dma_addr_t dma1_phys_ptr = 0L, dma2_phys_ptr;
 static long *dma1_addr_start, *dma2_addr_start;
@@ -271,7 +272,7 @@ static ssize_t ethpipe_write(struct file *filp, const char __user *buf,
 
 	// mmio1 free
 	if (i <= hw_slot_addr) {
-		j = ((int)i - (int)hw_slot_addr) + mmio1_len;
+		j = ((int)i - (int)hw_slot_addr) + slot_size;
 	} else {
 		j = ((int)i - (int)hw_slot_addr);
 	}
@@ -371,18 +372,20 @@ ethpipe_write_loop:
 #endif
 
 	data_len = frame_len + ETHPIPE_HEADER_LEN;
-	if ( (hw_slot_addr + data_len) < (mmio1_len>>1)) {
+	if ( (hw_slot_addr + data_len) < slot_size) {
 		memcpy(mmio1_ptr+hw_slot_addr, tmp_pkt, data_len);
+#ifdef DEBUG
 		if ( memcmp(mmio1_ptr+hw_slot_addr, tmp_pkt, data_len) == 0)
 			printk("memcmp: correct\n");
 		else
 			printk("memcmp: error\n");
+#endif
 	} else {
-		memcpy(mmio1_ptr+hw_slot_addr, tmp_pkt, ((mmio1_len>>1) - hw_slot_addr));
-		memcpy(mmio1_ptr, tmp_pkt+((mmio1_len>>1) - hw_slot_addr), data_len - ((mmio1_len>>1) - hw_slot_addr));
+		memcpy(mmio1_ptr+hw_slot_addr, tmp_pkt, (slot_size - hw_slot_addr));
+		memcpy(mmio1_ptr, tmp_pkt+(slot_size - hw_slot_addr), data_len - (slot_size - hw_slot_addr));
 	}
 
-	hw_slot_addr = (hw_slot_addr + data_len + 1) & (mmio1_len - 1) & 0xfffffffe;
+	hw_slot_addr = (hw_slot_addr + data_len + 1) & (slot_size - 1) & 0xfffffffe;
 
 #ifdef DEBUG
 	p1 = (unsigned short *)mmio1_ptr;
@@ -532,11 +535,13 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	mmio1_end   = pci_resource_end   (pdev, 2);
 	mmio1_flags = pci_resource_flags (pdev, 2);
 	mmio1_len   = pci_resource_len   (pdev, 2);
+	slot_size   = mmio1_len / 2;
 
 	printk( KERN_INFO "mmio1_start: %X\n", (unsigned int)mmio1_start );
 	printk( KERN_INFO "mmio1_end  : %X\n", (unsigned int)mmio1_end   );
 	printk( KERN_INFO "mmio1_flags: %X\n", (unsigned int)mmio1_flags );
 	printk( KERN_INFO "mmio1_len  : %X\n", (unsigned int)mmio1_len   );
+	printk( KERN_INFO "slot size  : %X\n", (unsigned int)slot_size   );
 
 	mmio1_ptr = ioremap_wc(mmio1_start, mmio1_len);
 	if (!mmio1_ptr) {

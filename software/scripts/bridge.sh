@@ -14,8 +14,10 @@ while true
 do
     read FRAME
     #echo $FRAME
-    DMAC=`echo $FRAME|cut -d " " -f 1`
-    SMAC=`echo $FRAME|cut -d " " -f 2`
+    DMAC=${FRAME:1:12}
+    SMAC=${FRAME:14:12}
+#    DMAC=`echo $FRAME|cut -d " " -f 1`
+#    SMAC=`echo $FRAME|cut -d " " -f 2`
 #DMAC="00FFFFFFFFFF"
 #SMAC="003776000001"
     echo $DMAC $SMAC

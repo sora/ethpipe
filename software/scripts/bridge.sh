@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # usage: bridge.sh </dev/ethpipe/0
 #
@@ -14,8 +15,8 @@ while true
 do
     read FRAME
     #echo $FRAME
-    DMAC=${FRAME:1:12}
-    SMAC=${FRAME:14:12}
+    DMAC=${FRAME:0:12}
+    SMAC=${FRAME:13:12}
 #    DMAC=`echo $FRAME|cut -d " " -f 1`
 #    SMAC=`echo $FRAME|cut -d " " -f 2`
 #DMAC="00FFFFFFFFFF"
@@ -45,19 +46,19 @@ do
     else
        echo "Unicast message"
        # search port number by DMAC
-       MAC_LEARNING0=`cat $MAC0_LEARNING_FILE`
+       MAC0_LEARNING=`cat $MAC0_LEARNING_FILE`
        if [[ "$MAC0_LEARNING" =~ "$DMAC" ]]; then
            echo $FRAME >/dev/ethpipe/0
        fi
-       MAC_LEARNING1=`cat $MAC1_LEARNING_FILE`
+       MAC1_LEARNING=`cat $MAC1_LEARNING_FILE`
        if [[ "$MAC1_LEARNING" =~ "$DMAC" ]]; then
            echo $FRAME >/dev/ethpipe/1
        fi
-       MAC_LEARNING2=`cat $MAC2_LEARNING_FILE`
+       MAC2_LEARNING=`cat $MAC2_LEARNING_FILE`
        if [[ "$MAC2_LEARNING" =~ "$DMAC" ]]; then
            echo $FRAME >/dev/ethpipe/2
        fi
-       MAC_LEARNING3=`cat $MAC3_LEARNING_FILE`
+       MAC3_LEARNING=`cat $MAC3_LEARNING_FILE`
        if [[ "$MAC3_LEARNING" =~ "$DMAC" ]]; then
            echo $FRAME >/dev/ethpipe/3
        fi

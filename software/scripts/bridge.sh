@@ -28,7 +28,7 @@ do
         echo "Regist $SMAC (MAC_LEARNING=$MAC_LEARNING)"
         echo $MAC_LEARNING > $MAC_LEARNING_FILE
     fi
-    if [ $((0x$SMAC & 0x010000000000)) -ne 0 ] ; then
+    if [ $((0x$DMAC & 0x010000000000)) -ne 0 ] ; then
        echo "Multicast or Broadcast message"
        # transmit to any other port
        if [ ! $MY_PORT == "0" ] ; then

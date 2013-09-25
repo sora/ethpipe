@@ -19,6 +19,12 @@ do
 #DMAC="00FFFFFFFFFF"
 #SMAC="003776000001"
     echo $DMAC $SMAC
+    # regist SMAC LEARNING TABLE
+    if [[ ! "$MAC_LEARNING" =~ "$SMAC" ]]; then
+        MAC_LEARNING=$MAC_LEARNING":"$SMAC
+        echo "Regist $SMAC (MAC_LEARNING=$MAC_LEARNING)"
+        echo $MAC_LEARNING > $MAC_LEARNING_FILE
+    fi
     if [ $((0x$SMAC & 0x010000000000)) -ne 0 ] ; then
        echo "Multicast or Broadcast message"
        # transmit to any other port
@@ -36,12 +42,6 @@ do
        fi
     else
        echo "Unicast message"
-       # regist SMAC LEARNING TABLE
-       if [[ ! "$MAC_LEARNING" =~ "$SMAC" ]]; then
-           MAC_LEARNING=$MAC_LEARNING":"$SMAC
-           echo "Regist $SMAC (MAC_LEARNING=$MAC_LEARNING)"
-           echo $MAC_LEARNING > $MAC_LEARNING_FILE
-       fi
        # search port number by DMAC
        MAC_LEARNING0=`cat $MAC0_LEARNING_FILE`
        if [[ "$MAC0_LEARNING" =~ "$DMAC" ]]; then

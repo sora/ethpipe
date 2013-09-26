@@ -7,10 +7,16 @@ MAC_LEARNING=""
 #MAC_LEARNING="001122334455"
 TEMP_DIR="/tmp/"
 MAC_LEARNING_FILE=$TEMP_DIR/MAC$MY_PORT.txt
-MAC0_LEARNING_FILE=$TEMP_DIR/MAC0.txt; touch $MAC0_LEARNING_FILE
-MAC1_LEARNING_FILE=$TEMP_DIR/MAC1.txt; touch $MAC1_LEARNING_FILE
-MAC2_LEARNING_FILE=$TEMP_DIR/MAC2.txt; touch $MAC2_LEARNING_FILE
-MAC3_LEARNING_FILE=$TEMP_DIR/MAC3.txt; touch $MAC3_LEARNING_FILE
+MAC0_LEARNING_FILE=$TEMP_DIR/MAC0.txt;
+MAC1_LEARNING_FILE=$TEMP_DIR/MAC1.txt;
+MAC2_LEARNING_FILE=$TEMP_DIR/MAC2.txt;
+MAC3_LEARNING_FILE=$TEMP_DIR/MAC3.txt;
+
+touch ${MAC0_LEARNING_FILE} ${MAC0_LEARNING_FILE}.chk
+touch ${MAC1_LEARNING_FILE} ${MAC1_LEARNING_FILE}.chk
+touch ${MAC2_LEARNING_FILE} ${MAC2_LEARNING_FILE}.chk
+touch ${MAC3_LEARNING_FILE} ${MAC3_LEARNING_FILE}.chk
+
 while true
 do
     read FRAME
@@ -46,19 +52,35 @@ do
     else
        echo "Unicast message"
        # search port number by DMAC
-       MAC0_LEARNING=`cat $MAC0_LEARNING_FILE`
+
+       if [ ${MAC0_LEARNING_FILE} -nt ${MAC0_LEARNING_FILE}.chk ]; then
+           MAC0_LEARNING=`cat $MAC0_LEARNING_FILE`
+           touch ${MAC0_LEARNING_FILE}.chk
+       fi
        if [[ "$MAC0_LEARNING" =~ "$DMAC" ]]; then
            echo $FRAME >/dev/ethpipe/0
        fi
-       MAC1_LEARNING=`cat $MAC1_LEARNING_FILE`
+
+       if [ ${MAC1_LEARNING_FILE} -nt ${MAC1_LEARNING_FILE}.chk ]; then
+           MAC1_LEARNING=`cat $MAC1_LEARNING_FILE`
+           touch ${MAC1_LEARNING_FILE}.chk
+       fi
        if [[ "$MAC1_LEARNING" =~ "$DMAC" ]]; then
            echo $FRAME >/dev/ethpipe/1
        fi
-       MAC2_LEARNING=`cat $MAC2_LEARNING_FILE`
+
+       if [ ${MAC2_LEARNING_FILE} -nt ${MAC2_LEARNING_FILE}.chk ]; then
+           MAC2_LEARNING=`cat $MAC2_LEARNING_FILE`
+           touch ${MAC2_LEARNING_FILE}.chk
+       fi
        if [[ "$MAC2_LEARNING" =~ "$DMAC" ]]; then
            echo $FRAME >/dev/ethpipe/2
        fi
-       MAC3_LEARNING=`cat $MAC3_LEARNING_FILE`
+
+       if [ ${MAC3_LEARNING_FILE} -nt ${MAC3_LEARNING_FILE}.chk ]; then
+           MAC3_LEARNING=`cat $MAC3_LEARNING_FILE`
+           touch ${MAC3_LEARNING_FILE}.chk
+       fi
        if [[ "$MAC3_LEARNING" =~ "$DMAC" ]]; then
            echo $FRAME >/dev/ethpipe/3
        fi

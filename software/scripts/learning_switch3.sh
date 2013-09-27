@@ -5,11 +5,6 @@
 MY_PORT="0"
 TEMP_DIR="/tmp/"
 
-touch ${MAC0_LEARNING_FILE}{,.chk}
-touch ${MAC1_LEARNING_FILE}{,.chk}
-touch ${MAC2_LEARNING_FILE}{,.chk}
-touch ${MAC3_LEARNING_FILE}{,.chk}
-
 while true
 do
     read FRAME

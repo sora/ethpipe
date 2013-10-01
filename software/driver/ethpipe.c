@@ -86,6 +86,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 	int i, status;
 	unsigned short frame_len;
 	static unsigned short hex[257], initialized = 0;
+	static long long dma1_addr_write_ascii;
 	int handled = 0;
 
 	status = *(mmio0_ptr + 0x10);
@@ -109,10 +110,11 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		}
 		initialized = 1;
 	}
+	dma1_addr_write_ascii = *dma1_addr_cur;
 
 	// for ASCII Interface
 	if ( open_count_ascii ) {
-		while ( *dma1_addr_cur != dma1_addr_read_ascii ) {
+		while ( dma1_addr_write_ascii != dma1_addr_read_ascii ) {
 			unsigned char *read_ptr, *read_end, *p;
 
 			read_ptr = dma1_virt_ptr + (int)(dma1_addr_read_ascii - dma1_phys_ptr);

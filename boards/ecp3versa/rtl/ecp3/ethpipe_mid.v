@@ -5,7 +5,7 @@
 module ethpipe_mid  (
     input  clk_125
   , input  sys_rst
-  , output sys_intr
+  , output reg sys_intr = 1'b0
   , input  [7:0] dipsw
   , output wire [7:0] led
   , output [13:0] segled
@@ -35,8 +35,8 @@ module ethpipe_mid  (
   , input  phy1_125M_clk
   , input  phy1_tx_clk
   , output phy1_gtx_clk
-  , output phy1_tx_en
-  , output [7:0] phy1_tx_data
+  , output reg phy1_tx_en
+  , output reg [7:0] phy1_tx_data
   , input  phy1_rx_clk
   , input  phy1_rx_dv
   , input  phy1_rx_er
@@ -51,8 +51,8 @@ module ethpipe_mid  (
   , input  phy2_125M_clk
   , input  phy2_tx_clk
   , output phy2_gtx_clk
-  , output phy2_tx_en
-  , output [7:0] phy2_tx_data
+  , output reg phy2_tx_en
+  , output reg [7:0] phy2_tx_data
   , input  phy2_rx_clk
   , input  phy2_rx_dv
   , input  phy2_rx_er
@@ -190,6 +190,46 @@ gmii2fifo18 # (
 );
 `endif
 
+// PHY#1 TX Transmite AFIFO
+wire [8:0] tx1_phyq_din, tx1_phyq_dout;
+wire tx1_phyq_full, tx1_phyq_wr_en;
+wire tx1_phyq_empty;
+reg tx1_phyq_rd_en = 1'b0;
+
+afifo9 afifo9_tx1_phyq (
+	.Data(tx1_phyq_din),
+	.WrClock(clk_125),
+	.RdClock(phy1_125M_clk),
+	.WrEn(tx1_phyq_wr_en),
+	.RdEn(tx1_phyq_rd_en),
+	.Reset(sys_rst),
+	.RPReset(sys_rst),
+	.Q(tx1_phyq_dout),
+	.Empty(tx1_phyq_empty),
+	.Full(tx1_phyq_full)
+);
+
+// PHY#2 TX Transmite AFIFO
+wire [8:0] tx2_phyq_din, tx2_phyq_dout;
+wire tx2_phyq_full, tx2_phyq_wr_en;
+wire tx2_phyq_empty;
+reg tx2_phyq_rd_en = 1'b0;
+
+`ifdef ENABLE_PHY2
+afifo9 afifo9_tx2_phyq (
+	.Data(tx2_phyq_din),
+	.WrClock(clk_125),
+	.RdClock(phy2_125M_clk),
+	.WrEn(tx2_phyq_wr_en),
+	.RdEn(tx2_phyq_rd_en),
+	.Reset(sys_rst),
+	.RPReset(sys_rst),
+	.Q(tx2_phyq_dout),
+	.Empty(tx2_phyq_empty),
+	.Full(tx2_phyq_full)
+);
+`endif
+
 // Slave bus
 wire [6:0] slv_bar_i;
 wire slv_ce_i;
@@ -207,6 +247,8 @@ reg [31:2] dma1_addr_start, dma2_addr_start;
 wire [31:2] dma1_addr_cur, dma2_addr_cur;
 
 reg dma1_load, dma2_load;
+
+reg [15:0] intr_delay_val = 16'h1;
 
 pcie_tlp inst_pcie_tlp (
   // System
@@ -375,8 +417,8 @@ sender sender_phy1_ins (
   , .global_counter(global_counter)
 
   , .gmii_tx_clk(clk_125)
-  , .gmii_txd(phy1_tx_data)
-  , .gmii_tx_en(phy1_tx_en)
+  , .gmii_tx_din(tx1_phyq_din)
+  , .gmii_tx_wr(tx1_phyq_wr_en)
   , .slot_tx_eth_data(tx0mem_dataB)
   , .slot_tx_eth_byte_en(tx0mem_byte_enB)
   , .slot_tx_eth_addr(tx0mem_addressB)
@@ -434,10 +476,10 @@ sender sender_phy2_ins (
 
 assign phy1_mii_clk  = 1'b0;
 assign phy1_mii_data = 1'b0;
-assign phy1_gtx_clk  = clk_125;
+assign phy1_gtx_clk  = phy1_125M_clk;
 assign phy2_mii_clk  = 1'b0;
 assign phy2_mii_data = 1'b0;
-assign phy2_gtx_clk  = clk_125;
+assign phy2_gtx_clk  = phy2_125M_clk;
 
 // Global counter
 always @(posedge clk_125) begin
@@ -474,6 +516,7 @@ always @(posedge clk_125) begin
 		local_time7               <= 48'h0;
 		local_time_update_pending <= 7'b0;
 		local_time_update_ack     <= 1'b0;
+		intr_delay_val            <= 16'h1;
 	end else begin
 
 		if (tx0local_time_req != 7'b0)
@@ -490,8 +533,15 @@ always @(posedge clk_125) begin
 		if (slv_bar_i[0] & slv_ce_i) begin
 			if (slv_adr_i[11:9] == 3'h0) begin
 				case (slv_adr_i[8:1])
-					// slots status
+					// interrupt delay clock (min:1 max:ffff)
 					8'h00: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[1])
+								intr_delay_val[ 7: 0] <= slv_dat_i[15: 8];
+							if (slv_sel_i[0])
+								intr_delay_val[15: 8] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {intr_delay_val[7:0], intr_delay_val[15:8]};
 					end
 					// global counter [15:0]
 					8'h02: begin
@@ -716,9 +766,47 @@ always @(posedge clk_125) begin
 	end
 end
 
+//-------------------------------------
+// GMII TX1 transmit from TX1_FIFO
+//-------------------------------------
+always @(posedge phy1_125M_clk) begin
+	if (sys_rst) begin
+		tx1_phyq_rd_en <= 1'b0;
+  		phy1_tx_en <= 1'b0;
+  		phy1_tx_data <= 8'b0;
+	end else begin
+		tx1_phyq_rd_en <= ~tx1_phyq_empty;
+		if (tx1_phyq_rd_en) begin
+  			phy1_tx_data <= tx1_phyq_dout[7:0];
+  			phy1_tx_en   <= tx1_phyq_dout[8];
+		end else begin
+  			phy1_tx_data <= 8'h0;
+  			phy1_tx_en   <= 1'b0;
+		end
+	end
+end
+
+reg [15:0] intr_delay_count = 16'h0000;
+always @(posedge clk_125) begin
+	if (sys_rst) begin
+		sys_intr <= 1'b0; 
+		intr_delay_count <= 16'h0000;
+	end else begin
+		if (dma_status[3] && intr_delay_count == 16'h0000) begin
+			intr_delay_count <= intr_delay_val;
+		end else begin
+			if (dma_status[3] == 1'b0)
+				sys_intr <= 1'b0;
+			else if (intr_delay_count == 16'h1)
+				sys_intr <= 1'b1; 
+			if (intr_delay_count != 16'h0000)
+				intr_delay_count <= intr_delay_count - 16'h1;
+		end
+	end
+end
+
 assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[15]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[15]}} & slv_dat2_o );
 
-assign sys_intr = dma_status[3];
 
 endmodule
 

@@ -9,8 +9,8 @@ module sender (
 
   // GMII interfaces
   , input  wire        gmii_tx_clk
-  , output reg  [ 7:0] gmii_txd
-  , output reg         gmii_tx_en
+  , output reg  [ 8:0] gmii_tx_din
+  , output             gmii_tx_wr
 
   // TX frame slot
   , output      [15:0] slot_tx_eth_data
@@ -75,7 +75,7 @@ crc_gen tx_fcs_gen (
     .Reset(sys_rst)
   , .Clk(gmii_tx_clk)
   , .Init(crc_init)
-  , .Frame_data(gmii_txd)
+  , .Frame_data(gmii_tx_din)
   , .Data_en(crc_data_en)
   , .CRC_rd(crc_rd)
   , .CRC_end()
@@ -105,6 +105,7 @@ reg [13:0] rd_ptr;
 /* packet sender logic */
 always @(posedge gmii_tx_clk) begin
 	if (sys_rst) begin
+		gmii_tx_din[8:0] <= 9'h0;
 		tx_status      <= 3'b0;
 		IFG_count      <= 4'd0;
 		hdr_load_count <= 4'b0;
@@ -125,7 +126,7 @@ always @(posedge gmii_tx_clk) begin
 		debug5         <= 1'b0;
 	end else begin
 
-		gmii_tx_en     <= 1'b0;
+		gmii_tx_din[8] <= 1'b0;
 		local_time_req <= 7'b0;
 
 		/* count Inter-frame Gap (12 clock) */
@@ -200,36 +201,36 @@ always @(posedge gmii_tx_clk) begin
 				/* transmit counter */
 				tx_counter <= tx_counter + 14'd1;
 				
-				// gmii_tx_en
-				gmii_tx_en <= 1'b1;
+				// gmii_tx_wr
+				gmii_tx_din[8] <= 1'b1;
 
-				// gmii_txd
+				// gmii_tx_din
 				case (tx_counter)
-					14'd0: gmii_txd <= 8'h55;   // preamble
-					14'd1: gmii_txd <= 8'h55;
-					14'd2: gmii_txd <= 8'h55;
-					14'd3: gmii_txd <= 8'h55;
-					14'd4: gmii_txd <= 8'h55;
-					14'd5: gmii_txd <= 8'h55;
-					14'd6: gmii_txd <= 8'h55;
-					14'd7: gmii_txd <= 8'hd5;   // preamble+SFD
+					14'd0: gmii_tx_din[7:0] <= 8'h55;   // preamble
+					14'd1: gmii_tx_din[7:0] <= 8'h55;
+					14'd2: gmii_tx_din[7:0] <= 8'h55;
+					14'd3: gmii_tx_din[7:0] <= 8'h55;
+					14'd4: gmii_tx_din[7:0] <= 8'h55;
+					14'd5: gmii_tx_din[7:0] <= 8'h55;
+					14'd6: gmii_tx_din[7:0] <= 8'h55;
+					14'd7: gmii_tx_din[7:0] <= 8'hd5;   // preamble+SFD
 					default: begin
 						if (tx_counter[13:0] == tx_frame_len[13:0] + 14'd8) begin
 							tx_status <= TX_FCS_1;
 							slot_tx_eth_en <= 1'b0;
 							crc_rd    <= 1'b1;
-							gmii_txd  <= crc_out[31:24];   // ethernet FCS 0
+							gmii_tx_din[7:0]  <= crc_out[31:24];   // ethernet FCS 0
 						end else begin
 							// send frame data
 							case (tx_counter[0])
 								1'b0: begin
-									gmii_txd    <= slot_tx_eth_q[15:8];
+									gmii_tx_din[7:0]    <= slot_tx_eth_q[15:8];
 									tx_data_tmp <= slot_tx_eth_q;
 									if (rd_ptr != mem_wr_ptr)
 										rd_ptr <= rd_ptr + 14'h1;
 								end
 								1'b1: begin
-									gmii_txd <= tx_data_tmp[7:0];
+									gmii_tx_din[7:0] <= tx_data_tmp[7:0];
 								end
 							endcase
 						end
@@ -238,18 +239,18 @@ always @(posedge gmii_tx_clk) begin
 			end
 			TX_FCS_1: begin                           // ethernet FCS 1
 				tx_status  <= TX_FCS_2;
-				gmii_tx_en <= 1'b1;
-				gmii_txd   <= crc_out[23:16];
+				gmii_tx_din[8] <= 1'b1;
+				gmii_tx_din[7:0]   <= crc_out[23:16];
 			end
 			TX_FCS_2: begin                           // ethernet FCS 2
 				tx_status  <= TX_FCS_3;
-				gmii_tx_en <= 1'b1;
-				gmii_txd   <= crc_out[15:8];
+				gmii_tx_din[8] <= 1'b1;
+				gmii_tx_din[7:0]   <= crc_out[15:8];
 			end
 			TX_FCS_3: begin                           // ethernet FCS 3
 				tx_status  <= TX_IDLE;
-				gmii_tx_en <= 1'b1;
-				gmii_txd   <= crc_out[7:0];
+				gmii_tx_din[8] <= 1'b1;
+				gmii_tx_din[7:0]   <= crc_out[7:0];
 				// reset IFG_count
 				IFG_count  <= 4'd0;
 				// update mem_rd_ptr
@@ -315,6 +316,8 @@ always @* begin
 		end
 	endcase
 end
+
+assign gmii_tx_wr = 1'b1; //(tx_status != TX_IDLE ||  IFG_count[3] == 1'b0);
 
 /*
 assign led[0] = (tx_status == TX_IDLE)     ? 1'b0 : 1'b1;

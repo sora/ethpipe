@@ -94,6 +94,9 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		goto lend;
 	}
 
+	// clear interrupt flag
+	*(mmio0_ptr + 0x10) = status & 0xf7; 
+
 	handled = 1;
 
 #ifdef DEBUG
@@ -123,7 +126,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 #endif
 			if (frame_len == 0 || frame_len > 1518) {
 				dma1_addr_read_ascii = (long)*dma1_addr_cur;
-				goto lexit;
+				goto lend;
 			}
 
 			if ( (pbuf0.rx_write_ascii_ptr + frame_len * 3 + 0x10) > pbuf0.rx_end_ascii_ptr ) {
@@ -221,7 +224,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 #endif
 			if (frame_len == 0 || frame_len > 1518) {
 				dma1_addr_read_binary = (long)*dma1_addr_cur;
-				goto lexit;
+				goto lend;
 			}
 
 			if ( (pbuf0.rx_write_binary_ptr + frame_len + 0x10) > pbuf0.rx_end_binary_ptr ) {
@@ -285,9 +288,6 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 		wake_up_interruptible( &read_q_binary );
 	}
 
-lexit:
-	// clear interrupt flag
-	*(mmio0_ptr + 0x10) = status & 0xf7; 
 lend:
 	return IRQ_RETVAL(handled);
 }

@@ -17,7 +17,7 @@ ModuleName=afifo9
 SourceFormat=Verilog HDL
 ParameterFileVersion=1.0
 Date=10/02/2013
-Time=00:43:34
+Time=11:03:39
 
 [Parameters]
 Verilog=1
@@ -28,9 +28,9 @@ Expression=BusA(0 to 7)
 Order=Big Endian [MSB:LSB]
 IO=0
 FIFOImp=EBR Based
-Depth=16
+Depth=2048
 Width=9
-RDepth=16
+RDepth=2048
 RWidth=9
 regout=0
 CtrlByRdEn=0

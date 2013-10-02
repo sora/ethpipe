@@ -35,8 +35,8 @@ module ethpipe_mid  (
   , input  phy1_125M_clk
   , input  phy1_tx_clk
   , output phy1_gtx_clk
-  , output reg phy1_tx_en
-  , output reg [7:0] phy1_tx_data
+  , output phy1_tx_en
+  , output [7:0] phy1_tx_data
   , input  phy1_rx_clk
   , input  phy1_rx_dv
   , input  phy1_rx_er
@@ -187,46 +187,6 @@ gmii2fifo18 # (
 	.length_full(rx2_lenq_full),
 	.length_wr_en(rx2_lenq_wr_en),
 	.wr_clk()
-);
-`endif
-
-// PHY#1 TX Transmite AFIFO
-wire [8:0] tx1_phyq_din, tx1_phyq_dout;
-wire tx1_phyq_full, tx1_phyq_wr_en;
-wire tx1_phyq_empty;
-reg tx1_phyq_rd_en = 1'b0;
-
-afifo9 afifo9_tx1_phyq (
-	.Data(tx1_phyq_din),
-	.WrClock(clk_125),
-	.RdClock(phy1_125M_clk),
-	.WrEn(tx1_phyq_wr_en),
-	.RdEn(tx1_phyq_rd_en),
-	.Reset(sys_rst),
-	.RPReset(sys_rst),
-	.Q(tx1_phyq_dout),
-	.Empty(tx1_phyq_empty),
-	.Full(tx1_phyq_full)
-);
-
-// PHY#2 TX Transmite AFIFO
-wire [8:0] tx2_phyq_din, tx2_phyq_dout;
-wire tx2_phyq_full, tx2_phyq_wr_en;
-wire tx2_phyq_empty;
-reg tx2_phyq_rd_en = 1'b0;
-
-`ifdef ENABLE_PHY2
-afifo9 afifo9_tx2_phyq (
-	.Data(tx2_phyq_din),
-	.WrClock(clk_125),
-	.RdClock(phy2_125M_clk),
-	.WrEn(tx2_phyq_wr_en),
-	.RdEn(tx2_phyq_rd_en),
-	.Reset(sys_rst),
-	.RPReset(sys_rst),
-	.Q(tx2_phyq_dout),
-	.Empty(tx2_phyq_empty),
-	.Full(tx2_phyq_full)
 );
 `endif
 
@@ -416,8 +376,8 @@ sender sender_phy1_ins (
   , .global_counter(global_counter)
 
   , .gmii_tx_clk(clk_125)
-  , .gmii_tx_din(tx1_phyq_din)
-  , .gmii_tx_wr(tx1_phyq_wr_en)
+  , .gmii_txd(phy1_tx_data)
+  , .gmii_tx_en(phy1_tx_en)
   , .slot_tx_eth_data(tx0mem_dataB)
   , .slot_tx_eth_byte_en(tx0mem_byte_enB)
   , .slot_tx_eth_addr(tx0mem_addressB)
@@ -475,10 +435,10 @@ sender sender_phy2_ins (
 
 assign phy1_mii_clk  = 1'b0;
 assign phy1_mii_data = 1'b0;
-assign phy1_gtx_clk  = phy1_125M_clk;
+assign phy1_gtx_clk  = clk_125;
 assign phy2_mii_clk  = 1'b0;
 assign phy2_mii_data = 1'b0;
-assign phy2_gtx_clk  = phy2_125M_clk;
+assign phy2_gtx_clk  = clk_125;
 
 // Global counter
 always @(posedge clk_125) begin
@@ -753,26 +713,6 @@ always @(posedge clk_125) begin
 			end else begin
 				local_time_update_ack <= 1'b0;
 			end
-		end
-	end
-end
-
-//-------------------------------------
-// GMII TX1 transmit from TX1_FIFO
-//-------------------------------------
-always @(posedge phy1_125M_clk) begin
-	if (sys_rst) begin
-		tx1_phyq_rd_en <= 1'b0;
-  		phy1_tx_en <= 1'b0;
-  		phy1_tx_data <= 8'b0;
-	end else begin
-		tx1_phyq_rd_en <= ~tx1_phyq_empty;
-		if (tx1_phyq_rd_en) begin
-  			phy1_tx_data <= tx1_phyq_dout[7:0];
-  			phy1_tx_en   <= tx1_phyq_dout[8];
-		end else begin
-  			phy1_tx_data <= 8'h0;
-  			phy1_tx_en   <= 1'b0;
 		end
 	end
 end

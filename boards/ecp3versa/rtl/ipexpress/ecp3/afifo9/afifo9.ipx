@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<DiamondModule name="afifo9" module="FIFO_DC" VendorName="Lattice Semiconductor Corporation" generator="IPexpress" date="2013 10 02 11:03:45.572" version="5.5" type="Module" synthesis="synplify" source_format="Verilog">
-  <Package>
-		<File name="afifo9.lpc" type="lpc" modified="2013 10 02 11:03:39.785"/>
-		<File name="afifo9.v" type="top_level_verilog" modified="2013 10 02 11:03:39.863"/>
-		<File name="afifo9_tmpl.v" type="template_verilog" modified="2013 10 02 11:03:39.863"/>
-		<File name="tb_afifo9_tmpl.v" type="testbench_verilog" modified="2013 10 02 11:03:39.878"/>
-  </Package>
-</DiamondModule>

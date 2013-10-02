@@ -317,7 +317,7 @@ always @* begin
 	endcase
 end
 
-assign gmii_tx_wr = 1'b1; //(tx_status != TX_IDLE ||  IFG_count[3] == 1'b0);
+assign gmii_tx_wr = (IFG_count != 4'd10); //(tx_status != TX_IDLE ||  IFG_count[3] == 1'b0);
 
 /*
 assign led[0] = (tx_status == TX_IDLE)     ? 1'b0 : 1'b1;

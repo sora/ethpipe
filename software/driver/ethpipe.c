@@ -766,9 +766,6 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	dma2_addr_start = (mmio0_ptr + 0x28);
 	dma2_addr_cur   = (mmio0_ptr + 0x2c);
 
-	/* set interrupt delay cycles */
-	*(short *)(mmio0_ptr + 0x00)  = 1;	// 1〜65535 (do not use 0)
-
 	/* set DMA Buffer length */
 	*(long *)(mmio0_ptr + 0x14)  = PACKET_BUF_MAX;
 

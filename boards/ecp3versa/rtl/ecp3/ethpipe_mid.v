@@ -5,7 +5,7 @@
 module ethpipe_mid  (
     input  clk_125
   , input  sys_rst
-  , output reg sys_intr = 1'b0
+  , output sys_intr
   , input  [7:0] dipsw
   , output wire [7:0] led
   , output [13:0] segled
@@ -248,7 +248,6 @@ wire [31:2] dma1_addr_cur, dma2_addr_cur;
 
 reg dma1_load, dma2_load;
 
-reg [15:0] intr_delay_val = 16'h1;
 
 pcie_tlp inst_pcie_tlp (
   // System
@@ -516,7 +515,6 @@ always @(posedge clk_125) begin
 		local_time7               <= 48'h0;
 		local_time_update_pending <= 7'b0;
 		local_time_update_ack     <= 1'b0;
-		intr_delay_val            <= 16'h1;
 	end else begin
 
 		if (tx0local_time_req != 7'b0)
@@ -533,15 +531,8 @@ always @(posedge clk_125) begin
 		if (slv_bar_i[0] & slv_ce_i) begin
 			if (slv_adr_i[11:9] == 3'h0) begin
 				case (slv_adr_i[8:1])
-					// interrupt delay clock (min:1 max:ffff)
+					//
 					8'h00: begin
-						if (slv_we_i) begin
-							if (slv_sel_i[1])
-								intr_delay_val[ 7: 0] <= slv_dat_i[15: 8];
-							if (slv_sel_i[0])
-								intr_delay_val[15: 8] <= slv_dat_i[ 7: 0];
-						end else
-							slv_dat0_o <= {intr_delay_val[7:0], intr_delay_val[15:8]};
 					end
 					// global counter [15:0]
 					8'h02: begin
@@ -786,24 +777,7 @@ always @(posedge phy1_125M_clk) begin
 	end
 end
 
-reg [15:0] intr_delay_count = 16'h0000;
-always @(posedge clk_125) begin
-	if (sys_rst) begin
-		sys_intr <= 1'b0; 
-		intr_delay_count <= 16'h0000;
-	end else begin
-		if (dma_status[3] && intr_delay_count == 16'h0000) begin
-			intr_delay_count <= intr_delay_val;
-		end else begin
-			if (dma_status[3] == 1'b0)
-				sys_intr <= 1'b0;
-			else if (intr_delay_count == 16'h1)
-				sys_intr <= 1'b1; 
-			if (intr_delay_count != 16'h0000)
-				intr_delay_count <= intr_delay_count - 16'h1;
-		end
-	end
-end
+assign sys_intr = dma_status[3];
 
 assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[15]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[15]}} & slv_dat2_o );
 

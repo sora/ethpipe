@@ -202,6 +202,8 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 
 			if ((long long)p & 0xf)
 				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
+			if (p > read_end)
+				p -= PACKET_BUF_MAX;
 			dma1_addr_read_ascii = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
 //			dma1_addr_read_ascii = (long)*dma1_addr_cur;
 
@@ -283,6 +285,8 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 
 			if ((long long)p & 0xf)
 				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
+			if (p > read_end)
+				p -= PACKET_BUF_MAX;
 			dma1_addr_read_binary = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
 //			dma1_addr_read_binary = (long)*dma1_addr_cur;
 

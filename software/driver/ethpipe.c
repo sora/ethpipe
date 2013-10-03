@@ -24,9 +24,11 @@
 #define TX_READ_PTR_ADDRESS		(0x34)
 #endif
 
-#define	DRV_VERSION			"0.2.0"
+#define	DRV_VERSION			"0.2.1"
 #define	ethpipe_DRIVER_NAME	DRV_NAME " Etherpipe driver " DRV_VERSION
-#define	PACKET_BUF_MAX			(1024*1024)
+#define	DMA_BUF_MAX			(1024*1024)
+#define	ASCII_BUF_MAX			(DMA_BUF_MAX*3)
+#define	BINARY_BUF_MAX			(DMA_BUF_MAX*1)
 #define	TEMP_BUF_MAX			(2000)
 
 #define ETHPIPE_HEADER_LEN		(14)
@@ -118,7 +120,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 			unsigned char *read_ptr, *read_end, *p;
 
 			read_ptr = dma1_virt_ptr + (int)(dma1_addr_read_ascii - dma1_phys_ptr);
-			read_end = dma1_virt_ptr + PACKET_BUF_MAX - 1;
+			read_end = dma1_virt_ptr + DMA_BUF_MAX - 1;
 			p = read_ptr;
 		
 			frame_len = *(unsigned short *)(p + 0);
@@ -143,7 +145,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 #ifdef USE_TIMER
 			p += 0x08;
 			if (p > read_end)
-				p -= PACKET_BUF_MAX;
+				p -= DMA_BUF_MAX;
 			for ( i = 0; i < 8; ++i ) {
 				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ i > 1 ? *p : 0 ];
 				pbuf0.rx_write_ascii_ptr += 2;
@@ -153,12 +155,12 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 					*pbuf0.rx_write_ascii_ptr++ = ' ';
 				}
 				if ( unlikely( ++p > read_end ) )
-					p -= PACKET_BUF_MAX;
+					p -= DMA_BUF_MAX;
 			}
 #else
 			p += 0x10;
 			if (p > read_end)
-				p -= PACKET_BUF_MAX;
+				p -= DMA_BUF_MAX;
 #endif
 
 			// L2 header
@@ -171,7 +173,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 					*pbuf0.rx_write_ascii_ptr++ = ' ';
 				}
 				if (++p > read_end)
-					p -= PACKET_BUF_MAX;
+					p -= DMA_BUF_MAX;
 			}
 	
 			// L3 header
@@ -188,7 +190,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
 					pbuf0.rx_write_ascii_ptr -= (pbuf0.rx_end_ascii_ptr - pbuf0.rx_start_ascii_ptr + 1);
 				if ( unlikely( ++p > read_end ) )
-					p -= PACKET_BUF_MAX;
+					p -= DMA_BUF_MAX;
 			}
 			if ( likely( pbuf0.rx_write_ascii_ptr != pbuf0.rx_start_ascii_ptr ) )
 				*(pbuf0.rx_write_ascii_ptr-1) = '\n';
@@ -197,13 +199,13 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 #ifdef DROP_FCS
 			p += 4;
 			if (p > read_end)
-				p -= PACKET_BUF_MAX;
+				p -= DMA_BUF_MAX;
 #endif
 
 			if ((long long)p & 0xf)
 				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
 			if (p > read_end)
-				p -= PACKET_BUF_MAX;
+				p -= DMA_BUF_MAX;
 			dma1_addr_read_ascii = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
 //			dma1_addr_read_ascii = (long)*dma1_addr_cur;
 
@@ -218,7 +220,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 			unsigned char *read_ptr, *read_end, *p;
 
 			read_ptr = dma1_virt_ptr + (int)(dma1_addr_read_binary - dma1_phys_ptr);
-			read_end = dma1_virt_ptr + PACKET_BUF_MAX - 1;
+			read_end = dma1_virt_ptr + DMA_BUF_MAX - 1;
 			p = read_ptr;
 		
 			frame_len = *(unsigned short *)(p + 0);
@@ -246,7 +248,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				if ( unlikely( pbuf0.rx_write_binary_ptr > pbuf0.rx_end_binary_ptr ) )
 					pbuf0.rx_write_binary_ptr -= (pbuf0.rx_end_binary_ptr - pbuf0.rx_start_binary_ptr + 1);
 				if ( unlikely( ++p > read_end ) )
-					p -= PACKET_BUF_MAX;
+					p -= DMA_BUF_MAX;
 			}
 			// global counter
 #ifdef USE_TIMER
@@ -256,12 +258,12 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				if ( unlikely( pbuf0.rx_write_binary_ptr > pbuf0.rx_end_binary_ptr ) )
 					pbuf0.rx_write_binary_ptr -= (pbuf0.rx_end_binary_ptr - pbuf0.rx_start_binary_ptr + 1);
 				if ( unlikely( ++p > read_end ) )
-					p -= PACKET_BUF_MAX;
+					p -= DMA_BUF_MAX;
 			}
 #else
 			p += 0x08;
 			if (p > read_end)
-				p -= PACKET_BUF_MAX;
+				p -= DMA_BUF_MAX;
 #endif
 
 			// Packet
@@ -275,18 +277,18 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				if ( unlikely( pbuf0.rx_write_binary_ptr > pbuf0.rx_end_binary_ptr ) )
 					pbuf0.rx_write_binary_ptr -= (pbuf0.rx_end_binary_ptr - pbuf0.rx_start_binary_ptr + 1);
 				if ( unlikely( ++p > read_end ) )
-					p -= PACKET_BUF_MAX;
+					p -= DMA_BUF_MAX;
 			}
 #ifdef DROP_FCS
 			p += 4;
 			if (p > read_end)
-				p -= PACKET_BUF_MAX;
+				p -= DMA_BUF_MAX;
 #endif
 
 			if ((long long)p & 0xf)
 				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
 			if (p > read_end)
-				p -= PACKET_BUF_MAX;
+				p -= DMA_BUF_MAX;
 			dma1_addr_read_binary = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
 //			dma1_addr_read_binary = (long)*dma1_addr_cur;
 
@@ -742,7 +744,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 		goto error;
 	}
 
-	dma1_virt_ptr = dma_alloc_coherent( &pdev->dev, PACKET_BUF_MAX, &dma1_phys_ptr, GFP_KERNEL);
+	dma1_virt_ptr = dma_alloc_coherent( &pdev->dev, DMA_BUF_MAX, &dma1_phys_ptr, GFP_KERNEL);
 	if (!dma1_virt_ptr) {
 		printk(KERN_ERR "cannot dma1_alloc_coherent\n");
 		goto error;
@@ -750,7 +752,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	printk( KERN_INFO "dma1_virt_ptr  : %llX\n", (long long)dma1_virt_ptr );
 	printk( KERN_INFO "dma1_phys_ptr  : %llX\n", (long long)dma1_phys_ptr );
 
-	dma2_virt_ptr = dma_alloc_coherent( &pdev->dev, PACKET_BUF_MAX, &dma2_phys_ptr, GFP_KERNEL);
+	dma2_virt_ptr = dma_alloc_coherent( &pdev->dev, DMA_BUF_MAX, &dma2_phys_ptr, GFP_KERNEL);
 	if (!dma2_virt_ptr) {
 		printk(KERN_ERR "cannot dma2_alloc_coherent\n");
 		goto error;
@@ -771,7 +773,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	dma2_addr_cur   = (mmio0_ptr + 0x2c);
 
 	/* set DMA Buffer length */
-	*(long *)(mmio0_ptr + 0x14)  = PACKET_BUF_MAX;
+	*(long *)(mmio0_ptr + 0x14)  = DMA_BUF_MAX;
 
 	/* set DMA1 start address */
 	*dma1_addr_start  = dma1_phys_ptr;
@@ -797,32 +799,32 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	*tx_write_ptr = *tx_read_ptr;
 
 	/* Set receive ascii buffer */
-	if ( ( pbuf0.rx_start_ascii_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
+	if ( ( pbuf0.rx_start_ascii_ptr = kmalloc(ASCII_BUF_MAX, GFP_KERNEL) ) == 0 ) {
 		printk("fail to kmalloc\n");
 		rc = -1;
 		goto error;
 	}
-	pbuf0.rx_end_ascii_ptr = (pbuf0.rx_start_ascii_ptr + PACKET_BUF_MAX - 1);
+	pbuf0.rx_end_ascii_ptr = (pbuf0.rx_start_ascii_ptr + ASCII_BUF_MAX - 1);
 	pbuf0.rx_write_ascii_ptr = pbuf0.rx_start_ascii_ptr;
 	pbuf0.rx_read_ascii_ptr  = pbuf0.rx_start_ascii_ptr;
 
 	/* Set receive binary buffer */
-	if ( ( pbuf0.rx_start_binary_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
+	if ( ( pbuf0.rx_start_binary_ptr = kmalloc(BINARY_BUF_MAX, GFP_KERNEL) ) == 0 ) {
 		printk("fail to kmalloc\n");
 		rc = -1;
 		goto error;
 	}
-	pbuf0.rx_end_binary_ptr = (pbuf0.rx_start_binary_ptr + PACKET_BUF_MAX - 1);
+	pbuf0.rx_end_binary_ptr = (pbuf0.rx_start_binary_ptr + BINARY_BUF_MAX - 1);
 	pbuf0.rx_write_binary_ptr = pbuf0.rx_start_binary_ptr;
 	pbuf0.rx_read_binary_ptr  = pbuf0.rx_start_binary_ptr;
 
 	/* Set transmitte buffer */
-	if ( ( pbuf0.tx_start_ptr = kmalloc(PACKET_BUF_MAX, GFP_KERNEL) ) == 0 ) {
+	if ( ( pbuf0.tx_start_ptr = kmalloc(ASCII_BUF_MAX, GFP_KERNEL) ) == 0 ) {
 		printk("fail to kmalloc\n");
 		rc = -1;
 		goto error;
 	}
-	pbuf0.tx_end_ptr = (pbuf0.tx_start_ptr + PACKET_BUF_MAX - 1);
+	pbuf0.tx_end_ptr = (pbuf0.tx_start_ptr + ASCII_BUF_MAX - 1);
 	pbuf0.tx_write_ptr = pbuf0.tx_start_ptr;
 	pbuf0.tx_read_ptr  = pbuf0.tx_start_ptr;
 
@@ -937,10 +939,10 @@ static void __exit ethpipe_cleanup(void)
 	pci_unregister_driver(&ethpipe_pci_driver);
 
 	if ( dma1_virt_ptr )
-		dma_free_coherent(&pcidev->dev, PACKET_BUF_MAX, dma1_virt_ptr, dma1_phys_ptr);
+		dma_free_coherent(&pcidev->dev, DMA_BUF_MAX, dma1_virt_ptr, dma1_phys_ptr);
 
 	if ( dma2_virt_ptr )
-		dma_free_coherent(&pcidev->dev, PACKET_BUF_MAX, dma2_virt_ptr, dma2_phys_ptr);
+		dma_free_coherent(&pcidev->dev, DMA_BUF_MAX, dma2_virt_ptr, dma2_phys_ptr);
 }
 
 MODULE_LICENSE("GPL");

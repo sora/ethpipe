@@ -29,7 +29,6 @@
 #define	DMA_BUF_MAX			(1024*1024)
 #define	ASCII_BUF_MAX			(DMA_BUF_MAX*3)
 #define	BINARY_BUF_MAX			(DMA_BUF_MAX*1)
-#define	TEMP_BUF_MAX			(2000)
 
 #define ETHPIPE_HEADER_LEN		(14)
 #define MAX_FRAME_LEN			(9014)
@@ -80,6 +79,7 @@ struct _pbuf_dma {
 	unsigned char   *tx_end_ptr;	/* tx buf end */
 	unsigned char   *tx_write_ptr;	/* tx write ptr */
 	unsigned char   *tx_read_ptr;	/* tx read ptr */
+	spinlock_t	lock;
 } static pbuf0={0,0,0,0,0,0,0,0};
 
 
@@ -91,14 +91,13 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 	static long long dma1_addr_write_ascii;
 	int handled = 0;
 
+//        spin_lock (&pbuf0.lock);
+
 	status = *(mmio0_ptr + 0x10);
 	// is ethpipe interrupt?
-	if ((status & 8) == 0 ) {
+	if ( unlikely((status & 8) == 0) ) {
 		goto lend;
 	}
-
-	// clear interrupt flag
-	*(mmio0_ptr + 0x10) = status & 0xf7; 
 
 	handled = 1;
 
@@ -115,7 +114,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 	dma1_addr_write_ascii = *dma1_addr_cur;
 
 	// for ASCII Interface
-	if ( open_count_ascii ) {
+	if ( likely( open_count_ascii ) ) {
 		while ( dma1_addr_write_ascii != dma1_addr_read_ascii ) {
 			unsigned char *read_ptr, *read_end, *p;
 
@@ -128,12 +127,13 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 #ifdef DEBUG
 			printk( "frame_len=%4d\n", frame_len );
 #endif
-			if (frame_len == 0 || frame_len > 1518) {
+			if ( unlikely(frame_len == 0 || frame_len > 1518) ) {
+				printk( "invalid: frame_len=%4d\n", frame_len );
 				dma1_addr_read_ascii = (long)*dma1_addr_cur;
 				goto lend;
 			}
 
-			if ( (pbuf0.rx_write_ascii_ptr + frame_len * 3 + 0x10) > pbuf0.rx_end_ascii_ptr ) {
+			if ( unlikely( (pbuf0.rx_write_ascii_ptr + frame_len * 3 + 0x10) > pbuf0.rx_end_ascii_ptr ) ) {
 				if (pbuf0.rx_read_ascii_ptr == pbuf0.rx_start_ascii_ptr)
 					pbuf0.rx_read_ascii_ptr = pbuf0.rx_write_ascii_ptr;
 				memcpy( pbuf0.rx_start_ascii_ptr, pbuf0.rx_read_ascii_ptr, (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr ));
@@ -144,22 +144,24 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 			// global counter
 #ifdef USE_TIMER
 			p += 0x08;
-			if (p > read_end)
+			if ( unlikely( p > read_end ) )
 				p -= DMA_BUF_MAX;
 			for ( i = 0; i < 8; ++i ) {
 				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ i > 1 ? *p : 0 ];
 				pbuf0.rx_write_ascii_ptr += 2;
-				if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
-					pbuf0.rx_write_ascii_ptr -= (pbuf0.rx_end_ascii_ptr - pbuf0.rx_start_ascii_ptr + 1);
+				if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
+					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
 				if ( unlikely( i == 7 ) ) {
 					*pbuf0.rx_write_ascii_ptr++ = ' ';
+					if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
+						pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
 				}
 				if ( unlikely( ++p > read_end ) )
 					p -= DMA_BUF_MAX;
 			}
 #else
 			p += 0x10;
-			if (p > read_end)
+			if ( unlikely( p > read_end ) )
 				p -= DMA_BUF_MAX;
 #endif
 
@@ -168,11 +170,13 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
 				pbuf0.rx_write_ascii_ptr += 2;
 				if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
-					pbuf0.rx_write_ascii_ptr -= (pbuf0.rx_end_ascii_ptr - pbuf0.rx_start_ascii_ptr + 1);
+					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
 				if ( unlikely( i == 5 || i== 11 || i == 13 ) ) {
 					*pbuf0.rx_write_ascii_ptr++ = ' ';
+					if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
+						pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
 				}
-				if (++p > read_end)
+				if ( unlikely( ++p > read_end ) )
 					p -= DMA_BUF_MAX;
 			}
 	
@@ -184,11 +188,11 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 #endif
 				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
 				pbuf0.rx_write_ascii_ptr += 2;
-				if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
-					pbuf0.rx_write_ascii_ptr -= (pbuf0.rx_end_ascii_ptr - pbuf0.rx_start_ascii_ptr + 1);
+				if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
+					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
 				*pbuf0.rx_write_ascii_ptr++ = ' ';
-				if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
-					pbuf0.rx_write_ascii_ptr -= (pbuf0.rx_end_ascii_ptr - pbuf0.rx_start_ascii_ptr + 1);
+				if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
+					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
 				if ( unlikely( ++p > read_end ) )
 					p -= DMA_BUF_MAX;
 			}
@@ -198,17 +202,16 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 				*(pbuf0.rx_end_ascii_ptr) = '\n';
 #ifdef DROP_FCS
 			p += 4;
-			if (p > read_end)
+			if ( unlikely( p > read_end ) )
 				p -= DMA_BUF_MAX;
 #endif
 
-			if ((long long)p & 0xf)
+			if ( unlikely((long long)p & 0xf) )
 				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
-			if (p > read_end)
+			if ( unlikely( p > read_end ) )
 				p -= DMA_BUF_MAX;
 			dma1_addr_read_ascii = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
 //			dma1_addr_read_ascii = (long)*dma1_addr_cur;
-
 		}
 		wake_up_interruptible( &read_q_ascii );
 	}
@@ -229,6 +232,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 			printk( "frame_len=%4d\n", frame_len );
 #endif
 			if (frame_len == 0 || frame_len > 1518) {
+				printk( "invalid: frame_len=%4d\n", frame_len );
 				dma1_addr_read_binary = (long)*dma1_addr_cur;
 				goto lend;
 			}
@@ -262,7 +266,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 			}
 #else
 			p += 0x08;
-			if (p > read_end)
+			if ( unlikely( p > read_end ) )
 				p -= DMA_BUF_MAX;
 #endif
 
@@ -281,13 +285,13 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 			}
 #ifdef DROP_FCS
 			p += 4;
-			if (p > read_end)
+			if ( unlikely( p > read_end ) )
 				p -= DMA_BUF_MAX;
 #endif
 
 			if ((long long)p & 0xf)
 				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
-			if (p > read_end)
+			if ( unlikely( p > read_end ) )
 				p -= DMA_BUF_MAX;
 			dma1_addr_read_binary = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
 //			dma1_addr_read_binary = (long)*dma1_addr_cur;
@@ -297,6 +301,10 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 	}
 
 lend:
+	// clear interrupt flag
+	*(mmio0_ptr + 0x10) = status & 0xf7; 
+//	spin_unlock (&pbuf0.lock);
+
 	return IRQ_RETVAL(handled);
 }
 
@@ -330,7 +338,7 @@ static int ethpipe_open_binary(struct inode *inode, struct file *filp)
 
 static ssize_t ethpipe_read_ascii(struct file *filp, char __user *buf, size_t count, loff_t *ppos)
 {
-	int copy_len, available_read_len;
+	int copy_len, available_read_len, remain;
 #ifdef DEBUG
 	printk("%s\n", __func__);
 #endif
@@ -338,24 +346,37 @@ static ssize_t ethpipe_read_ascii(struct file *filp, char __user *buf, size_t co
 	if ( wait_event_interruptible( read_q_ascii, ( pbuf0.rx_read_ascii_ptr != pbuf0.rx_write_ascii_ptr ) ) )
 		return -ERESTARTSYS;
 
-	available_read_len = (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr);
-
-	if ( (pbuf0.rx_read_ascii_ptr + available_read_len ) > pbuf0.rx_end_ascii_ptr )
-		available_read_len = (pbuf0.rx_end_ascii_ptr - pbuf0.rx_read_ascii_ptr + 1);
-
-	if ( count > available_read_len )
-		copy_len = available_read_len;
+	if (pbuf0.rx_write_ascii_ptr >= pbuf0.rx_read_ascii_ptr)
+		available_read_len = (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr);
 	else
-		copy_len = count;
+		available_read_len = (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr + ASCII_BUF_MAX);
 
-	if ( copy_to_user( buf, pbuf0.rx_read_ascii_ptr, copy_len ) ) {
-		printk( KERN_INFO "copy_to_user failed\n" );
-		return -EFAULT;
+	if (count <= available_read_len)
+		copy_len = count;
+	else
+		copy_len = available_read_len;
+
+	if ( (pbuf0.rx_read_ascii_ptr + copy_len ) > pbuf0.rx_end_ascii_ptr ) {
+		remain = (pbuf0.rx_end_ascii_ptr - pbuf0.rx_read_ascii_ptr + 1);
+		if ( copy_to_user( buf, pbuf0.rx_read_ascii_ptr, remain ) ) {
+			printk( KERN_INFO "copy_to_user failed\n" );
+			return -EFAULT;
+		}
+		if ( copy_to_user( buf + remain , pbuf0.rx_start_ascii_ptr, copy_len - remain ) ) {
+			printk( KERN_INFO "copy_to_user failed\n" );
+			return -EFAULT;
+		}
+	} else {
+		if ( copy_to_user( buf, pbuf0.rx_read_ascii_ptr, copy_len ) ) {
+			printk( KERN_INFO "copy_to_user failed\n" );
+			return -EFAULT;
+		}
 	}
+
 
 	pbuf0.rx_read_ascii_ptr += copy_len;
 	if (pbuf0.rx_read_ascii_ptr > pbuf0.rx_end_ascii_ptr)
-		pbuf0.rx_read_ascii_ptr = pbuf0.rx_start_ascii_ptr;
+		pbuf0.rx_read_ascii_ptr -= ASCII_BUF_MAX;
 
 	return copy_len;
 }
@@ -760,11 +781,15 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	printk( KERN_INFO "dma2_virt_ptr  : %llX\n", (long long)dma2_virt_ptr );
 	printk( KERN_INFO "dma2_phys_ptr  : %llX\n", (long long)dma2_phys_ptr );
 
-	if (request_irq(pdev->irq, ethpipe_interrupt, IRQF_SHARED, DRV_NAME, pdev)) {
-		printk(KERN_ERR "cannot request_irq\n");
-	}
-	
+	spin_lock_init (&pbuf0.lock);
+
 	pcidev = pdev;
+
+	/* set min disable interrupt cycles (@125MHz) */
+	*(long *)(mmio0_ptr + 0x80)  = 2500000;
+
+	/* set max enable interrupt cycles (@125MHz) */
+	*(long *)(mmio0_ptr + 0x84)  = 2500000;
 
 	/* Set DMA Pointer */
 	dma1_addr_start = (mmio0_ptr + 0x20);
@@ -848,6 +873,10 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 
 	open_count_ascii = 0;
 
+	if (request_irq(pdev->irq, ethpipe_interrupt, IRQF_SHARED, DRV_NAME, pdev)) {
+		printk(KERN_ERR "cannot request_irq\n");
+	}
+	
 	return 0;
 
 error:

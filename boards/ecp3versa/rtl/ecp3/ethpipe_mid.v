@@ -274,12 +274,12 @@ reg [47:0] local_time7;
 
 // PHY Receiver
 wire btn;
-wire rec_intr;
+wire req_intr;
 `ifdef ENABLE_RECEIVER
 receiver receiver_phy1 (
 	.sys_clk(clk_125),
 	.sys_rst(sys_rst),
-	.sys_intr(rec_intr),
+	.sys_intr(req_intr),
 	// Phy FIFO
 	.phy_dout(rx1_phyq_dout),
 	.phy_empty(rx1_phyq_empty),
@@ -398,7 +398,7 @@ sender sender_phy1_ins (
 
   , .local_time_req(tx0local_time_req)
 
-  , .led(led)
+//  , .led(led)
   , .dipsw(dipsw)
 );
 
@@ -453,8 +453,12 @@ end
 //-------------------------------------
 reg [6:0] local_time_update_pending;
 reg       local_time_update_ack;
+reg [19:0] clr_intr_val = 20'd2500000;
+reg [19:0] set_intr_val = 20'd2500000;
+reg [19:0] clr_intr_count = 20'h0;
+reg [19:0] set_intr_count = 20'h0;
 always @(posedge clk_125) begin
-//	if (rec_intr)
+//	if (req_intr)
 //		led <= led + 8'h1;
 	if (sys_rst == 1'b1) begin
 		slv_dat0_o                <= 16'h0;
@@ -475,6 +479,10 @@ always @(posedge clk_125) begin
 		local_time7               <= 48'h0;
 		local_time_update_pending <= 7'b0;
 		local_time_update_ack     <= 1'b0;
+		clr_intr_val              <= 20'd2500000;
+		set_intr_val              <= 20'd2500000;
+		clr_intr_count            <= 20'h0;
+		set_intr_count            <= 20'h0;
 	end else begin
 
 		if (tx0local_time_req != 7'b0)
@@ -486,8 +494,6 @@ always @(posedge clk_125) begin
 
 		dma1_load <= 1'b0;
 		dma2_load <= 1'b0;
-		if (rec_intr)
-			dma_status[3] <= 1'b1;
 		if (slv_bar_i[0] & slv_ce_i) begin
 			if (slv_adr_i[11:9] == 3'h0) begin
 				case (slv_adr_i[8:1])
@@ -521,8 +527,12 @@ always @(posedge clk_125) begin
 					// dma status regs
 					8'h08: begin
 						if (slv_we_i) begin
-							if (slv_sel_i[1])
+							if (slv_sel_i[1]) begin
 								dma_status[ 7: 0] <= slv_dat_i[15:8];
+								if (slv_dat_i[3] == 1'b0) begin
+									clr_intr_count <= clr_intr_val;
+								end
+							end
 						end else
 							slv_dat0_o <= {dma_status[7:0], 8'h00};
 					end
@@ -635,6 +645,43 @@ always @(posedge clk_125) begin
 					8'h1b: begin
 						slv_dat0_o <= {tx1mem_rd_ptr[7:0], 2'b00, tx1mem_rd_ptr[13:8]};
 					end
+
+					// clr_intr_val
+					8'h40: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[1])
+								clr_intr_val[ 7: 0] <= slv_dat_i[15: 8];
+							if (slv_sel_i[0])
+								clr_intr_val[15: 8] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {clr_intr_val[7:0], clr_intr_val[15:8]};
+					end
+					8'h41: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[1])
+								clr_intr_val[19:16] <= slv_dat_i[11: 8];
+						end else
+							slv_dat0_o <= {4'b00, clr_intr_val[19:16], 8'h00};
+					end
+
+					// set_intr_val
+					8'h42: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[1])
+								set_intr_val[ 7: 0] <= slv_dat_i[15: 8];
+							if (slv_sel_i[0])
+								set_intr_val[15: 8] <= slv_dat_i[ 7: 0];
+						end else
+							slv_dat0_o <= {set_intr_val[7:0], set_intr_val[15:8]};
+					end
+					8'h43: begin
+						if (slv_we_i) begin
+							if (slv_sel_i[1])
+								set_intr_val[19:16] <= slv_dat_i[11: 8];
+						end else
+							slv_dat0_o <= {4'b00, set_intr_val[19:16], 8'h00};
+					end
+
 					// local time 1 [15:0]
 					8'h80: begin
 						if (slv_we_i) begin
@@ -689,6 +736,18 @@ always @(posedge clk_125) begin
 			end else
 				slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
 		end else begin
+			if (clr_intr_count != 20'h0)
+				clr_intr_count <= clr_intr_count - 20'h1;
+			if (req_intr && clr_intr_count == 20'd0)
+				dma_status[3] <= 1'b1;
+			else begin
+				if (dma_status[3] == 1'b1)
+					set_intr_count <= set_intr_count + 20'd1;
+				else
+					set_intr_count <= 20'h0;
+				if (set_intr_count == set_intr_val)
+					dma_status[3] <= 1'b0;
+			end
 			if (local_time_update_pending[0]) begin
 				local_time1           <= global_counter - 48'h3;
 				local_time_update_ack <= 1'b1;
@@ -718,6 +777,7 @@ always @(posedge clk_125) begin
 end
 
 assign sys_intr = dma_status[3];
+assign led[7:0] = ~dma_status[7:0];
 
 assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[15]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[15]}} & slv_dat2_o );
 

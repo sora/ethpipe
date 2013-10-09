@@ -5,9 +5,12 @@
 #include <linux/string.h>
 #include <linux/pci.h>
 #include <linux/wait.h>		/* wait_queue_head_t */
-#include <linux/sched.h>	/* wait_event_interruptible, wake_up_interruptible */
+#include <linux/sched.h>	/* wait_event_interruptible, wake_up_interruptible, tasklet */
 #include <linux/interrupt.h>
 #include <linux/version.h>
+
+MODULE_LICENSE( "GPL" );
+
 
 #define	USE_TIMER
 #define DROP_FCS
@@ -83,14 +86,20 @@ struct _pbuf_dma {
 } static pbuf0={0,0,0,0,0,0,0,0};
 
 
+static void tasklet_body( unsigned long value );
+DECLARE_TASKLET( tasklet_fire_led, tasklet_body, ( unsigned long )NULL );
+
+static spinlock_t tasklet_spinlock;
+
+
 static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 {
-	int i, status;
-	unsigned short frame_len;
-	static unsigned short hex[257], initialized = 0;
-	static long long dma1_addr_write_ascii;
+	int status;
 	int handled = 0;
 
+#ifdef DEBUG
+	printk("%s\n", __func__);
+#endif
 //        spin_lock (&pbuf0.lock);
 
 	status = *(mmio0_ptr + 0x10);
@@ -101,9 +110,29 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 
 	handled = 1;
 
+	tasklet_schedule( &tasklet_fire_led );
+
+	// clear interrupt flag
+	*(mmio0_ptr + 0x10) = status & 0xf7; 
+
+lend:
+//	spin_unlock (&pbuf0.lock);
+	return IRQ_RETVAL(handled);
+}
+
+void  tasklet_body( unsigned long value )
+{
+	int i, status;
+	unsigned long flags;
+	unsigned short frame_len;
+	static unsigned short hex[257], initialized = 0;
+	static long long dma1_addr_write_ascii;
+
 #ifdef DEBUG
 	printk("%s\n", __func__);
 #endif
+
+	spin_lock_irqsave( &tasklet_spinlock, flags );
 
 	if ( unlikely(initialized == 0) ) {
 		for ( i = 0 ; i < 256 ; ++i ) {
@@ -301,11 +330,9 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 	}
 
 lend:
-	// clear interrupt flag
-	*(mmio0_ptr + 0x10) = status & 0xf7; 
 //	spin_unlock (&pbuf0.lock);
 
-	return IRQ_RETVAL(handled);
+	spin_unlock_irqrestore( &tasklet_spinlock, flags );
 }
 
 static int ethpipe_open_ascii(struct inode *inode, struct file *filp)
@@ -421,6 +448,9 @@ static ssize_t ethpipe_write(int is_binary, struct file *filp, const char __user
 	unsigned char *cr;
 	int i, data, data2;
 	short j, data_len;
+#ifdef DEBUG
+	unsigned char *p1;
+#endif
 
 	copy_len = 0;
 
@@ -781,17 +811,18 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	printk( KERN_INFO "dma2_virt_ptr  : %llX\n", (long long)dma2_virt_ptr );
 	printk( KERN_INFO "dma2_phys_ptr  : %llX\n", (long long)dma2_phys_ptr );
 
+	spin_lock_init (&tasklet_spinlock);
 	spin_lock_init (&pbuf0.lock);
 
 	pcidev = pdev;
 
 	/* set min disable interrupt cycles (@125MHz) */
 //	*(long *)(mmio0_ptr + 0x80)  = 2500000;
-	*(long *)(mmio0_ptr + 0x80)  = 12;
+	*(long *)(mmio0_ptr + 0x80)  = 1;
 
 	/* set max enable interrupt cycles (@125MHz) */
 //	*(long *)(mmio0_ptr + 0x84)  = 2500000;
-	*(long *)(mmio0_ptr + 0x84)  = 125;
+	*(long *)(mmio0_ptr + 0x84)  = 2500000;
 
 	/* Set DMA Pointer */
 	dma1_addr_start = (mmio0_ptr + 0x20);
@@ -906,6 +937,8 @@ static void __devexit ethpipe_remove_one (struct pci_dev *pdev)
 {
 	disable_irq(pdev->irq);
 	free_irq(pdev->irq, pdev);
+
+	tasklet_kill( &tasklet_fire_led );
 
 	if (mmio0_ptr) {
 		iounmap(mmio0_ptr);

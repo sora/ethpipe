@@ -162,6 +162,7 @@ void  tasklet_body( unsigned long value )
 				goto lend;
 			}
 
+#if 0
 			if ( unlikely( (pbuf0.rx_write_ascii_ptr + frame_len * 3 + 0x10) > pbuf0.rx_end_ascii_ptr ) ) {
 				if (pbuf0.rx_read_ascii_ptr == pbuf0.rx_start_ascii_ptr)
 					pbuf0.rx_read_ascii_ptr = pbuf0.rx_write_ascii_ptr;
@@ -169,6 +170,7 @@ void  tasklet_body( unsigned long value )
 				pbuf0.rx_write_ascii_ptr = pbuf0.rx_start_ascii_ptr + (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr );
 				pbuf0.rx_read_ascii_ptr = pbuf0.rx_start_ascii_ptr;
 			}
+#endif
 
 			// global counter
 #ifdef USE_TIMER
@@ -215,6 +217,7 @@ void  tasklet_body( unsigned long value )
 #else
 			for ( i = 0; i < (frame_len-14) ; ++i) {
 #endif
+//#if 0
 				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
 				pbuf0.rx_write_ascii_ptr += 2;
 				if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
@@ -222,6 +225,7 @@ void  tasklet_body( unsigned long value )
 				*pbuf0.rx_write_ascii_ptr++ = ' ';
 				if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
 					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
+//#endif
 				if ( unlikely( ++p > read_end ) )
 					p -= DMA_BUF_MAX;
 			}
@@ -366,17 +370,31 @@ static int ethpipe_open_binary(struct inode *inode, struct file *filp)
 static ssize_t ethpipe_read_ascii(struct file *filp, char __user *buf, size_t count, loff_t *ppos)
 {
 	int copy_len, available_read_len, remain;
+	unsigned char *tmp_wptr;
+
 #ifdef DEBUG
 	printk("%s\n", __func__);
 #endif
 
-	if ( wait_event_interruptible( read_q_ascii, ( pbuf0.rx_read_ascii_ptr != pbuf0.rx_write_ascii_ptr ) ) )
+#if 0
+	if ( count > 1024 * 1024 ) 
+		copy_len = 1024 * 1024;
+	else
+		copy_len = count;
+	if ( copy_to_user( buf, (long long)dma1_virt_ptr, copy_len ) ) {
+		printk( KERN_INFO "copy_to_user failed\n" );
+		return -EFAULT;
+	}
+	return copy_len;
+#endif
+
+	if ( wait_event_interruptible( read_q_ascii, ( pbuf0.rx_read_ascii_ptr != (tmp_wptr = pbuf0.rx_write_ascii_ptr) ) ) )
 		return -ERESTARTSYS;
 
-	if (pbuf0.rx_write_ascii_ptr >= pbuf0.rx_read_ascii_ptr)
-		available_read_len = (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr);
+	if (tmp_wptr >= pbuf0.rx_read_ascii_ptr)
+		available_read_len = (tmp_wptr - pbuf0.rx_read_ascii_ptr);
 	else
-		available_read_len = (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr + ASCII_BUF_MAX);
+		available_read_len = (tmp_wptr - pbuf0.rx_read_ascii_ptr + ASCII_BUF_MAX);
 
 	if (count <= available_read_len)
 		copy_len = count;
@@ -414,6 +432,16 @@ static ssize_t ethpipe_read_binary(struct file *filp, char __user *buf, size_t c
 #ifdef DEBUG
 	printk("%s\n", __func__);
 #endif
+
+	if ( count > 1024 * 1024 ) 
+		copy_len = 1024 * 1024;
+	else
+		copy_len = count;
+	if ( copy_to_user( buf, dma1_virt_ptr, copy_len ) ) {
+		printk( KERN_INFO "copy_to_user failed\n" );
+		return -EFAULT;
+	}
+	return copy_len;
 
 	if ( wait_event_interruptible( read_q_binary, ( pbuf0.rx_read_binary_ptr != pbuf0.rx_write_binary_ptr ) ) )
 		return -ERESTARTSYS;

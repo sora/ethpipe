@@ -25,7 +25,7 @@ module receiver (
 	input [21:2] dma_length,
 	input [31:2] dma_addr_start,
 	input dma_load,
-	output reg [31:2] dma_addr_cur,
+	output [31:2] dma_addr_cur,
 	// LED and Switches
 	input [7:0] dipsw,
 	output [7:0] led,
@@ -69,6 +69,8 @@ always @(posedge sys_clk) begin
 	end
 end
 	
+reg [3:0] dma_overflow_count;
+reg [31:2] dma_addr_ptr;
 reg [10:0] frame_len;
 reg [8:0] total_remain;
 reg [9:0] tlp_remain;
@@ -78,10 +80,10 @@ always @(posedge sys_clk) begin
 		sys_intr <= 1'b0;
 		dma_load_ack <= 1'b0;
 		dma_frame_ptr <= dma_addr_start;
-		dma_addr_cur <= dma_addr_start;
+		dma_overflow_count <= 4'h0;
+		dma_addr_ptr <= dma_addr_start;
 		dma_frame_in <= 1'b0;
 		dma_enable <= 1'b0;
-		dma_addr_cur <= 30'h0;
 		frame_len <= 11'h0;
 		total_remain <= 9'h0;
 		tlp_remain <= 10'h0;
@@ -111,7 +113,7 @@ always @(posedge sys_clk) begin
 					rec_status <= REC_SKIP;
 				end else if ( dma_load_req ) begin
 					dma_frame_ptr <= dma_addr_start;
-					dma_addr_cur <= dma_addr_start;
+					dma_addr_ptr <= dma_addr_start;
 					dma_load_ack <= 1'b1;
 				end
 			end
@@ -208,9 +210,10 @@ always @(posedge sys_clk) begin
 					if (!tlp_remain[0]) begin
 						total_remain <= total_remain - 10'h1;
 						if (dma_enable) begin
-							if (dma_frame_ptr == dma_addr_end)
+							if (dma_frame_ptr == dma_addr_end) begin
 								dma_frame_ptr <= dma_addr_start;
-							else
+								dma_overflow_count <= dma_overflow_count + 4'h1;
+							end else
 								dma_frame_ptr <= dma_frame_ptr + 30'h1;
 						end
 					end
@@ -233,9 +236,9 @@ always @(posedge sys_clk) begin
 			REC_FIN2: begin
 				if (dma_frame_ptr == dma_addr_end1) begin
 					dma_frame_ptr <= dma_addr_start;
-					dma_addr_cur <= dma_addr_start;
+					dma_addr_ptr <= dma_addr_start;
 				end else begin
-					dma_addr_cur <= dma_frame_ptr;
+					dma_addr_ptr <= dma_frame_ptr;
 				end
 				rec_status <= REC_IDLE;
 			end
@@ -243,6 +246,7 @@ always @(posedge sys_clk) begin
 	end
 end
 
+assign dma_addr_cur = {dma_overflow_count[3:0], dma_addr_ptr[27:2]};
 //assign led[7:0] = ~eth_dest[7:0];
 
 endmodule

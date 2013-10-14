@@ -127,6 +127,8 @@ void  tasklet_body( unsigned long value )
 	unsigned short frame_len;
 	static unsigned short hex[257], initialized = 0;
 	static long long dma1_addr_write_ascii;
+	static int dma1_overflow, mem1_overflow = -1;
+	long long dma1_value;
 	int pkt_count = 0;
 
 #ifdef DEBUG
@@ -141,7 +143,13 @@ void  tasklet_body( unsigned long value )
 		}
 		initialized = 1;
 	}
-	dma1_addr_write_ascii = *dma1_addr_cur;
+	dma1_value = (long)*dma1_addr_cur;
+	dma1_addr_write_ascii = (dma1_value & 0x0fffffff) | (dma1_phys_ptr  & 0xf0000000);
+	dma1_overflow = dma1_value >> 28;
+//printk( "dma1_addr_write_ascii = %X\n", dma1_addr_write_ascii );
+	if ( unlikely( mem1_overflow < 0 ) ) {
+		mem1_overflow = dma1_overflow;
+	}
 
 	// for ASCII Interface
 	if ( likely( open_count_ascii ) ) {
@@ -159,7 +167,8 @@ void  tasklet_body( unsigned long value )
 #endif
 			if ( unlikely(frame_len == 0 || frame_len > 1518) ) {
 				printk( "invalid: frame_len=%4d\n", frame_len );
-				dma1_addr_read_ascii = (long)*dma1_addr_cur;
+				dma1_addr_read_ascii = ((long)*dma1_addr_cur & 0x0fffffff) | (dma1_phys_ptr  & 0xf0000000);
+//printk( "dma1_addr_read_ascii = %X\n", dma1_addr_read_ascii );
 				goto lend;
 			}
 
@@ -176,8 +185,13 @@ void  tasklet_body( unsigned long value )
 			// global counter
 #ifdef USE_TIMER
 			p += 0x08;
-			if ( unlikely( p > read_end ) )
+			if ( unlikely( p > read_end ) ) {
 				p -= DMA_BUF_MAX;
+				mem1_overflow = (mem1_overflow + 1) & 0xf;
+				if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+					printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+				}
+			}
 			for ( i = 0; i < 8; ++i ) {
 				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ i > 1 ? *p : 0 ];
 				pbuf0.rx_write_ascii_ptr += 2;
@@ -188,13 +202,24 @@ void  tasklet_body( unsigned long value )
 					if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
 						pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
 				}
-				if ( unlikely( ++p > read_end ) )
+				++p;
+				if ( unlikely( p > read_end ) ) {
 					p -= DMA_BUF_MAX;
+					mem1_overflow = (mem1_overflow + 1) & 0xf;
+					if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+						printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+					}
+				}
 			}
 #else
 			p += 0x10;
-			if ( unlikely( p > read_end ) )
+			if ( unlikely( p > read_end ) ) {
 				p -= DMA_BUF_MAX;
+				mem1_overflow = (mem1_overflow + 1) & 0xf;
+				if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+					printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+				}
+			}
 #endif
 
 			// L2 header
@@ -208,8 +233,14 @@ void  tasklet_body( unsigned long value )
 					if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
 						pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
 				}
-				if ( unlikely( ++p > read_end ) )
+				++p;
+				if ( unlikely( p > read_end ) ) {
 					p -= DMA_BUF_MAX;
+					mem1_overflow = (mem1_overflow + 1) & 0xf;
+					if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+						printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+					}
+				}
 			}
 	
 			// L3 header
@@ -230,8 +261,14 @@ void  tasklet_body( unsigned long value )
 					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
 #endif
 //#endif
-				if ( unlikely( ++p > read_end ) )
+				++p;
+				if ( unlikely( p > read_end ) ) {
 					p -= DMA_BUF_MAX;
+					mem1_overflow = (mem1_overflow + 1) & 0xf;
+					if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+						printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+					}
+				}
 			}
 			if ( likely( pbuf0.rx_write_ascii_ptr != pbuf0.rx_start_ascii_ptr ) )
 				*(pbuf0.rx_write_ascii_ptr-1) = '\n';
@@ -239,14 +276,24 @@ void  tasklet_body( unsigned long value )
 				*(pbuf0.rx_end_ascii_ptr) = '\n';
 #ifdef DROP_FCS
 			p += 4;
-			if ( unlikely( p > read_end ) )
+			if ( unlikely( p > read_end ) ) {
 				p -= DMA_BUF_MAX;
+				mem1_overflow = (mem1_overflow + 1) & 0xf;
+				if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+					printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+				}
+			}
 #endif
 
 			if ( likely((long long)p & 0xf) )
 				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
-			if ( unlikely( p > read_end ) )
+			if ( unlikely( p > read_end ) ) {
 				p -= DMA_BUF_MAX;
+				mem1_overflow = (mem1_overflow + 1) & 0xf;
+				if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+					printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+				}
+			}
 			dma1_addr_read_ascii = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
 #if 0
 			if ( ++pkt_count == 1000 ) {
@@ -357,7 +404,7 @@ static int ethpipe_open_ascii(struct inode *inode, struct file *filp)
 
 	++open_count_ascii;
 
-	dma1_addr_read_ascii = (long)*dma1_addr_cur;
+	dma1_addr_read_ascii = ((long )*dma1_addr_cur & 0x0fffffff) | (dma1_phys_ptr  & 0xf0000000);
 
 	return 0;
 }

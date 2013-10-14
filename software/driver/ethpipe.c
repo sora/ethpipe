@@ -127,6 +127,7 @@ void  tasklet_body( unsigned long value )
 	unsigned short frame_len;
 	static unsigned short hex[257], initialized = 0;
 	static long long dma1_addr_write_ascii;
+	int pkt_count = 0;
 
 #ifdef DEBUG
 	printk("%s\n", __func__);
@@ -218,13 +219,16 @@ void  tasklet_body( unsigned long value )
 			for ( i = 0; i < (frame_len-14) ; ++i) {
 #endif
 //#if 0
-				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
+//				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
+				*(unsigned short *)pbuf0.rx_write_ascii_ptr = 0x3030;
 				pbuf0.rx_write_ascii_ptr += 2;
 				if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
 					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
+#if 1
 				*pbuf0.rx_write_ascii_ptr++ = ' ';
 				if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
 					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
+#endif
 //#endif
 				if ( unlikely( ++p > read_end ) )
 					p -= DMA_BUF_MAX;
@@ -239,12 +243,17 @@ void  tasklet_body( unsigned long value )
 				p -= DMA_BUF_MAX;
 #endif
 
-			if ( unlikely((long long)p & 0xf) )
+			if ( likely((long long)p & 0xf) )
 				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
 			if ( unlikely( p > read_end ) )
 				p -= DMA_BUF_MAX;
 			dma1_addr_read_ascii = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
-//			dma1_addr_read_ascii = (long)*dma1_addr_cur;
+#if 0
+			if ( ++pkt_count == 1000 ) {
+				dma1_addr_write_ascii = *dma1_addr_cur;
+				pkt_count = 0;
+			}
+#endif
 		}
 		wake_up_interruptible( &read_q_ascii );
 	}

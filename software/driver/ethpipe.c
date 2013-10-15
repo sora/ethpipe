@@ -938,7 +938,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 
 	/* set max enable interrupt cycles (@125MHz) */
 //	*(long *)(mmio0_ptr + 0x84)  = 2500000;
-	*(long *)(mmio0_ptr + 0x84)  = 2500000;
+	*(long *)(mmio0_ptr + 0x84)  = 0xffffffff;
 
 	/* Set DMA Pointer */
 	dma1_addr_start = (mmio0_ptr + 0x20);

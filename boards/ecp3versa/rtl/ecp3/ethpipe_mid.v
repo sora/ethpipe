@@ -453,10 +453,10 @@ end
 //-------------------------------------
 reg [6:0] local_time_update_pending;
 reg       local_time_update_ack;
-reg [19:0] clr_intr_val = 20'd2500000;
-reg [19:0] set_intr_val = 20'd2500000;
-reg [19:0] clr_intr_count = 20'h0;
-reg [19:0] set_intr_count = 20'h0;
+reg [31:0] clr_intr_val = 32'd2500000;
+reg [31:0] set_intr_val = 32'd2500000;
+reg [31:0] clr_intr_count = 32'h0;
+reg [31:0] set_intr_count = 32'h0;
 always @(posedge clk_125) begin
 //	if (req_intr)
 //		led <= led + 8'h1;
@@ -479,10 +479,10 @@ always @(posedge clk_125) begin
 		local_time7               <= 48'h0;
 		local_time_update_pending <= 7'b0;
 		local_time_update_ack     <= 1'b0;
-		clr_intr_val              <= 20'd2500000;
-		set_intr_val              <= 20'd2500000;
-		clr_intr_count            <= 20'h0;
-		set_intr_count            <= 20'h0;
+		clr_intr_val              <= 32'd2500000;
+		set_intr_val              <= 32'd2500000;
+		clr_intr_count            <= 32'h0;
+		set_intr_count            <= 32'h0;
 	end else begin
 
 		if (tx0local_time_req != 7'b0)
@@ -659,9 +659,11 @@ always @(posedge clk_125) begin
 					8'h41: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
-								clr_intr_val[19:16] <= slv_dat_i[11: 8];
+								clr_intr_val[23:16] <= slv_dat_i[15: 8];
+							if (slv_sel_i[0])
+								clr_intr_val[31:24] <= slv_dat_i[ 7: 0];
 						end else
-							slv_dat0_o <= {4'b00, clr_intr_val[19:16], 8'h00};
+							slv_dat0_o <= {clr_intr_val[23:16], clr_intr_val[31:24]};
 					end
 
 					// set_intr_val
@@ -677,9 +679,11 @@ always @(posedge clk_125) begin
 					8'h43: begin
 						if (slv_we_i) begin
 							if (slv_sel_i[1])
-								set_intr_val[19:16] <= slv_dat_i[11: 8];
+								set_intr_val[23:16] <= slv_dat_i[15: 8];
+							if (slv_sel_i[0])
+								set_intr_val[31:24] <= slv_dat_i[ 7: 0];
 						end else
-							slv_dat0_o <= {4'b00, set_intr_val[19:16], 8'h00};
+							slv_dat0_o <= {set_intr_val[23:16], set_intr_val[31:24]};
 					end
 
 					// local time 1 [15:0]
@@ -736,15 +740,15 @@ always @(posedge clk_125) begin
 			end else
 				slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
 		end else begin
-			if (clr_intr_count != 20'h0)
-				clr_intr_count <= clr_intr_count - 20'h1;
-			if (req_intr && clr_intr_count == 20'd0)
+			if (clr_intr_count != 32'h0)
+				clr_intr_count <= clr_intr_count - 32'h1;
+			if (req_intr && clr_intr_count == 32'd0)
 				dma_status[3] <= 1'b1;
 			else begin
 				if (dma_status[3] == 1'b1)
-					set_intr_count <= set_intr_count + 20'd1;
+					set_intr_count <= set_intr_count + 32'd1;
 				else
-					set_intr_count <= 20'h0;
+					set_intr_count <= 32'h0;
 				if (set_intr_count == set_intr_val)
 					dma_status[3] <= 1'b0;
 			end

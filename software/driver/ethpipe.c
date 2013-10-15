@@ -172,37 +172,98 @@ void  tasklet_body( unsigned long value )
 				goto lend;
 			}
 
-#if 0
-			if ( unlikely( (pbuf0.rx_write_ascii_ptr + frame_len * 3 + 0x10) > pbuf0.rx_end_ascii_ptr ) ) {
-				if (pbuf0.rx_read_ascii_ptr == pbuf0.rx_start_ascii_ptr)
-					pbuf0.rx_read_ascii_ptr = pbuf0.rx_write_ascii_ptr;
-				memcpy( pbuf0.rx_start_ascii_ptr, pbuf0.rx_read_ascii_ptr, (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr ));
-				pbuf0.rx_write_ascii_ptr = pbuf0.rx_start_ascii_ptr + (pbuf0.rx_write_ascii_ptr - pbuf0.rx_read_ascii_ptr );
-				pbuf0.rx_read_ascii_ptr = pbuf0.rx_start_ascii_ptr;
-			}
+			// check dma or ascii ring buffer overflow ?
+			if ( unlikely( ((pbuf0.rx_write_ascii_ptr + (14*2) + 3 + (frame_len-14)*3 + 0x10) > pbuf0.rx_end_ascii_ptr ) || ( ( p + frame_len + 0x10 ) > read_end ) ) ) {
+
+				// global counter
+#ifdef USE_TIMER
+				p += 0x08;
+				if ( unlikely( p > read_end ) ) {
+					p -= DMA_BUF_MAX;
+					mem1_overflow = (mem1_overflow + 1) & 0xf;
+					if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+						printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+					}
+				}
+				for ( i = 0; i < 8; ++i ) {
+					*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ i > 1 ? *p : 0 ];
+					pbuf0.rx_write_ascii_ptr += 2;
+					if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
+						pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
+					if ( unlikely( i == 7 ) ) {
+						*pbuf0.rx_write_ascii_ptr++ = ' ';
+						if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
+							pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
+					}
+					++p;
+					if ( unlikely( p > read_end ) ) {
+						p -= DMA_BUF_MAX;
+						mem1_overflow = (mem1_overflow + 1) & 0xf;
+						if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+							printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+						}
+					}
+				}
+#else
+				p += 0x10;
+				if ( unlikely( p > read_end ) ) {
+					p -= DMA_BUF_MAX;
+					mem1_overflow = (mem1_overflow + 1) & 0xf;
+					if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+						printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+					}
+				}
 #endif
 
-			// global counter
-#ifdef USE_TIMER
-			p += 0x08;
-			if ( unlikely( p > read_end ) ) {
-				p -= DMA_BUF_MAX;
-				mem1_overflow = (mem1_overflow + 1) & 0xf;
-				if ( unlikely( mem1_overflow != dma1_overflow ) ) {
-					printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+				// L2 header
+				for ( i = 0; i < 14; ++i ) {
+					*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
+					pbuf0.rx_write_ascii_ptr += 2;
+					if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
+						pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
+					if ( unlikely( i == 5 || i== 11 || i == 13 ) ) {
+						*pbuf0.rx_write_ascii_ptr++ = ' ';
+						if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
+							pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
+					}
+					++p;
+					if ( unlikely( p > read_end ) ) {
+						p -= DMA_BUF_MAX;
+						mem1_overflow = (mem1_overflow + 1) & 0xf;
+						if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+							printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+						}
+					}
 				}
-			}
-			for ( i = 0; i < 8; ++i ) {
-				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ i > 1 ? *p : 0 ];
-				pbuf0.rx_write_ascii_ptr += 2;
-				if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
-					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
-				if ( unlikely( i == 7 ) ) {
+	
+				// L3 header
+#ifdef DROP_FCS
+				for ( i = 0; i < (frame_len-14-4) ; ++i) {
+#else
+				for ( i = 0; i < (frame_len-14) ; ++i) {
+#endif
+					*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
+					pbuf0.rx_write_ascii_ptr += 2;
+					if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
+						pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
 					*pbuf0.rx_write_ascii_ptr++ = ' ';
 					if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
 						pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
+					++p;
+					if ( unlikely( p > read_end ) ) {
+						p -= DMA_BUF_MAX;
+						mem1_overflow = (mem1_overflow + 1) & 0xf;
+						if ( unlikely( mem1_overflow != dma1_overflow ) ) {
+							printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
+						}
+					}
 				}
-				++p;
+				if ( likely( pbuf0.rx_write_ascii_ptr != pbuf0.rx_start_ascii_ptr ) )
+					*(pbuf0.rx_write_ascii_ptr-1) = '\n';
+				else
+					*(pbuf0.rx_end_ascii_ptr) = '\n';
+#ifdef DROP_FCS
+				p += 4;
 				if ( unlikely( p > read_end ) ) {
 					p -= DMA_BUF_MAX;
 					mem1_overflow = (mem1_overflow + 1) & 0xf;
@@ -210,30 +271,10 @@ void  tasklet_body( unsigned long value )
 						printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
 					}
 				}
-			}
-#else
-			p += 0x10;
-			if ( unlikely( p > read_end ) ) {
-				p -= DMA_BUF_MAX;
-				mem1_overflow = (mem1_overflow + 1) & 0xf;
-				if ( unlikely( mem1_overflow != dma1_overflow ) ) {
-					printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
-				}
-			}
 #endif
 
-			// L2 header
-			for ( i = 0; i < 14; ++i ) {
-				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
-				pbuf0.rx_write_ascii_ptr += 2;
-				if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
-					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
-				if ( unlikely( i == 5 || i== 11 || i == 13 ) ) {
-					*pbuf0.rx_write_ascii_ptr++ = ' ';
-					if ( unlikely( pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr ) )
-						pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
-				}
-				++p;
+				if ( likely((long long)p & 0xf) )
+					p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
 				if ( unlikely( p > read_end ) ) {
 					p -= DMA_BUF_MAX;
 					mem1_overflow = (mem1_overflow + 1) & 0xf;
@@ -241,67 +282,58 @@ void  tasklet_body( unsigned long value )
 						printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
 					}
 				}
-			}
+				dma1_addr_read_ascii = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
+			} else {
+				// global counter
+#ifdef USE_TIMER
+				p += 0x08;
+				for ( i = 0; i < 8; ++i ) {
+					*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ i > 1 ? *p : 0 ];
+					pbuf0.rx_write_ascii_ptr += 2;
+					if ( unlikely( i == 7 ) ) {
+						*pbuf0.rx_write_ascii_ptr++ = ' ';
+					}
+					++p;
+				}
+#else
+				p += 0x10;
+#endif
+
+				// L2 header
+				for ( i = 0; i < 14; ++i ) {
+					*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
+					pbuf0.rx_write_ascii_ptr += 2;
+					if ( unlikely( i == 5 || i== 11 || i == 13 ) ) {
+						*pbuf0.rx_write_ascii_ptr++ = ' ';
+					}
+					++p;
+				}
 	
-			// L3 header
+				// L3 header
 #ifdef DROP_FCS
-			for ( i = 0; i < (frame_len-14-4) ; ++i) {
+				for ( i = 0; i < (frame_len-14-4) ; ++i) {
 #else
-			for ( i = 0; i < (frame_len-14) ; ++i) {
+				for ( i = 0; i < (frame_len-14) ; ++i) {
 #endif
-//#if 0
-//				*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
-				*(unsigned short *)pbuf0.rx_write_ascii_ptr = 0x3030;
-				pbuf0.rx_write_ascii_ptr += 2;
-				if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
-					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
-#if 1
-				*pbuf0.rx_write_ascii_ptr++ = ' ';
-				if ( unlikely(pbuf0.rx_write_ascii_ptr > pbuf0.rx_end_ascii_ptr) )
-					pbuf0.rx_write_ascii_ptr -= ASCII_BUF_MAX;
-#endif
-//#endif
-				++p;
-				if ( unlikely( p > read_end ) ) {
-					p -= DMA_BUF_MAX;
-					mem1_overflow = (mem1_overflow + 1) & 0xf;
-					if ( unlikely( mem1_overflow != dma1_overflow ) ) {
-						printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
-					}
+					*(unsigned short *)pbuf0.rx_write_ascii_ptr = hex[ *p ];
+					pbuf0.rx_write_ascii_ptr += 2;
+					*pbuf0.rx_write_ascii_ptr++ = ' ';
+					++p;
 				}
-			}
-			if ( likely( pbuf0.rx_write_ascii_ptr != pbuf0.rx_start_ascii_ptr ) )
-				*(pbuf0.rx_write_ascii_ptr-1) = '\n';
-			else
-				*(pbuf0.rx_end_ascii_ptr) = '\n';
+				if ( likely( pbuf0.rx_write_ascii_ptr != pbuf0.rx_start_ascii_ptr ) )
+					*(pbuf0.rx_write_ascii_ptr-1) = '\n';
+				else
+					*(pbuf0.rx_end_ascii_ptr) = '\n';
 #ifdef DROP_FCS
-			p += 4;
-			if ( unlikely( p > read_end ) ) {
-				p -= DMA_BUF_MAX;
-				mem1_overflow = (mem1_overflow + 1) & 0xf;
-				if ( unlikely( mem1_overflow != dma1_overflow ) ) {
-					printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
-				}
-			}
+				p += 4;
 #endif
 
-			if ( likely((long long)p & 0xf) )
-				p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
-			if ( unlikely( p > read_end ) ) {
-				p -= DMA_BUF_MAX;
-				mem1_overflow = (mem1_overflow + 1) & 0xf;
-				if ( unlikely( mem1_overflow != dma1_overflow ) ) {
-					printk( "dma1 ring overflow: mem=%d, dma=%d\n", mem1_overflow, dma1_overflow );
-				}
+				if ( likely((long long)p & 0xf) )
+					p = (unsigned char *)(((long long)p + 0xf) & 0xfffffffffffffff0);
+				dma1_addr_read_ascii = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
 			}
-			dma1_addr_read_ascii = (long long)dma1_phys_ptr + (int)(p - dma1_virt_ptr);
-#if 0
-			if ( ++pkt_count == 1000 ) {
-				dma1_addr_write_ascii = *dma1_addr_cur;
-				pkt_count = 0;
-			}
-#endif
 		}
+
 		wake_up_interruptible( &read_q_ascii );
 	}
 

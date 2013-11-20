@@ -517,10 +517,12 @@ static ssize_t ethpipe_read_ascii(struct file *filp, char __user *buf, size_t co
 static ssize_t ethpipe_read_binary(struct file *filp, char __user *buf, size_t count, loff_t *ppos)
 {
 	int copy_len, available_read_len;
+	unsigned char *tmp_wptr;
 #ifdef DEBUG
 	printk("%s\n", __func__);
 #endif
 
+#if 0
 	if ( count > 1024 * 1024 ) 
 		copy_len = 1024 * 1024;
 	else
@@ -530,12 +532,12 @@ static ssize_t ethpipe_read_binary(struct file *filp, char __user *buf, size_t c
 		return -EFAULT;
 	}
 	return copy_len;
+#endif
 
-	if ( wait_event_interruptible( read_q_binary, ( pbuf0.rx_read_binary_ptr != pbuf0.rx_write_binary_ptr ) ) )
+	if ( wait_event_interruptible( read_q_binary, ( pbuf0.rx_read_binary_ptr != (tmp_wptr = pbuf0.rx_write_binary_ptr) ) ) )
 		return -ERESTARTSYS;
 
-	available_read_len = (pbuf0.rx_write_binary_ptr - pbuf0.rx_read_binary_ptr);
-
+	available_read_len = (tmp_wptr - pbuf0.rx_read_binary_ptr);
 	if ( (pbuf0.rx_read_binary_ptr + available_read_len ) > pbuf0.rx_end_binary_ptr )
 		available_read_len = (pbuf0.rx_end_binary_ptr - pbuf0.rx_read_binary_ptr + 1);
 

@@ -152,7 +152,7 @@ void  tasklet_body( unsigned long value )
 	}
 
 	// for ASCII Interface
-	if ( likely( open_count_ascii ) ) {
+	if ( open_count_ascii ) {
 		while ( dma1_addr_write_ascii != dma1_addr_read_ascii ) {
 			unsigned char *read_ptr, *read_end, *p;
 

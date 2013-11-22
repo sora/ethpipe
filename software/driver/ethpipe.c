@@ -124,14 +124,15 @@ lend:
 
 void  tasklet_body( unsigned long value )
 {
-	int i, status;
+	int i;
+//	int status;
 	unsigned long flags;
 	unsigned short frame_len;
 	static unsigned short hex[257], initialized = 0;
 	static long long dma1_addr_write_ascii;
 	static int dma1_overflow, mem1_overflow = -1;
 	long long dma1_value;
-	int pkt_count = 0;
+//	int pkt_count = 0;
 
 #ifdef DEBUG
 	printk("%s\n", __func__);
@@ -813,15 +814,13 @@ static unsigned int ethpipe_poll_binary(struct file* filp, poll_table* wait )
 	return retmask;
 }
 
-static int ethpipe_ioctl_ascii(struct inode *inode, struct file *filp,
-			unsigned int cmd, unsigned long arg)
+static long ethpipe_ioctl_ascii(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	printk("%s\n", __func__);
 	return  -ENOTTY;
 }
 
-static int ethpipe_ioctl_binary(struct inode *inode, struct file *filp,
-			unsigned int cmd, unsigned long arg)
+static long ethpipe_ioctl_binary(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	printk("%s\n", __func__);
 	return  -ENOTTY;
@@ -949,10 +948,10 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	*(long *)(mmio0_ptr + 0x84)  = 0xffffffff;
 
 	/* Set DMA Pointer */
-	dma1_addr_start = (mmio0_ptr + 0x20);
-	dma1_addr_cur   = (mmio0_ptr + 0x24);
-	dma2_addr_start = (mmio0_ptr + 0x28);
-	dma2_addr_cur   = (mmio0_ptr + 0x2c);
+	dma1_addr_start = (long *)(mmio0_ptr + 0x20);
+	dma1_addr_cur   = (long *)(mmio0_ptr + 0x24);
+	dma2_addr_start = (long *)(mmio0_ptr + 0x28);
+	dma2_addr_cur   = (long *)(mmio0_ptr + 0x2c);
 
 	/* set DMA Buffer length */
 	*(long *)(mmio0_ptr + 0x14)  = DMA_BUF_MAX;
@@ -969,8 +968,8 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	dma2_addr_read = dma2_phys_ptr;
 
 	/* set TX slot Pointer */
-	tx_write_ptr = (mmio0_ptr + TX_WRITE_PTR_ADDRESS);
-	tx_read_ptr  = (mmio0_ptr + TX_READ_PTR_ADDRESS);
+	tx_write_ptr = (unsigned short *)(mmio0_ptr + TX_WRITE_PTR_ADDRESS);
+	tx_read_ptr  = (unsigned short *)(mmio0_ptr + TX_READ_PTR_ADDRESS);
 
 #ifdef DEBUG
 	printk( "*tx_write_ptr: %x\n", *tx_write_ptr);

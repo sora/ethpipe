@@ -8,6 +8,8 @@
 #include <linux/sched.h>	/* wait_event_interruptible, wake_up_interruptible, tasklet */
 #include <linux/interrupt.h>
 #include <linux/version.h>
+#include <linux/kobject.h>
+#include <linux/sysfs.h>
 
 MODULE_LICENSE( "GPL" );
 
@@ -69,6 +71,7 @@ static wait_queue_head_t read_q_ascii, read_q_binary;
 static int open_count_ascii = 0, open_count_binary = 0;
 
 static unsigned long long local_time1, local_time2, local_time3, local_time4, local_time5, local_time6, local_time7;
+static struct kobject *ethpipe_kobj;
 
 /* receive and transmitte buffer */
 struct _pbuf_dma {
@@ -86,6 +89,43 @@ struct _pbuf_dma {
 	unsigned char   *tx_read_ptr;	/* tx read ptr */
 	spinlock_t	lock;
 } static pbuf0={0,0,0,0,0,0,0,0};
+
+
+/* sysfs */
+
+static ssize_t local_time1_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%llX\n", local_time1);
+}
+
+static ssize_t local_time1_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	sscanf(buf, "%llX", &local_time1);
+	return count;
+}
+
+static ssize_t local_time2_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%llX\n", local_time2);
+}
+
+static ssize_t local_time2_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	sscanf(buf, "%llX", &local_time2);
+	return count;
+}
+
+static struct kobj_attribute local_time1_attribute = __ATTR(local_time1, 0666, local_time1_show, local_time1_store);
+static struct kobj_attribute local_time2_attribute = __ATTR(local_time2, 0666, local_time2_show, local_time2_store);
+
+static struct attribute *attrs[] = {
+	&local_time1_attribute.attr,
+	&local_time2_attribute.attr,
+	NULL,   /* need to NULL terminate the list of attributes */
+};
+static struct attribute_group attr_group = {
+	.attrs = attrs,
+};
 
 
 static void tasklet_body( unsigned long value );
@@ -1110,6 +1150,8 @@ static struct pci_driver ethpipe_pci_driver = {
 
 static int __init ethpipe_init(void)
 {
+	int ret;
+
 #ifdef MODULE
 	pr_info(ethpipe_DRIVER_NAME "\n");
 #endif
@@ -1120,6 +1162,16 @@ static int __init ethpipe_init(void)
 	init_waitqueue_head( &read_q_binary );
 	
 	printk("%s\n", __func__);
+
+	/* sysfs */
+	ethpipe_kobj = kobject_create_and_add("ethpipe", kernel_kobj);
+	if (!ethpipe_kobj)
+		return -ENOMEM;
+
+	ret = sysfs_create_group(ethpipe_kobj, &attr_group);
+	if (ret)
+		kobject_put(ethpipe_kobj);
+
 	return pci_register_driver(&ethpipe_pci_driver);
 }
 
@@ -1135,6 +1187,8 @@ static void __exit ethpipe_cleanup(void)
 
 	if ( dma2_virt_ptr )
 		dma_free_coherent(&pcidev->dev, DMA_BUF_MAX, dma2_virt_ptr, dma2_phys_ptr);
+
+	kobject_put(ethpipe_kobj);
 }
 
 MODULE_LICENSE("GPL");

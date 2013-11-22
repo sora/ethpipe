@@ -68,6 +68,8 @@ static wait_queue_head_t read_q_ascii, read_q_binary;
 
 static int open_count_ascii = 0, open_count_binary = 0;
 
+static unsigned long long local_time1, local_time2, local_time3, local_time4, local_time5, local_time6, local_time7;
+
 /* receive and transmitte buffer */
 struct _pbuf_dma {
 	unsigned char   *rx_start_ascii_ptr;	/* rx buf ascii start */
@@ -365,6 +367,10 @@ void  tasklet_body( unsigned long value )
 				pbuf0.rx_write_binary_ptr = pbuf0.rx_start_binary_ptr + (pbuf0.rx_write_binary_ptr - pbuf0.rx_read_binary_ptr );
 				pbuf0.rx_read_binary_ptr = pbuf0.rx_start_binary_ptr;
 			}
+
+			// magic code
+			*pbuf0.rx_write_binary_ptr++ = 0x55;
+			*pbuf0.rx_write_binary_ptr++ = 0x5d;
 
 			// length and SFD
 			for ( i = 0; i < 8; ++i ) {
@@ -1003,6 +1009,15 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	pbuf0.tx_end_ptr = (pbuf0.tx_start_ptr + ASCII_BUF_MAX - 1);
 	pbuf0.tx_write_ptr = pbuf0.tx_start_ptr;
 	pbuf0.tx_read_ptr  = pbuf0.tx_start_ptr;
+
+	/* Set sysfs pointers */
+	local_time1 = *(unsigned long long *)(mmio0_ptr + 0x100);
+	local_time2 = *(unsigned long long *)(mmio0_ptr + 0x108);
+	local_time3 = *(unsigned long long *)(mmio0_ptr + 0x110);
+	local_time4 = *(unsigned long long *)(mmio0_ptr + 0x118);
+	local_time5 = *(unsigned long long *)(mmio0_ptr + 0x120);
+	local_time6 = *(unsigned long long *)(mmio0_ptr + 0x128);
+	local_time7 = *(unsigned long long *)(mmio0_ptr + 0x130);
 
 
 	/* register ascii character device */

@@ -369,10 +369,6 @@ void  tasklet_body( unsigned long value )
 				pbuf0.rx_read_binary_ptr = pbuf0.rx_start_binary_ptr;
 			}
 
-			// magic code
-			*pbuf0.rx_write_binary_ptr++ = 0x55;
-			*pbuf0.rx_write_binary_ptr++ = 0x5d;
-
 			// length and SFD
 			for ( i = 0; i < 8; ++i ) {
 				*(unsigned char *)pbuf0.rx_write_binary_ptr = *p;

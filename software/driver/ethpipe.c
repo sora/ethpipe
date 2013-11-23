@@ -70,7 +70,8 @@ static wait_queue_head_t read_q_ascii, read_q_binary;
 
 static int open_count_ascii = 0, open_count_binary = 0;
 
-static unsigned long long local_time1, local_time2, local_time3, local_time4, local_time5, local_time6, local_time7;
+static unsigned long long *local_time1_ptr, *local_time2_ptr, *local_time3_ptr, *local_time4_ptr,
+						  *local_time5_ptr, *local_time6_ptr, *local_time7_ptr;
 static struct kobject *ethpipe_kobj;
 
 /* receive and transmitte buffer */
@@ -95,23 +96,23 @@ struct _pbuf_dma {
 
 static ssize_t local_time1_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%llX\n", local_time1);
+	return sprintf(buf, "%llX\n", *local_time1_ptr);
 }
 
 static ssize_t local_time1_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
 {
-	sscanf(buf, "%llX", &local_time1);
+	sscanf(buf, "%llX", local_time1_ptr);
 	return count;
 }
 
 static ssize_t local_time2_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return sprintf(buf, "%llX\n", local_time2);
+	return sprintf(buf, "%llX\n", *local_time2_ptr);
 }
 
 static ssize_t local_time2_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
 {
-	sscanf(buf, "%llX", &local_time2);
+	sscanf(buf, "%llX", local_time2_ptr);
 	return count;
 }
 
@@ -735,6 +736,11 @@ ethpipe_write_loop:
 		tmp_pkt[27], tmp_pkt[28]);
 #endif
 
+#ifdef DEBUG
+	printk("LOCAL_TIME1: %llX\n", *local_time1_ptr);
+	printk("LOCAL_TIME2: %llX\n", *local_time2_ptr);
+#endif
+
 	data_len = frame_len + ETHPIPE_HEADER_LEN;
 	if ( (hw_slot_addr + data_len) < (mmio1_len>>1)) {
 		memcpy(mmio1_ptr+hw_slot_addr, tmp_pkt, data_len);
@@ -1062,13 +1068,13 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	pbuf0.tx_read_ptr  = pbuf0.tx_start_ptr;
 
 	/* Set sysfs pointers */
-	local_time1 = *(unsigned long long *)(mmio0_ptr + 0x100);
-	local_time2 = *(unsigned long long *)(mmio0_ptr + 0x108);
-	local_time3 = *(unsigned long long *)(mmio0_ptr + 0x110);
-	local_time4 = *(unsigned long long *)(mmio0_ptr + 0x118);
-	local_time5 = *(unsigned long long *)(mmio0_ptr + 0x120);
-	local_time6 = *(unsigned long long *)(mmio0_ptr + 0x128);
-	local_time7 = *(unsigned long long *)(mmio0_ptr + 0x130);
+	local_time1_ptr = (unsigned long long *)(mmio0_ptr + 0x100);
+	local_time2_ptr = (unsigned long long *)(mmio0_ptr + 0x108);
+	local_time3_ptr = (unsigned long long *)(mmio0_ptr + 0x110);
+	local_time4_ptr = (unsigned long long *)(mmio0_ptr + 0x118);
+	local_time5_ptr = (unsigned long long *)(mmio0_ptr + 0x120);
+	local_time6_ptr = (unsigned long long *)(mmio0_ptr + 0x128);
+	local_time7_ptr = (unsigned long long *)(mmio0_ptr + 0x130);
 
 
 	/* register ascii character device */

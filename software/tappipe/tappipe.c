@@ -17,6 +17,8 @@
 #include <linux/if.h>  
 #include <linux/if_tun.h>  
 #include <linux/if_ether.h>
+
+#define USE_TIMER
   
 int tun_alloc(char *dev)  
 {  
@@ -51,10 +53,14 @@ int tun_alloc(char *dev)
   
 void packetout(const unsigned char *pkt, unsigned length)  
 {  
-	int i, olen;  
+	int ret, i, olen;  
 	unsigned char obuf[16000];
 	  
+#ifdef USE_TIMER
+	sprintf( obuf, "0000000000000000 00000000 %02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X %02X%02X",
+#else
 	sprintf( obuf, "%02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X %02X%02X",
+#endif
 		pkt[0x00], pkt[0x01], pkt[0x02], pkt[0x03], pkt[0x04], pkt[0x05], // dst mac address
 		pkt[0x06], pkt[0x07], pkt[0x08], pkt[0x09], pkt[0x0a], pkt[0x0b], // src mac address
 		pkt[0x0c], pkt[0x0d] );						// frame type
@@ -63,7 +69,7 @@ void packetout(const unsigned char *pkt, unsigned length)
 		sprintf(obuf+olen+(i-14)*3, " %02X", pkt[i] );
 	}
 	strcat(obuf, "\n" );
-	write (1, obuf, strlen(obuf));
+	ret = write (1, obuf, strlen(obuf));
 }  
   
 int main(int argc, char **argv)  
@@ -76,7 +82,7 @@ int main(int argc, char **argv)
 	struct ifreq ifr;  
 	struct in6_rtmsg rt;  
   
-	if (argc != 2) {  
+	if (argc < 2) {  
 		fprintf(stderr,"Usage:%s {devicename}\n",argv[0]);  
 		return 1;  
 	}  
@@ -112,6 +118,8 @@ int main(int argc, char **argv)
 		  
 	while (1) {  
 		int ret;  
+		unsigned char hdr_offset;
+
 		FD_ZERO(&fdset);  
 		FD_SET(STDIN_FILENO, &fdset);  
 		FD_SET(fd, &fdset);  
@@ -136,7 +144,11 @@ int main(int argc, char **argv)
 			frame_len = 0;
 			pos = 0;
 
+#ifdef USE_TIMER
+			for ( ptr = buf+17; ptr < cr && frame_len < 9000 ; ++ptr ) {
+#else
 			for ( ptr = buf; ptr < cr && frame_len < 9000 ; ++ptr ) {
+#endif
 				// skip space
 				if (*ptr == ' ')
 					   continue;

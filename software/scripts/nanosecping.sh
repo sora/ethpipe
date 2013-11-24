@@ -37,7 +37,7 @@ do
 			echo "pong"
 			TX_TIME=`cat /sys/kernel/ethpipe/local_time1`
 			RX_TIME=${FRAME:0:16}
-			printf "latency: %d ns\n" $(( (0x${RX_TIME} - 0x${TX_TIME}) * 8 ))
+			printf "RTT: %d ns\n" $(( (0x${RX_TIME} - 0x${TX_TIME}) * 8 ))
 			break
 		fi
 	done

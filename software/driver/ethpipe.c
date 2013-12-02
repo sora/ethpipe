@@ -10,6 +10,7 @@
 #include <linux/version.h>
 #include <linux/kobject.h>
 #include <linux/sysfs.h>
+//#include <linux/ctype.h>
 
 MODULE_LICENSE( "GPL" );
 
@@ -140,7 +141,7 @@ static irqreturn_t ethpipe_interrupt(int irq, void *pdev)
 	int status;
 	int handled = 0;
 
-#ifdef DEBUG
+#if 0
 	printk("%s\n", __func__);
 #endif
 //        spin_lock (&pbuf0.lock);
@@ -604,20 +605,17 @@ static ssize_t ethpipe_read_binary(struct file *filp, char __user *buf, size_t c
 
 static ssize_t ethpipe_write(int is_binary, struct file *filp, const char __user *buf, size_t count, loff_t *ppos)
 {
-	static unsigned char tmp_pkt[14+MAX_FRAME_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	static unsigned char tmp_pkt[ETHPIPE_HEADER_LEN+MAX_FRAME_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	unsigned int copy_len, frame_len;
 	static unsigned short hw_slot_addr = 0xffff;
-	unsigned char *cr, hdr_offset;
+	unsigned char *cr;
 	int i, data, data2;
 	short j, data_len;
+#ifdef USE_TIMER
+	unsigned char *pbuf_tx_read_ptr_tmp;
+#endif
 #ifdef DEBUG
 	unsigned char *p1;
-#endif
-
-#ifdef USE_TIMER
-	hdr_offset = 2;
-#else
-	hdr_offset = 14;
 #endif
 
 	copy_len = 0;
@@ -642,7 +640,7 @@ static ssize_t ethpipe_write(int is_binary, struct file *filp, const char __user
 		copy_len = j * 3;
 	}
 #ifdef DEBUG
-	printk( "count=%d, copy_len=%d, mmio1_free=%d\n", count, copy_len, j);
+	printk( "count=%d, copy_len=%d, mmio1_free=%d\n", (int)count, copy_len, j);
 #endif
 
 	if ( (pbuf0.tx_write_ptr + copy_len) > pbuf0.tx_end_ptr ) {
@@ -673,6 +671,11 @@ ethpipe_write_loop:
 	printk("copy_len: %d\n", (int)copy_len);
 #endif
 
+#ifdef USE_TIMER
+	pbuf_tx_read_ptr_tmp = pbuf0.tx_read_ptr;
+	pbuf0.tx_read_ptr += 17; // number of characters of the timestamp(16) + a space(1)
+#endif
+
 	frame_len = 0;
 	for ( ; pbuf0.tx_read_ptr < cr && frame_len < MAX_FRAME_LEN; ++pbuf0.tx_read_ptr ) {
 
@@ -696,23 +699,19 @@ ethpipe_write_loop:
 
 		// ascii to number
 		if (data >= '0' && data <= '9') {
-			tmp_pkt[frame_len+hdr_offset] = (data2 | (data - '0'));
+			tmp_pkt[frame_len+ETHPIPE_HEADER_LEN] = (data2 | (data - '0'));
 			++frame_len;
 		} else if (data >= 'A' && data <= 'F') {
-			tmp_pkt[frame_len+hdr_offset] = (data2 | (data - 'A' + 0xA));
+			tmp_pkt[frame_len+ETHPIPE_HEADER_LEN] = (data2 | (data - 'A' + 0xA));
 			++frame_len;
 		} else if (data >= 'a' && data <= 'f') {
-			tmp_pkt[frame_len+hdr_offset] = (data2 | (data - 'a' + 0xA));
+			tmp_pkt[frame_len+ETHPIPE_HEADER_LEN] = (data2 | (data - 'a' + 0xA));
 			++frame_len;
 		} else {
 			printk("input data err: %c\n", data);
 			goto ethpipe_write_exit;
 		}
 	}
-
-#ifdef USE_TIMER
-	frame_len -= 12;
-#endif
 
 	// set frame length
 	tmp_pkt[0] = (frame_len >> 8) & 0xFF;
@@ -722,13 +721,39 @@ ethpipe_write_loop:
 	printk( "tmp_pkt[0] = %02x, tmp_pkt[1] = %02x\n", tmp_pkt[0], tmp_pkt[1] );
 #endif
 
-#ifdef DEBUG
 #ifdef USE_TIMER
-	printk( "%02x%02x%02x%02x%02x%02x%02x%02x %02x%02x%02x%02x\n",
-		tmp_pkt[ 2], tmp_pkt[ 3], tmp_pkt[ 4], tmp_pkt[ 5], tmp_pkt[ 6], tmp_pkt[ 7], tmp_pkt[ 8], tmp_pkt[ 9],
-		tmp_pkt[10], tmp_pkt[11], tmp_pkt[12], tmp_pkt[13]);
-
+	for (i=2; i<10; i++) {
+		data = *(pbuf_tx_read_ptr_tmp++);
+		if (data >= '0' && data <= '9') {
+			data2 = (data - '0') << 4;
+		} else if (data >= 'A' && data <= 'F') {
+			data2 = (data - 'A' + 0xA) << 4;
+		} else if (data >= 'a' && data <= 'f') {
+			data2 = (data - 'a' + 0xA) << 4;
+		} else {
+			printk("input data err: %c\n", data);
+			goto ethpipe_write_exit;
+		}
+		data = *(pbuf_tx_read_ptr_tmp++);
+		if (data >= '0' && data <= '9') {
+			tmp_pkt[i] = data2 | (data - '0');
+		} else if (data >= 'A' && data <= 'F') {
+			tmp_pkt[i] = data2 | (data - 'A' + 0xA);
+		} else if (data >= 'a' && data <= 'f') {
+			tmp_pkt[i] = data2 | (data - 'a' + 0xA);
+		} else {
+			printk("input data err: %c\n", data);
+			goto ethpipe_write_exit;
+		}
+	}
+#ifdef DEBUG
+	printk( "timestamp: %02x%02x%02x%02x%02x%02x%02x%02x\n",
+		tmp_pkt[ 2], tmp_pkt[ 3], tmp_pkt[ 4], tmp_pkt[ 5], tmp_pkt[ 6], tmp_pkt[ 7],
+		tmp_pkt[ 8], tmp_pkt[ 9]);
 #endif
+#endif
+
+#ifdef DEBUG
 	printk( "%02x%02x%02x%02x%02x%02x %02x%02x%02x%02x%02x%02x %02x%02x %02x %02x\n",
 		tmp_pkt[14], tmp_pkt[15], tmp_pkt[16], tmp_pkt[17], tmp_pkt[18], tmp_pkt[19],
 		tmp_pkt[20], tmp_pkt[21], tmp_pkt[22], tmp_pkt[23], tmp_pkt[24], tmp_pkt[25],
@@ -753,7 +778,7 @@ ethpipe_write_loop:
 	hw_slot_addr &= ((mmio1_len>>1) - 1);
 
 #ifdef DEBUG
-	p1 = (unsigned short *)mmio1_ptr;
+	p1 = (unsigned char *)mmio1_ptr;
 	for (i=0;i<600;i++) {
 		if (i % 0x10 == 0)
 			printk("%04X:", i);

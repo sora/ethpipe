@@ -47,6 +47,43 @@ MODULE_LICENSE( "GPL" );
 
 //#define DEBUG
 
+#define _SKP    0x20
+
+static const unsigned char _atob[] = {
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 0-7 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 8-15 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 16-23 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 24-31 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 32-39 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 40-47 */
+	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,     /* 48-55 */
+	0x08, 0x09, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 56-63 */
+	_SKP, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, _SKP,     /* 64-71 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 72-79 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 80-87 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 88-95 */
+	_SKP, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, _SKP,     /* 96-103 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 104-111 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 112-119 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 120-127 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 128-135 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 136-143 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 144-151 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 152-159 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 160-167 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 168-175 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 176-183 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 184-191 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 192-199 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 200-207 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 208-215 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 216-223 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 224-231 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 232-239 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP,     /* 240-247 */
+	_SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP, _SKP };   /* 248-255 */
+
+
 static DEFINE_PCI_DEVICE_TABLE(ethpipe_pci_tbl) = {
 	{0x3776, 0x8001, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
 	{0,}
@@ -684,31 +721,12 @@ ethpipe_write_loop:
 			continue;
 
 		// ascii to number
-		if (data >= '0' && data <= '9') {
-			data2 =  (data - '0') << 4;
-		} else if (data >= 'A' && data <= 'F') {
-			data2 =  (data - 'A' + 0xA) << 4;
-		} else if (data >= 'a' && data <= 'f') {
-			data2 =  (data - 'a' + 0xA) << 4;
-		} else {
-			printk("input data err: %c\n", data);
-			goto ethpipe_write_exit;
-		}
-
-		data = *(++pbuf0.tx_read_ptr);
-
-		// ascii to number
-		if (data >= '0' && data <= '9') {
-			tmp_pkt[frame_len+ETHPIPE_HEADER_LEN] = (data2 | (data - '0'));
-			++frame_len;
-		} else if (data >= 'A' && data <= 'F') {
-			tmp_pkt[frame_len+ETHPIPE_HEADER_LEN] = (data2 | (data - 'A' + 0xA));
-			++frame_len;
-		} else if (data >= 'a' && data <= 'f') {
-			tmp_pkt[frame_len+ETHPIPE_HEADER_LEN] = (data2 | (data - 'a' + 0xA));
+		data2 = *(++pbuf0.tx_read_ptr);
+		if (_atob[data] != _SKP && _atob[data2] != _SKP) {
+			tmp_pkt[frame_len+ETHPIPE_HEADER_LEN] = (_atob[data] << 4) | _atob[data2];
 			++frame_len;
 		} else {
-			printk("input data err: %c\n", data);
+			printk("input data err: %c %c\n", data, data2);
 			goto ethpipe_write_exit;
 		}
 	}
@@ -723,29 +741,16 @@ ethpipe_write_loop:
 
 #ifdef USE_TIMER
 	for (i=2; i<10; i++) {
-		data = *(pbuf_tx_read_ptr_tmp++);
-		if (data >= '0' && data <= '9') {
-			data2 = (data - '0') << 4;
-		} else if (data >= 'A' && data <= 'F') {
-			data2 = (data - 'A' + 0xA) << 4;
-		} else if (data >= 'a' && data <= 'f') {
-			data2 = (data - 'a' + 0xA) << 4;
+		data  = *(pbuf_tx_read_ptr_tmp++);
+		data2 = *(pbuf_tx_read_ptr_tmp++);
+		if (_atob[data] != _SKP && _atob[data2] != _SKP) {
+			tmp_pkt[i] = (_atob[data] << 4) | _atob[data2];
 		} else {
-			printk("input data err: %c\n", data);
-			goto ethpipe_write_exit;
-		}
-		data = *(pbuf_tx_read_ptr_tmp++);
-		if (data >= '0' && data <= '9') {
-			tmp_pkt[i] = data2 | (data - '0');
-		} else if (data >= 'A' && data <= 'F') {
-			tmp_pkt[i] = data2 | (data - 'A' + 0xA);
-		} else if (data >= 'a' && data <= 'f') {
-			tmp_pkt[i] = data2 | (data - 'a' + 0xA);
-		} else {
-			printk("input data err: %c\n", data);
+			printk("input data err: %c %c\n", data, data2);
 			goto ethpipe_write_exit;
 		}
 	}
+
 #ifdef DEBUG
 	printk( "timestamp: %02x%02x%02x%02x%02x%02x%02x%02x\n",
 		tmp_pkt[ 2], tmp_pkt[ 3], tmp_pkt[ 4], tmp_pkt[ 5], tmp_pkt[ 6], tmp_pkt[ 7],

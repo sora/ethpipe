@@ -538,7 +538,9 @@ lend:
 
 static int ethpipe_open_ascii(struct inode *inode, struct file *filp)
 {
+#ifdef DEBUG
 	printk("%s\n", __func__);
+#endif
 
 	/* enanble DMA1 and DMA2 */
 	*(mmio0_ptr + 0x10)  = 0x3;
@@ -868,7 +870,9 @@ static ssize_t ethpipe_write_binary(struct file *filp, const char __user *buf, s
 
 static int ethpipe_release_ascii(struct inode *inode, struct file *filp)
 {
+#ifdef DEBUG
 	printk("%s\n", __func__);
+#endif
 
 	if ( open_count_ascii > 0 )
 		--open_count_ascii;

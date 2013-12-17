@@ -767,7 +767,16 @@ ethpipe_write_loop:
 #endif
 
 #ifdef USE_TIMER
-	for (i=2; i<10; i++) {
+	data  = *(pbuf_tx_read_ptr_tmp++);
+	data2 = *(pbuf_tx_read_ptr_tmp++);
+	if ( (data == '0' || data == '1') && _atob[data2] != _SKP) {
+		tmp_pkt[2] = (_atob[data] << 7) | (_atob[data2] << 4);
+	} else {
+		printk("input data err: %c %c\n", data, data2);
+		goto ethpipe_write_exit;
+	}
+
+	for (i=3; i<10; i++) {
 		data  = *(pbuf_tx_read_ptr_tmp++);
 		data2 = *(pbuf_tx_read_ptr_tmp++);
 		if (_atob[data] != _SKP && _atob[data2] != _SKP) {

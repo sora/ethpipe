@@ -188,14 +188,18 @@ always @(posedge gmii_tx_clk) begin
 							3'd7: local_time_req[6] <= 1'b1;
 						endcase
 					end else begin
-						if (tx_timestamp[47:0] == 48'h0) begin
-							tx_status <= TX_SENDING;
-						end else if (tx_timestamp[47:0] < global_counter[47:0]) begin
-							tx_status <= TX_SENDING;
-						end else if (global_counter[47:0] == tx_timestamp[47:0] + select_local_time( tx_timestamp[62:60],
-											local_time1, local_time2, local_time3, local_time4,
-											local_time5, local_time6, local_time7 )) begin
-							tx_status <= TX_SENDING;
+						// global time
+						if (tx_timestamp[62:60] == 4'h0) begin
+							if (global_counter[47:0] >= tx_timestamp[47:0]) begin
+								tx_status <= TX_SENDING;
+							end
+						// local time
+						end else begin
+							if (global_counter[47:0] >= tx_timestamp[47:0] + select_local_time( tx_timestamp[62:60],
+												local_time1, local_time2, local_time3, local_time4,
+												local_time5, local_time6, local_time7 )) begin
+								tx_status <= TX_SENDING;
+							end
 						end
 					end
 				end

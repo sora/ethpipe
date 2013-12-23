@@ -2,6 +2,7 @@
 
 module top  (
     input  rstn
+  , input  board_clk
   , input  FLIP_LANES
   , input  refclkp
   , input  refclkn
@@ -16,7 +17,7 @@ module top  (
   , input  reset_n
 
   // Ethernet PHY#1
-  , output phy1_rst_n
+  , output reg phy1_rst_n
   , input  phy1_125M_clk
   , input  phy1_tx_clk
   , output phy1_gtx_clk
@@ -32,7 +33,7 @@ module top  (
   , inout  phy1_mii_data
 
   // Ethernet PHY#2
-  , output phy2_rst_n
+  , output reg phy2_rst_n
   , input  phy2_125M_clk
   , input  phy2_tx_clk
   , output phy2_gtx_clk
@@ -204,7 +205,6 @@ ethpipe_mid ethpipe_mid_inst (
 
   // Ethernet PHY#1
 `ifndef ENABLE_LOOPBACK_TEST
-  , .phy1_rst_n(phy1_rst_n)
   , .phy1_125M_clk(phy1_125M_clk)
   , .phy1_tx_clk(phy1_tx_clk)
   , .phy1_gtx_clk(phy1_gtx_clk)
@@ -219,7 +219,6 @@ ethpipe_mid ethpipe_mid_inst (
   , .phy1_mii_clk(phy1_mii_clk)
   , .phy1_mii_data(phy1_mii_data)
   // Ethernet PHY#2
-  , .phy2_rst_n(phy2_rst_n)
   , .phy2_125M_clk(phy2_125M_clk)
   , .phy2_tx_clk(phy2_tx_clk)
   , .phy2_gtx_clk(phy2_gtx_clk)
@@ -234,7 +233,6 @@ ethpipe_mid ethpipe_mid_inst (
   , .phy2_mii_clk(phy2_mii_clk)
   , .phy2_mii_data(phy2_mii_data)
 `else
-  , .phy1_rst_n(phy1_rst_n)
   , .phy1_125M_clk(phy1_125M_clk)
   , .phy1_tx_clk(phy1_tx_clk)
   , .phy1_gtx_clk(phy1_gtx_clk)
@@ -249,7 +247,6 @@ ethpipe_mid ethpipe_mid_inst (
   , .phy1_mii_clk(phy2_mii_clk)
   , .phy1_mii_data(phy2_mii_data)
   // Ethernet PHY#2
-  , .phy2_rst_n()
   , .phy2_125M_clk()
   , .phy2_tx_clk()
   , .phy2_gtx_clk()
@@ -271,11 +268,22 @@ ethpipe_mid ethpipe_mid_inst (
 //-------------------------------------
 // PYH cold reset
 //-------------------------------------
-reg [9:0] coldsys_rst = 0;
-wire coldsys_rst520 = (coldsys_rst==10'd520);
-always @(posedge clk_125)
-    coldsys_rst <= !coldsys_rst520 ? coldsys_rst + 10'd1 : 10'd520;
-assign phy1_rst_n = coldsys_rst520 & reset_n;
-assign phy2_rst_n = coldsys_rst520 & reset_n;
-
+reg [7:0] count_rst = 8'd0;
+always @(posedge board_clk) begin
+    if (reset_n == 1'b0) begin
+        phy1_rst_n <= 1'b0;
+        phy2_rst_n <= 1'b0;
+        count_rst <= 8'b0000_0000;
+    end else begin
+        if (count_rst[7:0] != 8'b1111_1101) begin
+            count_rst <= count_rst + 8'd1;
+            phy1_rst_n <= 1'b0;
+            phy2_rst_n <= 1'b0;
+        end else begin
+            phy1_rst_n <= reset_n;
+            phy2_rst_n <= reset_n;
+        end
+    end
+end
+        
 endmodule

@@ -31,7 +31,6 @@ module ethpipe_mid  (
   , output nph_cr
   , output npd_cr
   // Ethernet PHY#1
-  , output phy1_rst_n
   , input  phy1_125M_clk
   , input  phy1_tx_clk
   , output phy1_gtx_clk
@@ -47,7 +46,6 @@ module ethpipe_mid  (
   , inout  phy1_mii_data
 
   // Ethernet PHY#2
-  , output phy2_rst_n
   , input  phy2_125M_clk
   , input  phy2_tx_clk
   , output phy2_gtx_clk

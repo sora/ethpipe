@@ -142,6 +142,7 @@ static wait_queue_head_t read_q_ascii, read_q_binary;
 
 static int open_count_ascii = 0, open_count_binary = 0;
 
+static unsigned long long *global_time_ptr;
 static unsigned long long *local_time1_ptr, *local_time2_ptr, *local_time3_ptr, *local_time4_ptr,
 						  *local_time5_ptr, *local_time6_ptr, *local_time7_ptr;
 static struct kobject *ethpipe_kobj;
@@ -166,6 +167,19 @@ struct _pbuf_dma {
 
 /* sysfs */
 
+static ssize_t global_time_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%llX\n", *global_time_ptr);
+}
+
+#if 0
+static ssize_t global_time_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	sscanf(buf, "%llX", global_time_ptr);
+	return count;
+}
+#endif
+
 static ssize_t local_time1_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%llX\n", *local_time1_ptr);
@@ -188,10 +202,12 @@ static ssize_t local_time2_store(struct kobject *kobj, struct kobj_attribute *at
 	return count;
 }
 
+static struct kobj_attribute global_time_attribute = __ATTR(global_time, 0666, global_time_show, NULL);
 static struct kobj_attribute local_time1_attribute = __ATTR(local_time1, 0666, local_time1_show, local_time1_store);
 static struct kobj_attribute local_time2_attribute = __ATTR(local_time2, 0666, local_time2_show, local_time2_store);
 
 static struct attribute *attrs[] = {
+	&global_time_attribute.attr,
 	&local_time1_attribute.attr,
 	&local_time2_attribute.attr,
 	NULL,   /* need to NULL terminate the list of attributes */
@@ -1138,6 +1154,7 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	pbuf0.tx_read_ptr  = pbuf0.tx_start_ptr;
 
 	/* Set sysfs pointers */
+	global_time_ptr = (unsigned long long *)(mmio0_ptr + 0x4);
 	local_time1_ptr = (unsigned long long *)(mmio0_ptr + 0x100);
 	local_time2_ptr = (unsigned long long *)(mmio0_ptr + 0x108);
 	local_time3_ptr = (unsigned long long *)(mmio0_ptr + 0x110);

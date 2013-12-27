@@ -2,6 +2,7 @@ module gmii2fifo18 # (
 	parameter Gap = 4'h2
 ) (
 	input sys_rst,
+	input global_clk,
 	input [63:0] global_counter,
 	input gmii_rx_clk,
 	input gmii_rx_dv,
@@ -23,10 +24,29 @@ parameter STATE_SFD  = 1'h0;
 parameter STATE_DATA = 1'h1;
 reg state;
 
-reg [63:0] global_counter_latch;
+reg [47:0] global_counter_latch;
 reg [2:0] sfd_count;
 reg [15:0] frame_len;
 reg data_odd;
+
+reg gmii_rx_dv0 = 1'b0, gmii_rx_dv1 = 1'b0, gmii_rx_dv2 = 1'b0, gmii_rx_dv3 = 1'b0;
+
+always @(posedge global_clk) begin
+	if (sys_rst) begin
+		gmii_rx_dv0 <= 1'b0;
+		gmii_rx_dv1 <= 1'b0;
+		gmii_rx_dv2 <= 1'b0;
+		gmii_rx_dv3 <= 1'b0;
+	end begin
+		gmii_rx_dv0 <= gmii_rx_dv;
+		gmii_rx_dv1 <= gmii_rx_dv0;
+		gmii_rx_dv2 <= gmii_rx_dv1;
+		gmii_rx_dv3 <= gmii_rx_dv2;
+		if ({gmii_rx_dv3, gmii_rx_dv2, gmii_rx_dv1} == 3'b011) begin
+			global_counter_latch[47:0] <= {8'h00, global_counter[39:0]};
+		end
+	end
+end
 
 //-----------------------------------
 // logic
@@ -56,8 +76,8 @@ always @(posedge gmii_rx_clk) begin
 					frame_len <= 16'h8;
 					rxd[17:16] <= 2'b11;
 					case (sfd_count)
-						3'h0: rxd[15:8] <= global_counter_latch[63:56];
-						3'h1: rxd[ 7:0] <= global_counter_latch[55:48];
+						3'h0: rxd[15:8] <= 8'h00;
+						3'h1: rxd[ 7:0] <= 8'h00;
 						3'h2: rxd[15:8] <= global_counter_latch[47:40];
 						3'h3: rxd[ 7:0] <= global_counter_latch[39:32];
 						3'h4: rxd[15:8] <= global_counter_latch[31:24];
@@ -82,7 +102,6 @@ always @(posedge gmii_rx_clk) begin
 				end
 			endcase
 		end else begin
-			global_counter_latch[63:0] <= global_counter[63:0];
 			sfd_count <= 3'h0;
 			state <= STATE_SFD;
 			if (state == STATE_DATA) begin

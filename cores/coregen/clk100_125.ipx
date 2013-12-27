@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DiamondModule name="clk100_125" module="PLL" VendorName="Lattice Semiconductor Corporation" generator="IPexpress" date="2013 12 27 22:05:07.364" version="5.4" type="Module" synthesis="synplify" source_format="Verilog">
+  <Package>
+		<File name="clk100_125.lpc" type="lpc" modified="2013 12 27 22:05:04.712"/>
+		<File name="clk100_125.v" type="top_level_verilog" modified="2013 12 27 22:05:04.743"/>
+		<File name="clk100_125_tmpl.v" type="template_verilog" modified="2013 12 27 22:05:04.743"/>
+  </Package>
+</DiamondModule>

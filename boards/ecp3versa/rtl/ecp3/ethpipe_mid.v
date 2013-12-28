@@ -3,7 +3,7 @@
 `include "setup.v"
 
 module ethpipe_mid  (
-    input  clk_125
+    input  pcie_clk
   , input  global_clk
   , input  sys_rst
   , output sys_intr
@@ -71,7 +71,7 @@ wire wr_mstq_empty, wr_mstq_rd_en;
 
 fifo fifo_wr_mstq (
 	.Data(wr_mstq_din),
-	.Clock(clk_125),
+	.Clock(pcie_clk),
 	.WrEn(wr_mstq_wr_en),
 	.RdEn(wr_mstq_rd_en),
 	.Reset(sys_rst),
@@ -88,7 +88,7 @@ wire rx1_phyq_empty, rx1_phyq_rd_en;
 afifo18 afifo18_rx1_phyq (
 	.Data(rx1_phyq_din),
 	.WrClock(phy1_rx_clk),
-	.RdClock(clk_125),
+	.RdClock(pcie_clk),
 	.WrEn(rx1_phyq_wr_en),
 	.RdEn(rx1_phyq_rd_en),
 	.Reset(sys_rst),
@@ -107,7 +107,7 @@ wire rx2_phyq_empty, rx2_phyq_rd_en;
 afifo18 afifo18_rx2_phyq (
 	.Data(rx2_phyq_din),
 	.WrClock(phy2_rx_clk),
-	.RdClock(clk_125),
+	.RdClock(pcie_clk),
 	.WrEn(rx2_phyq_wr_en),
 	.RdEn(rx2_phyq_rd_en),
 	.Reset(sys_rst),
@@ -126,7 +126,7 @@ wire rx1_lenq_empty, rx1_lenq_rd_en;
 afifo18_7 afifo18_rx1_lenq (
 	.Data(rx1_lenq_din),
 	.WrClock(phy1_rx_clk),
-	.RdClock(clk_125),
+	.RdClock(pcie_clk),
 	.WrEn(rx1_lenq_wr_en),
 	.RdEn(rx1_lenq_rd_en),
 	.Reset(sys_rst),
@@ -140,7 +140,7 @@ afifo18_7 afifo18_rx1_lenq (
 afifo18_7 afifo18_rx2_lenq (
 	.Data(rx2_lenq_din),
 	.WrClock(phy2_rx_clk),
-	.RdClock(clk_125),
+	.RdClock(pcie_clk),
 	.WrEn(rx2_lenq_wr_en),
 	.RdEn(rx2_lenq_rd_en),
 	.Reset(sys_rst),
@@ -212,7 +212,7 @@ reg dma1_load, dma2_load;
 
 pcie_tlp inst_pcie_tlp (
   // System
-    .pcie_clk(clk_125)
+    .pcie_clk(pcie_clk)
   , .sys_rst(sys_rst)
   // Management
   , .rx_bar_hit(rx_bar_hit)
@@ -278,7 +278,7 @@ wire btn;
 wire req_intr;
 `ifdef ENABLE_RECEIVER
 receiver receiver_phy1 (
-	.sys_clk(clk_125),
+	.sys_clk(pcie_clk),
 	.sys_rst(sys_rst),
 	.sys_intr(req_intr),
 	// Phy FIFO
@@ -330,8 +330,8 @@ ram_dp_true tx0_mem (
   , .ByteEnB(tx0mem_byte_enB)
   , .AddressA(slv_adr_i[14:1])
   , .AddressB(tx0mem_addressB)
-  , .ClockA(clk_125)
-  , .ClockB(clk_125)
+  , .ClockA(pcie_clk)
+  , .ClockB(pcie_clk)
   , .ClockEnA(slv_ce_i & slv_bar_i[2] & ~slv_adr_i[15])
   , .ClockEnB(tx0mem_enB)
   , .WrA(slv_we_i)
@@ -350,8 +350,8 @@ ram_dp_true tx1_mem (
   , .ByteEnB(tx1mem_byte_enB)
   , .AddressA(slv_adr_i[14:1])
   , .AddressB(tx1mem_addressB)
-  , .ClockA(clk_125)
-  , .ClockB(clk_125)
+  , .ClockA(pcie_clk)
+  , .ClockB(pcie_clk)
   , .ClockEnA(slv_ce_i & slv_bar_i[2] & slv_adr_i[15])
   , .ClockEnB(1'b1)
   , .WrA(slv_we_i)
@@ -376,7 +376,7 @@ sender sender_phy1_ins (
 
   , .global_counter(global_counter)
 
-  , .gmii_tx_clk(clk_125)
+  , .gmii_tx_clk(pcie_clk)
   , .gmii_txd(phy1_tx_data)
   , .gmii_tx_en(phy1_tx_en)
   , .slot_tx_eth_data(tx0mem_dataB)
@@ -409,7 +409,7 @@ sender sender_phy2_ins (
 
   , .global_counter(global_counter)
 
-  , .gmii_tx_clk(clk_125)
+  , .gmii_tx_clk(pcie_clk)
   , .gmii_txd(phy2_tx_data)
   , .gmii_tx_en(phy2_tx_en)
   , .slot_tx_eth_data(tx1mem_dataB)
@@ -436,10 +436,10 @@ sender sender_phy2_ins (
 
 assign phy1_mii_clk  = 1'b0;
 assign phy1_mii_data = 1'b0;
-assign phy1_gtx_clk  = clk_125;
+assign phy1_gtx_clk  = pcie_clk;
 assign phy2_mii_clk  = 1'b0;
 assign phy2_mii_data = 1'b0;
-assign phy2_gtx_clk  = clk_125;
+assign phy2_gtx_clk  = pcie_clk;
 
 // Global counter
 always @(posedge global_clk) begin
@@ -458,7 +458,7 @@ reg [31:0] clr_intr_val = 32'd2500000;
 reg [31:0] set_intr_val = 32'd2500000;
 reg [31:0] clr_intr_count = 32'h0;
 reg [31:0] set_intr_count = 32'h0;
-always @(posedge clk_125) begin
+always @(posedge pcie_clk) begin
 //	if (req_intr)
 //		led <= led + 8'h1;
 	if (sys_rst == 1'b1) begin

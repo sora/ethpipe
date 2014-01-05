@@ -1,0 +1,82 @@
+digraph G {
+    graph [rankdir=TB];
+    node[shape=record];
+
+	// clocks
+	subgraph cluster_clock {
+		label="Clocks";
+		labelloc=t;
+		labeljust=l;
+
+		board_clk[shape=ellipse];
+		refclkp[shape=ellipse];
+		refclkn[shape=ellipse];
+		phy1_125M_clk[shape=ellipse];
+		phy1_tx_clk[shape=ellipse];
+		phy1_rx_clk[shape=ellipse];
+	}
+
+	subgraph cluster_top {
+		label="top";
+		labelloc=t;
+		labeljust=l;
+
+		pcie_clk[shape=ellipse];
+		DCM125M_clk[shape=ellipse];
+
+		PCI_Reset_management[shape=plaintext];
+		PHY_cold_reset[shape=plaintext];
+
+	}
+	pcie_clk -> PCI_Reset_management;
+	board_clk -> PHY_cold_reset;
+	board_clk -> clk100_125_inst;
+	clk100_125_inst -> DCM125M_clk;
+	refclkp -> pcie;
+	refclkn -> pcie;
+	pcie -> pcie_clk;
+
+	subgraph cluster_ethpipe_mid_inst {
+		label="ethpipe_mid_inst";
+		labelloc=t;
+		labeljust=l;
+
+		Global_counter[shape=plaintext];
+		PCI_IO_memory_mapping[shape=plaintext];
+	}
+	DCM125M_clk -> Global_counter;
+	pcie_clk -> PCI_IO_memory_mapping;
+
+	pcie_clk -> fifo_wr_mstq;
+	phy1_rx_clk -> afifo18_rx1_phyq;
+	pcie_clk -> afifo18_rx1_phyq;
+	phy1_rx_clk -> afifo18_rx1_lenq;
+	pcie_clk -> afifo18_rx1_lenq;
+	DCM125M_clk -> rx1gmii2fifo;
+	phy1_rx_clk -> rx1gmii2fifo;
+	pcie_clk -> inst_pcie_tlp;
+	pcie_clk -> tx0_mem;
+
+	subgraph cluster_receiver_phy1 {
+		label="receiver_phy1";
+		labelloc=t;
+		labeljust=l;
+
+		DMA_load_req[shape=plaintext];
+		Receiver_main[shape=plaintext];
+	}
+	pcie_clk -> DMA_load_req;
+	pcie_clk -> Receiver_main;
+
+
+	subgraph cluster_sender_phy1_ins {
+		label="sender_phy1_ins";
+		labelloc=t;
+		labeljust=l;
+
+		Sender_main[shape=plaintext];
+	}
+	pcie_clk -> Sender_main;
+
+}
+

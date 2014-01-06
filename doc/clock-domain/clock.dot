@@ -52,9 +52,6 @@ digraph G {
 	pcie_clk -> afifo18_rx1_phyq;
 	phy1_rx_clk -> afifo18_rx1_lenq;
 	pcie_clk -> afifo18_rx1_lenq;
-	DCM125M_clk -> rx1gmii2fifo;
-	phy1_rx_clk -> rx1gmii2fifo;
-	pcie_clk -> inst_pcie_tlp;
 	pcie_clk -> tx0_mem;
 
 	subgraph cluster_receiver_phy1 {
@@ -68,7 +65,6 @@ digraph G {
 	pcie_clk -> DMA_load_req;
 	pcie_clk -> Receiver_main;
 
-
 	subgraph cluster_sender_phy1_ins {
 		label="sender_phy1_ins";
 		labelloc=t;
@@ -78,5 +74,33 @@ digraph G {
 	}
 	pcie_clk -> Sender_main;
 
+	subgraph cluster_inst_pcie_tlp {
+		label="inst_pcie_tlp";
+		labelloc=t;
+		labeljust=l;
+
+		TLP_receive[shape=plaintext];
+		TLP_transmit[shape=plaintext];
+		Slave_Seaquencer[shape=plaintext];
+		Master_Seaquencer[shape=plaintext];
+	}
+	pcie_clk -> TLP_receive;
+	pcie_clk -> TLP_transmit;
+	pcie_clk -> Slave_Seaquencer;
+	pcie_clk -> Master_Seaquencer;
+
+	subgraph cluster_rx1gmii2fifo {
+		label="rx1gmii2fifo";
+		labelloc=t;
+		labeljust=l;
+
+		RX_dv[shape=plaintext];
+		Gmii2fifo18_main[shape=plaintext];
+	}
+
+	DCM125M_clk -> RX_dv;
+	phy1_rx_clk -> Gmii2fifo18_main;
+
 }
+
 

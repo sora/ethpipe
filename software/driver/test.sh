@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -16,10 +16,16 @@ printf "0000000000000000 $pkt\n" >/dev/ethpipe/0
 echo "Test 2"
 a=`cat /sys/kernel/ethpipe/local_time1`
 printf "1100000000000000 $pkt\n" >/dev/ethpipe/0
-echo -n "After: local_time1: "
 b=`cat /sys/kernel/ethpipe/local_time1`
 if [[ $a == $b ]]; then
     echo "Test 2: Failed"
+    exit 1
+fi
+
+### Test 3
+a=`cat /sys/kernel/ethpipe/global_time`
+if [[ $a == "0" ]]; then
+    echo "Test 3: Failed"
     exit 1
 fi
 

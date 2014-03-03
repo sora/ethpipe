@@ -3,86 +3,46 @@
 # usage: bridge.sh </dev/ethpipe/0
 #
 MY_PORT="0"
-MAC_LEARNING=""
 TEMP_DIR="/tmp/"
-MAC_LEARNING_FILE=$TEMP_DIR/MAC$MY_PORT.txt
-MAC0_LEARNING_FILE=$TEMP_DIR/MAC0.txt;
-MAC1_LEARNING_FILE=$TEMP_DIR/MAC1.txt;
-MAC2_LEARNING_FILE=$TEMP_DIR/MAC2.txt;
-MAC3_LEARNING_FILE=$TEMP_DIR/MAC3.txt;
-
-touch ${MAC0_LEARNING_FILE}{,.chk}
-touch ${MAC1_LEARNING_FILE}{,.chk}
-touch ${MAC2_LEARNING_FILE}{,.chk}
-touch ${MAC3_LEARNING_FILE}{,.chk}
 
 while true
 do
     read FRAME
+    if [ $? == 1 ]; then
+        exit
+    fi
 
     DMAC=${FRAME:0:12}
     SMAC=${FRAME:13:12}
 
     # regist SMAC LEARNING TABLE
-    if [[ ! "$MAC_LEARNING" =~ "$SMAC" ]]; then
-        MAC_LEARNING=$MAC_LEARNING":"$SMAC
-        echo "Regist $SMAC (MAC_LEARNING=$MAC_LEARNING)"
-        echo $MAC_LEARNING > $MAC_LEARNING_FILE
+    if [ ! -f $TEMP_DIR$SMAC ]; then
+        if [ $((0x$SMAC & 0x010000000000)) -eq 0 ]; then
+            echo $MY_PORT  > $TEMP_DIR$SMAC
+        fi
     fi
 
-    # forwarding
-    if [ $((0x$DMAC & 0x010000000000)) -ne 0 ]; then
-       echo "Multicast or Broadcast message"
-       # transmit to any other port
-
-       if [ ! $MY_PORT == "0" ]; then
-           echo $FRAME >/dev/ethpipe/0
-       fi
-       if [ ! $MY_PORT == "1" ]; then
-           echo $FRAME >/dev/ethpipe/1
-       fi
-       if [ ! $MY_PORT == "2" ]; then
-           echo $FRAME >/dev/ethpipe/2
-       fi
-       if [ ! $MY_PORT == "3" ]; then
-           echo $FRAME >/dev/ethpipe/3
-       fi
+    # search port number by DMAC
+    if [ -f $TEMP_DIR$DMAC ]; then
+        exec 3< $TEMP_DIR$DMAC
+        read PORT 0<&3
+#       echo $DMAC $PORT
+        exec 3<&-
+        echo $FRAME >/dev/ethpipe/$PORT
     else
-       echo "Unicast message"
-       # search port number by DMAC
-
-       if [ ${MAC0_LEARNING_FILE} -nt ${MAC0_LEARNING_FILE}.chk ]; then
-           MAC0_LEARNING=`cat $MAC0_LEARNING_FILE`
-           touch ${MAC0_LEARNING_FILE}.chk
-       fi
-       if [[ "$MAC0_LEARNING" =~ "$DMAC" ]]; then
-           echo $FRAME >/dev/ethpipe/0
-       fi
-
-       if [ ${MAC1_LEARNING_FILE} -nt ${MAC1_LEARNING_FILE}.chk ]; then
-           MAC1_LEARNING=`cat $MAC1_LEARNING_FILE`
-           touch ${MAC1_LEARNING_FILE}.chk
-       fi
-       if [[ "$MAC1_LEARNING" =~ "$DMAC" ]]; then
-           echo $FRAME >/dev/ethpipe/1
-       fi
-
-       if [ ${MAC2_LEARNING_FILE} -nt ${MAC2_LEARNING_FILE}.chk ]; then
-           MAC2_LEARNING=`cat $MAC2_LEARNING_FILE`
-           touch ${MAC2_LEARNING_FILE}.chk
-       fi
-       if [[ "$MAC2_LEARNING" =~ "$DMAC" ]]; then
-           echo $FRAME >/dev/ethpipe/2
-       fi
-
-       if [ ${MAC3_LEARNING_FILE} -nt ${MAC3_LEARNING_FILE}.chk ]; then
-           MAC3_LEARNING=`cat $MAC3_LEARNING_FILE`
-           touch ${MAC3_LEARNING_FILE}.chk
-       fi
-       if [[ "$MAC3_LEARNING" =~ "$DMAC" ]]; then
-           echo $FRAME >/dev/ethpipe/3
-       fi
+        # flooding
+        if [ ! $MY_PORT == "0" ]; then
+            echo $FRAME >/dev/ethpipe/0
+        fi
+        if [ ! $MY_PORT == "1" ]; then
+            echo $FRAME >/dev/ethpipe/1
+        fi
+        if [ ! $MY_PORT == "2" ]; then
+            echo $FRAME >/dev/ethpipe/2
+        fi
+        if [ ! $MY_PORT == "3" ]; then
+            echo $FRAME >/dev/ethpipe/3
+        fi
     fi
-#break
 done
 

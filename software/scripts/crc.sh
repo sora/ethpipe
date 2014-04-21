@@ -1,4 +1,5 @@
 #!/bin/bash
+# usage: cat ./pkt | ./crc.sh
 
 set -eu
 

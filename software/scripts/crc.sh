@@ -14,14 +14,9 @@ udp_fmt="^(.{17})\ ([[:xdigit:]]{2}\ [[:xdigit:]]{2})\ (.+)$"
 i=0
 ret=''
 
-eth_hdr=''
-eth_type=''
-ip4_hdr=''
-ip4_hdrlen=0
-ip4_proto=0
-
-pkt_before=''
-pkt_after=''
+eth_hdr=''; eth_type=''
+ip4_hdr=''; ip4_hdrlen=0; ip4_proto=0
+pkt_before=''; pkt_after=''
 
 calc_checksum () {
   data="$1"

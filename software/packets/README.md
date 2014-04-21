@@ -1,2 +1,2 @@
-*.apkt: packet data for ASCII interface
-*.bpkt: packet data for binary interface
+* apkt: packet data for ASCII interface
+* bpkt: packet data for binary interface

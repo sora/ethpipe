@@ -17,7 +17,6 @@ ret=''
 eth_hdr=''
 eth_type=''
 ip4_hdr=''
-#ip4_crc=''
 ip4_hdrlen=0
 ip4_proto=0
 
@@ -58,8 +57,8 @@ calc_checksum () {
 
   # calc
   crc=$(( ~(($sum & 0xFFFF) + ($sum >> 16)) & 0xFFFF ))
-  wcrc=`printf "%04X" $crc`
-  printf "%s %s" ${wcrc:0:2} ${wcrc:2:2}
+  crcw=`printf "%04X" $crc`
+  printf "%s %s" ${crcw:0:2} ${crcw:2:2}
 }
 
 # main

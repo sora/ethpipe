@@ -3,13 +3,11 @@
 
 set -eu
 
-eth_fmt="^[[:xdigit:]]{16}\ [[:xdigit:]]{12}\ [[:xdigit:]]{12}\ ([[:xdigit:]]{4})"
-#eth_fmt="^[[:xdigit:]]{12}\ [[:xdigit:]]{12}\ ([[:xdigit:]]{4})"
-ip4_fmt="^([[:xdigit:]])([[:xdigit:]])\ (.{23})\ ([[:xdigit:]]{2})\ ([[:xdigit:]]{2}\ [[:xdigit:]]{2})\ (.{23})"
-
-ip4crc_fmt="^(.{29})\ 00\ 00\ (.+)$"
-icmp_fmt="^(.{5})\ ([[:xdigit:]]{2}\ [[:xdigit:]]{2})\ (.+)$"
-udp_fmt="^(.{17})\ ([[:xdigit:]]{2}\ [[:xdigit:]]{2})\ (.+)$"
+ethhdr_fmt="$(cat ../format/ts+ethhdr.fmt)"
+ip4hdr_fmt="$(cat ../format/ip4hdr.fmt)"
+icmphdr_fmt="$(cat ../format/icmphdr.fmt)"
+udphdr_fmt="$(cat ../format/udphdr.fmt)"
+payload_fmt="$(cat ../format/payload.fmt)"
 
 i=0
 ret=''
@@ -61,18 +59,18 @@ while read -s pkt; do
   ip4_proto=0
 
   # check ethernet format
-  if [[ ! $pkt =~ $eth_fmt ]]; then
+  if [[ ! $pkt =~ ^${ethhdr_fmt} ]]; then
     echo "crc.sh: Can't perse the ethernet header"
     exit 1
   fi
   pkt=${pkt/${BASH_REMATCH[0]}\ /}
   eth_hdr=${BASH_REMATCH[0]}
-  eth_type=${BASH_REMATCH[1]}
+  eth_type=${BASH_REMATCH[4]}
 
   # IPv4 heaer
   if [[ $eth_type == "0800" ]]; then
     # IPv4 header
-    if [[ $pkt =~ $ip4_fmt ]]; then
+    if [[ $pkt =~ ^${ip4hdr_fmt} ]]; then
       pkt=${pkt/${BASH_REMATCH[0]}\ /}
       pkt_before="${BASH_REMATCH[1]}${BASH_REMATCH[2]} ${BASH_REMATCH[3]} ${BASH_REMATCH[4]}"
       pkt_after="${BASH_REMATCH[6]}"
@@ -110,9 +108,9 @@ while read -s pkt; do
   # ICMP packet
   if [[ $ip4_proto == 1 ]]; then
     # clear ICMP checksum field
-    if [[ $pkt =~ $icmp_fmt ]]; then
-      pkt_before=${BASH_REMATCH[1]}
-      pkt_after=${BASH_REMATCH[3]}
+    if [[ $pkt =~ ^${icmphdr_fmt}\ ${payload_fmt}$ ]]; then
+      pkt_before=${BASH_REMATCH[1]} ${BASH_REMATCH[2]}
+      pkt_after=${BASH_REMATCH[4]}
       pkt="${pkt_before} 00 00 ${pkt_after}"
       ret=`calc_checksum "$pkt"`
       echo $eth_hdr $ip4_hdr $pkt_before $ret $pkt_after
@@ -123,7 +121,7 @@ while read -s pkt; do
   # UDP packet (only zero padding)
   elif [[ $ip4_proto == 17 ]]; then
     # clear UDP checksum field
-    if [[ $pkt =~ $udp_fmt ]]; then
+    if [[ $pkt =~ ^${udphdr_fmt}\ ${payload_fmt}$ ]]; then
       pkt_before=${BASH_REMATCH[1]}
       pkt_after=${BASH_REMATCH[3]}
       pkt="${pkt_before} 00 00 ${pkt_after}"

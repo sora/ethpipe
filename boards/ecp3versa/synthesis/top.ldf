@@ -4,6 +4,7 @@
     <Implementation title="impl1" dir="impl1" description="impl1" default_strategy="Strategy1">
         <Options>
             <Option name="HDL type" value="Verilog"/>
+            <Option name="def_top" value="afifo18_7"/>
             <Option name="top" value="top"/>
         </Options>
         <Source name="../rtl/ecp3/ethpipe_top.v" type="Verilog" type_short="Verilog">

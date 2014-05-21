@@ -310,13 +310,13 @@ receiver receiver_phy1 (
 // sender slot (A: PCIe, B: Ethernet PHY)
 wire [15:0] tx0mem_dataB;
 wire [ 1:0] tx0mem_byte_enB;
-wire [13:0] tx0mem_addressB;
+wire [15:0] tx0mem_addressB;
 wire        tx0mem_enB;
 wire        tx0mem_wr_enB;
 wire [15:0] tx0mem_qB;
 wire [15:0] tx1mem_dataB;
 wire [ 1:0] tx1mem_byte_enB;
-wire [13:0] tx1mem_addressB;
+wire [15:0] tx1mem_addressB;
 wire        tx1mem_wr_enB;
 wire [15:0] tx1mem_qB;
 `ifdef ENABLE_TRANSMITTER
@@ -325,11 +325,11 @@ ram_dp_true tx0_mem (
   , .DataInB(tx0mem_dataB)
   , .ByteEnA(slv_sel_i)
   , .ByteEnB(tx0mem_byte_enB)
-  , .AddressA(slv_adr_i[14:1])
+  , .AddressA(slv_adr_i[16:1])
   , .AddressB(tx0mem_addressB)
   , .ClockA(clk_125)
   , .ClockB(clk_125)
-  , .ClockEnA(slv_ce_i & slv_bar_i[2] & ~slv_adr_i[15])
+  , .ClockEnA(slv_ce_i & slv_bar_i[2] & ~slv_adr_i[17])
   , .ClockEnB(tx0mem_enB)
   , .WrA(slv_we_i)
   , .WrB(tx0mem_wr_enB)
@@ -345,11 +345,11 @@ ram_dp_true tx1_mem (
   , .DataInB(tx1mem_dataB)
   , .ByteEnA(slv_sel_i)
   , .ByteEnB(tx1mem_byte_enB)
-  , .AddressA(slv_adr_i[14:1])
+  , .AddressA(slv_adr_i[16:1])
   , .AddressB(tx1mem_addressB)
   , .ClockA(clk_125)
   , .ClockB(clk_125)
-  , .ClockEnA(slv_ce_i & slv_bar_i[2] & slv_adr_i[15])
+  , .ClockEnA(slv_ce_i & slv_bar_i[2] & slv_adr_i[17])
   , .ClockEnB(1'b1)
   , .WrA(slv_we_i)
   , .WrB(tx1mem_wr_enB)
@@ -361,10 +361,10 @@ ram_dp_true tx1_mem (
 `endif
 `endif
 
-wire [13:0] tx0mem_rd_ptr;
-reg  [13:0] tx0mem_wr_ptr;
-wire [13:0] tx1mem_rd_ptr;
-reg  [13:0] tx1mem_wr_ptr;
+wire [15:0] tx0mem_rd_ptr;
+reg  [15:0] tx0mem_wr_ptr;
+wire [15:0] tx1mem_rd_ptr;
+reg  [15:0] tx1mem_wr_ptr;
 wire [ 6:0] tx0local_time_req;
 wire [ 6:0] tx1local_time_req;
 `ifdef ENABLE_TRANSMITTER
@@ -466,8 +466,8 @@ always @(posedge clk_125) begin
 		dma2_addr_start           <= ( 32'h1010_0000 >> 2 );
 		dma1_load                 <= 1'b0;
 		dma2_load                 <= 1'b0;
-		tx0mem_wr_ptr             <= 14'h0;
-		tx1mem_wr_ptr             <= 14'h0;
+		tx0mem_wr_ptr             <= 16'h0;
+		tx1mem_wr_ptr             <= 16'h0;
 		local_time1               <= 48'h0;
 		local_time2               <= 48'h0;
 		local_time3               <= 48'h0;
@@ -621,9 +621,9 @@ always @(posedge clk_125) begin
 							if (slv_sel_i[1])
 								tx0mem_wr_ptr[ 7:0] <= slv_dat_i[15: 8];
 							if (slv_sel_i[0])
-								tx0mem_wr_ptr[13:8] <= slv_dat_i[ 5: 0];
+								tx0mem_wr_ptr[15:8] <= slv_dat_i[ 7: 0];
 						end else
-							slv_dat0_o <= {tx0mem_wr_ptr[7:0], 2'b00, tx0mem_wr_ptr[13:8]};
+							slv_dat0_o <= {tx0mem_wr_ptr[7:0], tx0mem_wr_ptr[15:8]};
 					end
 					// TX1 write ptr
 					8'h19: begin
@@ -631,17 +631,17 @@ always @(posedge clk_125) begin
 							if (slv_sel_i[1])
 								tx1mem_wr_ptr[ 7:0] <= slv_dat_i[15: 8];
 							if (slv_sel_i[0])
-								tx1mem_wr_ptr[13:8] <= slv_dat_i[ 5: 0];
+								tx1mem_wr_ptr[15:8] <= slv_dat_i[ 7: 0];
 						end else
-							slv_dat0_o <= {tx1mem_wr_ptr[7:0], 2'b00, tx1mem_wr_ptr[13:8]};
+							slv_dat0_o <= {tx1mem_wr_ptr[7:0], tx1mem_wr_ptr[15:8]};
 					end
 					// TX0 read ptr
 					8'h1a: begin
-						slv_dat0_o <= {tx0mem_rd_ptr[7:0], 2'b00, tx0mem_rd_ptr[13:8]};
+						slv_dat0_o <= {tx0mem_rd_ptr[7:0], tx0mem_rd_ptr[15:8]};
 					end
 					// TX1 read ptr
 					8'h1b: begin
-						slv_dat0_o <= {tx1mem_rd_ptr[7:0], 2'b00, tx1mem_rd_ptr[13:8]};
+						slv_dat0_o <= {tx1mem_rd_ptr[7:0], tx1mem_rd_ptr[15:8]};
 					end
 
 					// clr_intr_val
@@ -781,7 +781,7 @@ end
 assign sys_intr = dma_status[3];
 assign led[7:0] = ~dma_status[7:0];
 
-assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[15]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[15]}} & slv_dat2_o );
+assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[17]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[17]}} & slv_dat2_o );
 
 
 endmodule

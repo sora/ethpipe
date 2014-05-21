@@ -15,13 +15,13 @@ module sender (
   // TX frame slot
   , output      [15:0] slot_tx_eth_data
   , output      [ 1:0] slot_tx_eth_byte_en
-  , output wire [13:0] slot_tx_eth_addr
+  , output wire [15:0] slot_tx_eth_addr
   , output reg         slot_tx_eth_en
   , output             slot_tx_eth_wr_en
   , input  wire [15:0] slot_tx_eth_q
 
-  , input  wire [13:0] mem_wr_ptr
-  , output reg  [13:0] mem_rd_ptr
+  , input  wire [15:0] mem_wr_ptr
+  , output reg  [15:0] mem_rd_ptr
 
   , input  wire [47:0] local_time1
   , input  wire [47:0] local_time2
@@ -100,7 +100,7 @@ reg [15:0] tx_frame_len;
 reg [63:0] tx_timestamp;
 reg [31:0] tx_hash;
 reg [15:0] tx_data_tmp;
-reg [13:0] rd_ptr;
+reg [15:0] rd_ptr;
 
 /* packet sender logic */
 always @(posedge gmii_tx_clk) begin
@@ -114,8 +114,8 @@ always @(posedge gmii_tx_clk) begin
 		tx_timestamp   <= 64'b0;
 		tx_hash        <= 32'b0;
 		tx_data_tmp    <= 16'b0;
-		rd_ptr         <= 14'b0;
-		mem_rd_ptr     <= 14'b0;
+		rd_ptr         <= 16'b0;
+		mem_rd_ptr     <= 16'b0;
 		crc_rd         <= 1'b0;
 		slot_tx_eth_en <= 1'b0;
 		// debug
@@ -147,17 +147,17 @@ always @(posedge gmii_tx_clk) begin
 					slot_tx_eth_en <= 1'b0;
 			end
 			TX_MEMWAIT: begin
-					rd_ptr         <= rd_ptr + 14'h1;
+					rd_ptr         <= rd_ptr + 16'h1;
 					tx_status      <= TX_HDR_LOAD;
 			end
 			TX_HDR_LOAD: begin
 				if (hdr_load_count != 4'd6) begin
 					hdr_load_count <= hdr_load_count + 4'd1;
 					if (rd_ptr != mem_wr_ptr)
-						rd_ptr <= rd_ptr + 14'h1;
+						rd_ptr <= rd_ptr + 16'h1;
 				end
 
-				
+
 				case (hdr_load_count)
 					4'd0: tx_frame_len[15: 0] <= slot_tx_eth_q;
 					4'd1: tx_timestamp[63:48] <= slot_tx_eth_q;
@@ -207,7 +207,7 @@ always @(posedge gmii_tx_clk) begin
 			TX_SENDING: begin
 				/* transmit counter */
 				tx_counter <= tx_counter + 14'd1;
-				
+
 				// gmii_tx_en
 				gmii_tx_en     <= 1'b1;
 
@@ -233,7 +233,7 @@ always @(posedge gmii_tx_clk) begin
 									gmii_txd    <= slot_tx_eth_q[15:8];
 									tx_data_tmp <= slot_tx_eth_q;
 									if (rd_ptr != mem_wr_ptr)
-										rd_ptr <= rd_ptr + 14'h1;
+										rd_ptr <= rd_ptr + 16'h1;
 							end else begin
 									gmii_txd <= tx_data_tmp[7:0];
 							end
@@ -288,13 +288,13 @@ always @* begin
 		8'h07: led = ~tx_timestamp[63:56];
 		// mem_wr_ptr
 		8'h10: led = ~mem_wr_ptr[ 7: 0];
-		8'h11: led = ~{ 2'b0, mem_wr_ptr[13: 8] };
+		8'h11: led = ~mem_wr_ptr[15: 8];
 		// mem_rd_ptr
 		8'h12: led = ~mem_rd_ptr[ 7: 0];
-		8'h13: led = ~{ 2'b0, mem_rd_ptr[13: 8] };
+		8'h13: led = ~mem_rd_ptr[15: 8];
 		// rd_ptr
 		8'h14: led = ~rd_ptr[ 7: 0];
-		8'h15: led = ~{ 2'b0, rd_ptr[13: 8] };
+		8'h15: led = ~rd_ptr[15: 8];
 		// tx_status and debug
 		8'h20: led = ~{ debug5, debug4, debug3, debug2, debug1, tx_status[2:0] };
 		// IFG_count

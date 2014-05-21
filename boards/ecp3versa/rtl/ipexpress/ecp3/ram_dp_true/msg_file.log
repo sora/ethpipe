@@ -1,5 +1,5 @@
 SCUBA, Version Diamond_2.2_Production (99)
-Wed Jul 17 17:34:38 2013
+Wed May 21 17:15:35 2014
   
 Copyright (c) 1991-1994 by NeoCAD Inc. All rights reserved.
 Copyright (c) 1995 AT&T Corp.   All rights reserved.
@@ -9,12 +9,12 @@ Copyright (c) 2002-2013 Lattice Semiconductor Corporation,  All rights reserved.
   
 BEGIN SCUBA Module Synthesis
   
-    Issued command   : C:\lscc\diamond\2.2\ispfpga\bin\nt\scuba.exe -w -n ram_dp_true -lang verilog -synth synplify -bus_exp 7 -bb -arch ep5c00 -type ramdp -device LFE3-35EA -aaddr_width 14 -widtha 16 -baddr_width 14 -widthb 16 -anum_words 16384 -bnum_words 16384 -byte 8 -writemodeA NORMAL -writemodeB NORMAL -cascade -1 -e 
+    Issued command   : C:\lscc\diamond\2.2_x64\ispfpga\bin\nt64\scuba.exe -w -n ram_dp_true -lang verilog -synth synplify -bus_exp 7 -bb -arch ep5c00 -type ramdp -device LFE3-35EA -aaddr_width 16 -widtha 16 -baddr_width 16 -widthb 16 -anum_words 65536 -bnum_words 65536 -byte 8 -writemodeA NORMAL -writemodeB NORMAL -cascade -1 -e 
     Circuit name     : ram_dp_true
     Module type      : RAM_DP_TRUE
     Module Version   : 7.2
     Ports            : 
-    Inputs       : DataInA[15:0], DataInB[15:0], ByteEnA[1:0], ByteEnB[1:0], AddressA[13:0], AddressB[13:0], ClockA, ClockB, ClockEnA, ClockEnB, WrA, WrB, ResetA, ResetB
+    Inputs       : DataInA[15:0], DataInB[15:0], ByteEnA[1:0], ByteEnB[1:0], AddressA[15:0], AddressB[15:0], ClockA, ClockB, ClockEnA, ClockEnB, WrA, WrB, ResetA, ResetB
     Outputs      : QA[15:0], QB[15:0]
     I/O buffer       : not inserted
     EDIF output      : suppressed
@@ -25,9 +25,9 @@ BEGIN SCUBA Module Synthesis
     Bus notation     : big endian
     Report output    : ram_dp_true.srp
     Estimated Resource Usage:
-            LUT : 162
-            EBR : 16
-            Reg : 8
+            LUT : 866
+            EBR : 64
+            Reg : 12
   
 END   SCUBA Module Synthesis
 

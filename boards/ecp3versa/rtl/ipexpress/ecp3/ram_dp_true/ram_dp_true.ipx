@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DiamondModule name="ram_dp_true" module="ram_dp_true" VendorName="Lattice Semiconductor Corporation" generator="IPexpress" date="2013 07 17 17:34:41.356" version="7.2" type="Module" synthesis="synplify" source_format="Verilog HDL">
+<DiamondModule name="ram_dp_true" module="ram_dp_true" VendorName="Lattice Semiconductor Corporation" generator="IPexpress" date="2014 05 21 17:15:37.574" version="7.2" type="Module" synthesis="synplify" source_format="Verilog HDL">
   <Package>
-		<File name="" type="mem" modified="2013 07 17 17:34:40.000"/>
-		<File name="ram_dp_true.lpc" type="lpc" modified="2013 07 17 17:34:37.000"/>
-		<File name="ram_dp_true.v" type="top_level_verilog" modified="2013 07 17 17:34:37.000"/>
-		<File name="ram_dp_true_tmpl.v" type="template_verilog" modified="2013 07 17 17:34:37.000"/>
-		<File name="tb_ram_dp_true_tmpl.v" type="testbench_verilog" modified="2013 07 17 17:34:37.000"/>
+		<File name="" type="mem" modified="2014 05 21 17:15:37.402"/>
+		<File name="ram_dp_true.lpc" type="lpc" modified="2014 05 21 17:15:35.749"/>
+		<File name="ram_dp_true.v" type="top_level_verilog" modified="2014 05 21 17:15:35.936"/>
+		<File name="ram_dp_true_tmpl.v" type="template_verilog" modified="2014 05 21 17:15:35.936"/>
+		<File name="tb_ram_dp_true_tmpl.v" type="testbench_verilog" modified="2014 05 21 17:15:35.936"/>
   </Package>
 </DiamondModule>

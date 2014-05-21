@@ -1,5 +1,5 @@
 SCUBA, Version Diamond_2.2_Production (99)
-Tue Jul 16 15:43:25 2013
+Wed May 21 17:15:50 2014
 
 Copyright (c) 1991-1994 by NeoCAD Inc. All rights reserved.
 Copyright (c) 1995 AT&T Corp.   All rights reserved.
@@ -7,7 +7,7 @@ Copyright (c) 1995-2001 Lucent Technologies Inc.  All rights reserved.
 Copyright (c) 2001 Agere Systems   All rights reserved.
 Copyright (c) 2002-2013 Lattice Semiconductor Corporation,  All rights reserved.
 
-    Issued command   : C:\lscc\diamond\2.2\ispfpga\bin\nt\scuba.exe -w -n afifo18 -lang verilog -synth synplify -bus_exp 7 -bb -arch ep5c00 -type fifodc -addr_width 13 -data_width 18 -num_words 8192 -rdata_width 18 -no_enable -pe -1 -pf -1 -e 
+    Issued command   : C:\lscc\diamond\2.2_x64\ispfpga\bin\nt64\scuba.exe -w -n afifo18 -lang verilog -synth synplify -bus_exp 7 -bb -arch ep5c00 -type fifodc -addr_width 11 -data_width 18 -num_words 2048 -rdata_width 18 -no_enable -pe -1 -pf -1 -e 
     Circuit name     : afifo18
     Module type      : ebfifo
     Module Version   : 5.5
@@ -23,21 +23,20 @@ Copyright (c) 2002-2013 Lattice Semiconductor Corporation,  All rights reserved.
     Bus notation     : big endian
     Report output    : afifo18.srp
     Element Usage    :
-          AGEB2 : 14
+          AGEB2 : 12
            AND2 : 2
-            CU2 : 14
+            CU2 : 12
          FADD2B : 6
         FD1P3BX : 2
-        FD1P3DX : 84
+        FD1P3DX : 70
         FD1S3BX : 1
-        FD1S3DX : 57
+        FD1S3DX : 49
             INV : 2
-          MUX41 : 18
             OR2 : 1
-       ROM16X1A : 38
-           XOR2 : 26
-         DP16KC : 8
+       ROM16X1A : 32
+           XOR2 : 22
+         DP16KC : 2
     Estimated Resource Usage:
-            LUT : 153
-            EBR : 8
-            Reg : 144
+            LUT : 117
+            EBR : 2
+            Reg : 122

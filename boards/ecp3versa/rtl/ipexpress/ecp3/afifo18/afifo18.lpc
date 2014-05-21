@@ -16,8 +16,8 @@ CoreRevision=5.5
 ModuleName=afifo18
 SourceFormat=Verilog HDL
 ParameterFileVersion=1.0
-Date=07/16/2013
-Time=15:43:25
+Date=05/21/2014
+Time=17:15:50
 
 [Parameters]
 Verilog=1
@@ -28,9 +28,9 @@ Expression=BusA(0 to 7)
 Order=Big Endian [MSB:LSB]
 IO=0
 FIFOImp=EBR Based
-Depth=8192
+Depth=2048
 Width=18
-RDepth=8192
+RDepth=2048
 RWidth=18
 regout=0
 CtrlByRdEn=0

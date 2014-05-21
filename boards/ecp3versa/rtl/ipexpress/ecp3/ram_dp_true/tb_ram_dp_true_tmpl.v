@@ -5,8 +5,8 @@ module tb;
     reg [15:0] DataInB = 16'b0;
     reg [1:0] ByteEnA = 2'b0;
     reg [1:0] ByteEnB = 2'b0;
-    reg [13:0] AddressA = 14'b0;
-    reg [13:0] AddressB = 14'b0;
+    reg [15:0] AddressA = 16'b0;
+    reg [15:0] AddressB = 16'b0;
     reg ClockA = 0;
     reg ClockB = 0;
     reg ClockEnA = 0;
@@ -34,7 +34,7 @@ module tb;
        DataInA <= 0;
       #100;
       @(ResetA == 1'b0);
-      for (i1 = 0; i1 < 16387; i1 = i1 + 1) begin
+      for (i1 = 0; i1 < 65539; i1 = i1 + 1) begin
         @(posedge ClockA);
         #1  DataInA <= DataInA + 1'b1;
       end
@@ -45,7 +45,7 @@ module tb;
       #100;
       @(ResetB == 1'b0);
       @(WrB == 1'b1);
-      for (i2 = 0; i2 < 16387; i2 = i2 + 1) begin
+      for (i2 = 0; i2 < 65539; i2 = i2 + 1) begin
         @(posedge ClockB);
         #1  DataInB <= DataInB + 1'b1;
       end
@@ -55,7 +55,7 @@ module tb;
        AddressA <= 0;
       #100;
       @(ResetA == 1'b0);
-      for (i5 = 0; i5 < 32774; i5 = i5 + 1) begin
+      for (i5 = 0; i5 < 131078; i5 = i5 + 1) begin
         @(posedge ClockA);
         #1  AddressA <= AddressA + 1'b1;
       end
@@ -66,7 +66,7 @@ module tb;
       #100;
       @(ResetB == 1'b0);
       @(WrB == 1'b1);
-      for (i6 = 0; i6 < 32774; i6 = i6 + 1) begin
+      for (i6 = 0; i6 < 131078; i6 = i6 + 1) begin
         @(posedge ClockB);
         #1  AddressB <= AddressB + 1'b1;
       end
@@ -95,7 +95,7 @@ module tb;
     begin
        WrA <= 1'b0;
       @(ResetA == 1'b0);
-      for (i11 = 0; i11 < 16387; i11 = i11 + 1) begin
+      for (i11 = 0; i11 < 65539; i11 = i11 + 1) begin
         @(posedge ClockA);
         #1  WrA <= 1'b1;
       end
@@ -107,10 +107,10 @@ module tb;
       @(ResetB == 1'b0);
       @(WrA == 1'b1);
       @(WrA == 1'b0);
-      for (i12 = 0; i12 < 16387; i12 = i12 + 1) begin
+      for (i12 = 0; i12 < 65539; i12 = i12 + 1) begin
         @(posedge ClockA);
       end
-      for (i12 = 0; i12 < 16387; i12 = i12 + 1) begin
+      for (i12 = 0; i12 < 65539; i12 = i12 + 1) begin
         @(posedge ClockB);
         #1  WrB <= 1'b1;
       end

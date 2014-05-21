@@ -16,8 +16,8 @@ CoreRevision=7.2
 ModuleName=ram_dp_true
 SourceFormat=Verilog HDL
 ParameterFileVersion=1.0
-Date=07/17/2013
-Time=17:34:37
+Date=05/21/2014
+Time=17:15:35
 
 [Parameters]
 Verilog=1
@@ -27,8 +27,8 @@ Destination=Synplicity
 Expression=BusA(0 to 7)
 Order=Big Endian [MSB:LSB]
 IO=0
-AAddress=16384
-BAddress=16384
+AAddress=65536
+BAddress=65536
 AData=16
 BData=16
 enByte=1

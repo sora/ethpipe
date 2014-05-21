@@ -4,7 +4,6 @@
 
 module ethpipe_mid  (
     input  clk_125
-  , input  global_clk
   , input  sys_rst
   , output sys_intr
   , input  [7:0] dipsw
@@ -156,7 +155,6 @@ gmii2fifo18 # (
 	.Gap(4'h4)
 ) rx1gmii2fifo (
 	.sys_rst(sys_rst),
-	.global_clk(global_clk),
 	.global_counter(global_counter),
 	.gmii_rx_clk(phy1_rx_clk),
 	.gmii_rx_dv(phy1_rx_dv),
@@ -176,7 +174,6 @@ gmii2fifo18 # (
 	.Gap(4'h4)
 ) rx2gmii2fifo (
 	.sys_rst(sys_rst),
-	.global_clk(global_clk),
 	.global_counter(global_counter),
 	.gmii_rx_clk(phy2_rx_clk),
 	.gmii_rx_dv(phy2_rx_dv),
@@ -442,7 +439,7 @@ assign phy2_mii_data = 1'b0;
 assign phy2_gtx_clk  = clk_125;
 
 // Global counter
-always @(posedge global_clk) begin
+always @(posedge clk_125) begin
 	if (sys_rst == 1'b1)
 		global_counter <= 64'h0;
 	else

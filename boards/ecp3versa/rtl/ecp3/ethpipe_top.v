@@ -67,22 +67,6 @@ wire [12:0] tx_ca_npd;
 wire [8:0] tx_ca_cplh;
 wire [12:0] tx_ca_cpld;
 wire clk_125;
-
-
-//////////////////////////////////////
-//
-//  Generate Clock 125MHz for GMII
-//
-/////////////////////////////////////
-
-wire DCM125M_clk;
-
-clk100_125 clk100_125_inst (
-	.CLK(board_clk),
-	.CLKOP(DCM125M_clk),
-	.LOCK()
-);
-
 // PCI Reset management
 always @(posedge clk_125 or negedge rstn) begin
    if (!rstn) begin
@@ -192,7 +176,6 @@ pcie_top pcie (
 ethpipe_mid ethpipe_mid_inst (
   // System
     .clk_125(clk_125)
-  , .global_clk(DCM125M_clk)
   , .sys_rst(sys_rst)
   , .sys_intr(sys_intr)
 

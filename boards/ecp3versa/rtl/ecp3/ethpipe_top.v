@@ -66,7 +66,7 @@ wire [8:0] tx_ca_nph;
 wire [12:0] tx_ca_npd;
 wire [8:0] tx_ca_cplh;
 wire [12:0] tx_ca_cpld;
-wire pcie_clk;
+wire clk_125;
 
 
 //////////////////////////////////////
@@ -84,7 +84,7 @@ clk100_125 clk100_125_inst (
 );
 
 // PCI Reset management
-always @(posedge pcie_clk or negedge rstn) begin
+always @(posedge clk_125 or negedge rstn) begin
    if (!rstn) begin
        rstn_cnt   <= 21'd0;
        sys_rst_n <= 1'b0;
@@ -103,7 +103,7 @@ wire sys_intr;
 pcie_top pcie (
     .refclkp                    ( refclkp )
   , .refclkn                    ( refclkn )
-  , .sys_clk_125                ( pcie_clk )
+  , .sys_clk_125                ( clk_125 )
   , .ext_reset_n                ( rstn )
   , .rstn                       ( sys_rst_n )
   , .flip_lanes                 ( FLIP_LANES )
@@ -191,7 +191,7 @@ pcie_top pcie (
 
 ethpipe_mid ethpipe_mid_inst (
   // System
-    .pcie_clk(pcie_clk)
+    .clk_125(clk_125)
   , .global_clk(DCM125M_clk)
   , .sys_rst(sys_rst)
   , .sys_intr(sys_intr)

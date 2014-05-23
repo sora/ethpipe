@@ -133,8 +133,8 @@ static long *dma1_addr_start, *dma2_addr_start;
 static long *dma1_addr_cur, *dma2_addr_cur;
 static long long dma1_addr_read_ascii, dma1_addr_read_binary, dma2_addr_read;
 
-static unsigned short *tx_write_ptr;
-static unsigned short *tx_read_ptr;
+static int *tx_write_ptr;
+static int *tx_read_ptr;
 
 static struct pci_dev *pcidev = NULL;
 static wait_queue_head_t write_q_ascii, write_q_binary;
@@ -689,21 +689,20 @@ static ssize_t ethpipe_write(int is_binary, struct file *filp, const char __user
 {
 	static unsigned char tmp_pkt[ETHPIPE_HEADER_LEN+MAX_FRAME_LEN] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	unsigned int copy_len, frame_len;
-	static unsigned short hw_slot_addr = 0xffff;
+	static int hw_slot_addr;
 	unsigned char *cr;
-	int i, data, data2;
-	short j, data_len;
+	int i, j, data, data2;
+	short data_len, init_flg = 1;
 #ifdef USE_TIMER
 	unsigned char *pbuf_tx_read_ptr_tmp;
-#endif
-#ifdef DEBUG
-	unsigned char *p1;
 #endif
 
 	copy_len = 0;
 
-	if (hw_slot_addr == 0xffff)
+	if (init_flg == 1) {
 		hw_slot_addr = *tx_write_ptr << 1;
+		init_flg = 0;
+	}
 
 	// mmio1 read ptr
 	i = *tx_read_ptr << 1;
@@ -721,6 +720,7 @@ static ssize_t ethpipe_write(int is_binary, struct file *filp, const char __user
 	} else {
 		copy_len = j * 3;
 	}
+
 #ifdef DEBUG
 	printk( "count=%d, copy_len=%d, mmio1_free=%d\n", (int)count, copy_len, j);
 #endif
@@ -835,19 +835,6 @@ ethpipe_write_loop:
 
 	hw_slot_addr += (data_len + 1) & 0xfffffffe;
 	hw_slot_addr &= ((mmio1_len>>1) - 1);
-
-#ifdef DEBUG
-	p1 = (unsigned char *)mmio1_ptr;
-	for (i=0;i<600;i++) {
-		if (i % 0x10 == 0)
-			printk("%04X:", i);
-		printk(" %02X%02X", *p1 & 0xFF, (*p1>>8) & 0xFF);
-		if (i % 0x10 == 0xF)
-			printk("\n");
-		p1++;
-	}
-	printk("\n");
-#endif
 
 #ifdef DEBUG
 	printk( "hw_slot_addr: %d\n", hw_slot_addr );
@@ -1112,8 +1099,8 @@ static int __devinit ethpipe_init_one (struct pci_dev *pdev,
 	dma2_addr_read = dma2_phys_ptr;
 
 	/* set TX slot Pointer */
-	tx_write_ptr = (unsigned short *)(mmio0_ptr + TX_WRITE_PTR_ADDRESS);
-	tx_read_ptr  = (unsigned short *)(mmio0_ptr + TX_READ_PTR_ADDRESS);
+	tx_write_ptr = (int *)(mmio0_ptr + TX_WRITE_PTR_ADDRESS);
+	tx_read_ptr  = (int *)(mmio0_ptr + TX_READ_PTR_ADDRESS);
 
 #ifdef DEBUG
 	printk( "*tx_write_ptr: %x\n", *tx_write_ptr);

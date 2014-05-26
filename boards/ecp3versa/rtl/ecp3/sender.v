@@ -37,12 +37,6 @@ module sender (
   , input  wire [ 7:0] dipsw
 );
 
-reg debug1;
-reg debug2;
-reg debug3;
-reg debug4;
-reg debug5;
-
 function [47:0] select_local_time;
 	input [ 2:0] sel;
 	input [47:0] time1;
@@ -118,12 +112,6 @@ always @(posedge gmii_tx_clk) begin
 		mem_rd_ptr     <= 16'b0;
 		crc_rd         <= 1'b0;
 		slot_tx_eth_en <= 1'b0;
-		// debug
-		debug1         <= 1'b0;
-		debug2         <= 1'b0;
-		debug3         <= 1'b0;
-		debug4         <= 1'b0;
-		debug5         <= 1'b0;
 	end else begin
 
 		local_time_req <= 7'b0;
@@ -268,13 +256,6 @@ assign slot_tx_eth_byte_en = 2'b00;
 assign slot_tx_eth_wr_en = 1'b0;
 assign slot_tx_eth_addr = rd_ptr;
 
-//assign led[7:0] = ~{ debug1, debug2, debug3, debug4, debug5, tx_status[2:0] };
-//assign led[7:0] = ~tx_frame_len[7:0];
-//assign led[7:0] = ~rd_ptr[7:0];
-//assign led[7:0] = ~debug_counter[7:0];
-//assign led[7:0] = ~tx_counter[7:0];
-//assign led[7:0] = ~{ 1'b1, hdr_load_count[3:0], tx_status[2:0] };
-
 always @* begin
 	case (dipsw)
 		// tx_timestamp
@@ -296,7 +277,7 @@ always @* begin
 		8'h14: led = ~rd_ptr[ 7: 0];
 		8'h15: led = ~rd_ptr[15: 8];
 		// tx_status and debug
-		8'h20: led = ~{ debug5, debug4, debug3, debug2, debug1, tx_status[2:0] };
+		// 8'h20: led = ~{ debug5, debug4, debug3, debug2, debug1, tx_status[2:0] };
 		// IFG_count
 		8'h30: led = ~{ 4'b0, IFG_count[3:0] };
 		// hdr_load_count
@@ -317,17 +298,6 @@ always @* begin
 		end
 	endcase
 end
-
-/*
-assign led[0] = (tx_status == TX_IDLE)     ? 1'b0 : 1'b1;
-assign led[1] = (tx_status == TX_HDR_LOAD) ? 1'b0 : 1'b1;
-assign led[2] = (tx_status == TX_SENDING)  ? 1'b0 : 1'b1;
-assign led[3] = (tx_status == TX_FCS_1)    ? 1'b0 : 1'b1;
-assign led[4] = (tx_status == TX_FCS_2)    ? 1'b0 : 1'b1;
-assign led[5] = (tx_status == TX_FCS_3)    ? 1'b0 : 1'b1;
-assign led[6] = ~debug3;
-assign led[7] = ~debug4;
-*/
 
 endmodule
 

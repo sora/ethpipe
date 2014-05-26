@@ -37,8 +37,8 @@ module sender (
   , input  wire [ 7:0] dipsw
 
   // interrupts
-  // 0: 50% space is free, 1: 25% space is free
-  , output reg [ 1:0] txfifo_free_space_ratio_reg
+  // 50% space is free
+  , output reg txfifo_free
 );
 
 function [47:0] select_local_time;
@@ -305,31 +305,18 @@ end
 
 // interrupts
 wire [15:0] txfifo_free_space = mem_rd_ptr - mem_wr_ptr;
-
-reg [1:0] txfifo_free_space_ratio_pre;
+reg [1:0] txfifo_free_pre;
 always @(posedge gmii_tx_clk) begin
   if (sys_rst) begin
-    txfifo_free_space_ratio_pre <= 2'b00;
-    txfifo_free_space_ratio_reg <= 2'b00;
+    txfifo_free_pre <= 2'b00;
+    txfifo_free <= 1'b0;
   end else begin
-    case(txfifo_free_space_ratio_pre)
-      2'b10: begin
-        if (txfifo_free_space == 2'b01) begin
-          // when free space become 50%
-          txfifo_free_space_ratio_reg <= 2'b01;
-        end
-      end
-      2'b11: begin
-        if (txfifo_free_space == 2'b10) begin
-          // when free space become 75%
-          txfifo_free_space_ratio_reg <= 2'b10;
-        end
-      end
-      default: begin
-        txfifo_free_space_ratio_reg <= 2'b00;
-      end
-    endcase
-    txfifo_free_space_ratio_pre <= txfifo_free_space[15:14];
+    txfifo_free <= 1'b0;
+    // when free space become 50%
+    if (txfifo_free_pre == 2'b10 && txfifo_free_space[15:14] == 2'b01) begin
+      txfifo_free <= 1'b1;
+    end
+    txfifo_free_pre <= txfifo_free_space[15:14];
   end
 end
 

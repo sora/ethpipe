@@ -6,7 +6,6 @@ module ethpipe_mid  (
     input  clk_125
   , input  sys_rst
   , output sys_intr
-  , output wire tx_intr
   , input  [7:0] dipsw
   , output wire [7:0] led
   , output [13:0] segled
@@ -368,10 +367,8 @@ wire [15:0] tx1mem_rd_ptr;
 reg  [15:0] tx1mem_wr_ptr;
 wire [ 6:0] tx0local_time_req;
 wire [ 6:0] tx1local_time_req;
-wire [ 1:0] tx0fifo_free_space_ratio;
-wire [ 1:0] tx1fifo_free_space_ratio;
-
-assign tx_intr = tx0fifo_free_space_ratio[0];
+wire        tx0fifo_free;
+wire        tx1fifo_free;
 `ifdef ENABLE_TRANSMITTER
 sender sender_phy1_ins (
     .sys_rst(sys_rst)
@@ -405,8 +402,8 @@ sender sender_phy1_ins (
   , .dipsw(dipsw)
 
   // interrupts
-  // 0: 50% space is free, 1: 25% space is free
-  , .txfifo_free_space_ratio_reg(tx0fifo_free_space_ratio)
+  // 50% space is free
+  , .txfifo_free(tx0fifo_free)
 );
 
 `ifdef ENABLE_PHY2
@@ -438,8 +435,8 @@ sender sender_phy2_ins (
   , .local_time_req(tx1local_time_req)
 
   // interrupts
-  // 0: 50% space is free, 1: 25% space is free
-  , .txfifo_free_space_ratio_reg(tx1fifo_free_space_ratio)
+  // 50% space is free
+  , .txfifo_free_space_ratio(tx1fifo_free)
 );
 `endif
 `endif
@@ -751,8 +748,10 @@ always @(posedge clk_125) begin
 			end else
 				slv_dat0_o <= 16'h0; // slv_adr_i[16:1];
 		end else begin
+
 			if (clr_intr_count != 32'h0)
 				clr_intr_count <= clr_intr_count - 32'h1;
+
 			if (req_intr && clr_intr_count == 32'd0)
 				dma_status[3] <= 1'b1;
 			else begin
@@ -763,6 +762,11 @@ always @(posedge clk_125) begin
 				if (set_intr_count == set_intr_val)
 					dma_status[3] <= 1'b0;
 			end
+
+      if (tx0fifo_free == 1'b1) begin
+        dma_status[4] <= 1'b1;
+      end
+
 			if (local_time_update_pending[0]) begin
 				local_time1           <= global_counter - 48'h3;
 				local_time_update_ack <= 1'b1;
@@ -791,7 +795,7 @@ always @(posedge clk_125) begin
 	end
 end
 
-assign sys_intr = dma_status[3];
+assign sys_intr = (dma_status[3] | dma_status[4]);
 assign led[7:0] = ~dma_status[7:0];
 
 assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[17]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[17]}} & slv_dat2_o );

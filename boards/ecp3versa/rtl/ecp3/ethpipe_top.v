@@ -97,7 +97,7 @@ pcie_top pcie (
   , .hdoutp0                    ( hdoutp )
   , .hdoutn0                    ( hdoutn )
   , .msi                        (  8'd0 )
-  , .inta_n                     ( ~sys_intr | ~tx_intr )
+  , .inta_n                     ( ~(sys_intr | tx_intr) )
   // This PCIe interface uses dynamic IDs.
   , .vendor_id                  (16'h3776)
   , .device_id                  (16'h8001)

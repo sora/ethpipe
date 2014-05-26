@@ -406,7 +406,7 @@ sender sender_phy1_ins (
 
   // interrupts
   // 0: 50% space is free, 1: 25% space is free
-  , .txfifo_free_space_ratio(tx0fifo_free_space_ratio)
+  , .txfifo_free_space_ratio_reg(tx0fifo_free_space_ratio)
 );
 
 `ifdef ENABLE_PHY2
@@ -439,7 +439,7 @@ sender sender_phy2_ins (
 
   // interrupts
   // 0: 50% space is free, 1: 25% space is free
-  , .txfifo_free_space_ratio(tx1fifo_free_space_ratio)
+  , .txfifo_free_space_ratio_reg(tx1fifo_free_space_ratio)
 );
 `endif
 `endif

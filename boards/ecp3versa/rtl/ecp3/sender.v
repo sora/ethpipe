@@ -1,6 +1,10 @@
 `default_nettype none
 
-module sender (
+module sender #(
+    parameter txfifo_len    = 2 ** 16
+  , parameter txfifo_len50 = txfifo_len >> 1
+  , parameter txfifo_len25 = txfifo_len >> 2
+) (
   // system reset
     input  wire        sys_rst
 
@@ -35,6 +39,10 @@ module sender (
 
   , output reg  [ 7:0] led
   , input  wire [ 7:0] dipsw
+
+  // interrupts
+  // 0: 50% space is free, 1: 25% space is free
+  , output wire [ 1:0] txfifo_free_space_ratio
 );
 
 function [47:0] select_local_time;
@@ -298,6 +306,11 @@ always @* begin
 		end
 	endcase
 end
+
+// interrupts
+wire [15:0] txfifo_free_space = mem_wr_ptr - mem_rd_ptr;
+assign txfifo_free_space_ratio[0] = (txfifo_free_space > txfifo_len50) ? 1'b1 : 1'b0;
+assign txfifo_free_space_ratio[1] = (txfifo_free_space > txfifo_len25) ? 1'b1 : 1'b0;
 
 endmodule
 

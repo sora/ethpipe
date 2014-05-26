@@ -6,6 +6,7 @@ module ethpipe_mid  (
     input  clk_125
   , input  sys_rst
   , output sys_intr
+  , output wire tx_intr
   , input  [7:0] dipsw
   , output wire [7:0] led
   , output [13:0] segled
@@ -367,6 +368,10 @@ wire [15:0] tx1mem_rd_ptr;
 reg  [15:0] tx1mem_wr_ptr;
 wire [ 6:0] tx0local_time_req;
 wire [ 6:0] tx1local_time_req;
+wire [ 1:0] tx0fifo_free_space_ratio;
+wire [ 1:0] tx1fifo_free_space_ratio;
+
+assign tx_intr = tx0fifo_free_space_ratio[0];
 `ifdef ENABLE_TRANSMITTER
 sender sender_phy1_ins (
     .sys_rst(sys_rst)
@@ -398,6 +403,10 @@ sender sender_phy1_ins (
 
 //  , .led(led)
   , .dipsw(dipsw)
+
+  // interrupts
+  // 0: 50% space is free, 1: 25% space is free
+  , .txfifo_free_space_ratio(tx0fifo_free_space_ratio)
 );
 
 `ifdef ENABLE_PHY2
@@ -427,6 +436,10 @@ sender sender_phy2_ins (
   , .local_time7()
 
   , .local_time_req(tx1local_time_req)
+
+  // interrupts
+  // 0: 50% space is free, 1: 25% space is free
+  , .txfifo_free_space_ratio(tx1fifo_free_space_ratio)
 );
 `endif
 `endif

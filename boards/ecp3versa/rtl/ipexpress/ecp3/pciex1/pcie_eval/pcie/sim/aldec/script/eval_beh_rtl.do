@@ -1,9 +1,9 @@
 
-    cd "Z:/tmatsuya/Dropbox/fpga/ethpipe/boards/ecp3versa/rtl/ipexpress/ecp3/pciex1/pcie_eval/pcie/sim/aldec/rtl"
+    cd "C:/Users/sora/wrk/github/ethpipe/boards/ecp3versa/rtl/ipexpress/ecp3/pciex1/pcie_eval/pcie/sim/aldec/rtl"
     workspace create pcie_space
     design create pcie_design .
     design open pcie_design
-    cd "Z:/tmatsuya/Dropbox/fpga/ethpipe/boards/ecp3versa/rtl/ipexpress/ecp3/pciex1/pcie_eval/pcie/sim/aldec/rtl"
+    cd "C:/Users/sora/wrk/github/ethpipe/boards/ecp3versa/rtl/ipexpress/ecp3/pciex1/pcie_eval/pcie/sim/aldec/rtl"
     set sim_working_folder .
     #==============================================================================
     # Compile

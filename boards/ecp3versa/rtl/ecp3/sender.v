@@ -313,7 +313,7 @@ always @(posedge gmii_tx_clk) begin
   end else begin
     txfifo_free <= 1'b0;
     // when free space become 50%
-    if (txfifo_free_pre == 2'b10 && txfifo_free_space[15:14] == 2'b01) begin
+    if (txfifo_free_pre == 2'b01 && txfifo_free_space[15:14] == 2'b10) begin
       txfifo_free <= 1'b1;
     end
     txfifo_free_pre <= txfifo_free_space[15:14];

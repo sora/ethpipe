@@ -398,7 +398,7 @@ sender sender_phy1_ins (
 
   , .local_time_req(tx0local_time_req)
 
-//  , .led(led)
+  , .led(led)
   , .dipsw(dipsw)
 
   // interrupts
@@ -796,7 +796,7 @@ always @(posedge clk_125) begin
 end
 
 assign sys_intr = (dma_status[3] | dma_status[4]);
-assign led[7:0] = ~dma_status[7:0];
+//assign led[7:0] = ~dma_status[7:0];
 
 assign slv_dat_o = ( {16{slv_bar_i[0]}} & slv_dat0_o ) | ( {16{slv_bar_i[2] & ~slv_adr_i[17]}} & slv_dat1_o ) | ( {16{slv_bar_i[2] & slv_adr_i[17]}} & slv_dat2_o );
 

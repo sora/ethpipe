@@ -263,24 +263,24 @@ assign slot_tx_eth_addr = rd_ptr;
 // interrupts
 wire [15:0] txfifo_free_space = mem_rd_ptr - mem_wr_ptr;
 reg [1:0] txfifo_free_pre;
-reg [7:0] intr_count;
+reg [5:0] intr_count;
 always @(posedge gmii_tx_clk) begin
   if (sys_rst) begin
     txfifo_free_pre <= 2'b00;
     txfifo_free <= 1'b0;
-    intr_count <= 8'b0;
+    intr_count <= 6'b0;
   end else begin
     txfifo_free <= 1'b0;
     // when free space become 50%
     if (txfifo_free_pre == 2'b01 && txfifo_free_space[15:14] == 2'b10) begin
       txfifo_free <= 1'b1;
-      intr_count <= intr_count + 8'h1;
+      intr_count <= intr_count + 6'h1;
     end
     txfifo_free_pre <= txfifo_free_space[15:14];
   end
 end
 
-assign led = ~{ intr_count[7:0] };
+assign led = ~{ 1'b1, 1'b0, intr_count[5:0] };
 /*
 always @* begin
   case (dipsw)

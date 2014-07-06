@@ -280,7 +280,7 @@ always @(posedge gmii_tx_clk) begin
   end
 end
 
-led = ~{ intr_count[7:0] };
+assign led = ~{ intr_count[7:0] };
 /*
 always @* begin
   case (dipsw)

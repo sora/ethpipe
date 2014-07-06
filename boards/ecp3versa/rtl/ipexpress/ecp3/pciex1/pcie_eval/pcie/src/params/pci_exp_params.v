@@ -31,7 +31,7 @@
 `define	EN_BAR3
 `define INIT_REG_010  32'hfffff000
 `define INIT_REG_014  32'h00000000
-`define INIT_REG_018  32'hffff000c
+`define INIT_REG_018  32'hfffc000c
 `define INIT_REG_01C  32'hffffffff
 `define INIT_REG_020  32'h00000000
 `define INIT_REG_024  32'h00000000

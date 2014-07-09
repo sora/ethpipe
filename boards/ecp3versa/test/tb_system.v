@@ -147,13 +147,13 @@ initial begin
 //	#(1*16) ethpipe_mid_inst.global_counter[47:0] = 64'h0123456789ab;
 	#(1*16) ethpipe_mid_inst.global_counter[47:0] = 64'h2000;
 //	#(60*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h26;
-	#(60*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h4c;
-	#(180*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h72;
-	#(240*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'hd8;
+	#(60*16) ethpipe_mid_inst.tx0mem_wr_ptr = 16'hD14C;
+//	#(180*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'h72;
+//	#(240*16) ethpipe_mid_inst.tx0mem_wr_ptr = 12'hd8;
 
 //	#(8*2) mst_req_o = 1'b0;
 
-	#10000;
+	#2000000;
 
 	$finish;
 end

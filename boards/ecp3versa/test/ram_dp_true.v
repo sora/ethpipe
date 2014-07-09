@@ -5,8 +5,8 @@ module ram_dp_true  (
   , input  [15:0] DataInB
   , input  [1:0] ByteEnA
   , input  [1:0] ByteEnB
-  , input  [13:0] AddressA
-  , input  [13:0] AddressB
+  , input  [15:0] AddressA
+  , input  [15:0] AddressB
   , input  ClockA
   , input  ClockB
   , input  ClockEnA
@@ -19,10 +19,10 @@ module ram_dp_true  (
   , output reg [15:0] QB
 );
 
-reg [15:0] mem [0:16383];
+reg [15:0] mem [0:65535];
 
 initial begin
-        $readmemh("./mem_data.hex", mem);
+        $readmemh("/tmp/mem.hex", mem);
 end
 
 always @(posedge ClockA) begin
